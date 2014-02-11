@@ -1,0 +1,253 @@
+## IMPORTANTE!!!
+## Fare sempre molta attenzione a spazi finali, che non si vedono ma fanno 
+## parte dei valori, e nelle righe "logiche" creano altri strani problemi
+
+## query per i soggetti conservatori
+
+query.sogc = \
+	select \
+		COALESCE(i.ISAD_Nazione + i.ISAD_Codice + i.ISAD_Sigla, '') as codi_provenienza, \
+		rtrim(i.DenomCompleta) as text_denominazione, \
+		case \
+			when i.tipologia= '01' then 1 \
+			when i.tipologia= '02' then 2 \
+			else '' \
+		end as tipologia, \
+		'false' as amm_attiva, \
+		COALESCE(i.ISAD_Nazione + i.ISAD_Codice + i.ISAD_Sigla, '') as fk_fonte, \
+		i.ISAD_Nazione as text_nazione_isad, \
+		i.ISAD_Codice as text_codice_isad, \
+		i.ISAD_Sigla as text_sigla_isad, \
+		COALESCE(i.ISAD_Nazione + i.ISAD_Codice + i.ISAD_Sigla, '') as text_acronimo, \
+		1 as fk_natura_giuridica, \
+		datazioni.data_testuale as text_estr_crono_testuali, \
+		datazioni.estremo_remoto as data_inizio, \
+		datazioni.estremo_recente as data_fine \
+	from \
+		elementi e, \
+		istituti i \
+		left outer join m_date_istituti as datazioni \
+		on datazioni.fk_istituto = i.ID_Istituto \
+	where \
+		i.ID_Elemento = e.ID_Elemento \
+		and i.ID_Istituto = ? \
+		and e.Pubblicato = 'S'
+
+## query per estrarre gli ID degli istituti e nient'altro
+
+query.istituti = \
+	select \
+		ID_Istituto, \
+		COALESCE(ISAD_Nazione+ISAD_Codice+ ISAD_Sigla, '') as fk_fonte \
+	from \
+		istituti \
+	where \
+		(tipologia = '01' or tipologia = '02')
+
+## query per popolare d_localizzazione (principale) in d_sogc 
+
+query.localizzazione.principale = \
+	select \
+		Indirizzo as text_indirizzo, \
+		Provincia as codi_provincia, \
+		citta as codi_comune, \
+		cap as text_cap, \
+		'true' as flag_loc_principale_tf, \
+		telefono as text_telefono, \
+		fax as text_fax, \
+		email as text_email, \
+		urlweb as text_urlweb, \
+		orario as text_orari_apertura \
+	from \
+		istituti \
+	where ID_Istituto = ?
+
+## query per popolare d_localizzazione (secondaria) in d_sogc
+
+query.localizzazione.secondaria = \
+	select \
+		succursale.Indirizzo as text_indirizzo, \
+		succursale.Provincia as codi_provincia, \
+		succursale.citta as codi_comune, \
+		succursale.cap as text_cap, \
+		'false' as flag_loc_principale_tf, \
+		succursale.telefono as text_telefono, \
+		succursale.fax as text_fax, \
+		succursale.email as text_email, \
+		succursale.urlweb as text_urlweb, \
+		succursale.orario as text_orari_apertura \
+	from \
+		Elementi e, \
+		istituti i, \
+		elementi es, \
+		istituti succursale \
+	where \
+		i.id_elemento = e.ID_Elemento \
+		and succursale.id_elemento = es.ID_Elemento \
+		and es.ID_ElementoPadre = e.ID_Elemento \
+		and succursale.Tipologia = '03' \
+		and i.ID_Istituto = ?
+
+## query per popolare d_sogc/d_depositi
+
+query.depositi = \
+	select \
+		COALESCE(i.ISAD_Nazione +'DPT'+ i.ISAD_Sigla, '') as codi_provenienza, \
+		COALESCE(i.ISAD_Nazione + i.ISAD_Codice + i.ISAD_Sigla, '') as fk_fonte, \
+		(ROW_NUMBER() OVER(ORDER BY deposito.denominazione)) as row_num, \
+		rtrim(deposito.DenomCompleta) as text_den_deposito, \
+		deposito.tipologia as fk_voc_tipo_deposito, \
+		'stabilire cosa' as text_estr_crono_testuali, \
+		deposito.Indirizzo as text_indirizzo, \
+		deposito.Provincia as codi_provincia, \
+		deposito.citta as codi_comune, \
+		deposito.cap as text_cap, \
+		deposito.telefono as text_telefono, \
+		deposito.email as text_email, \
+		deposito.orario as text_orari_apertura \
+	from \
+		Elementi e, \
+		istituti i, \
+		elementi es, \
+		istituti deposito \
+	where \
+		i.id_elemento = e.ID_Elemento \
+		and deposito.id_elemento = es.ID_Elemento \
+		and es.ID_ElementoPadre = e.ID_Elemento \
+		and deposito.Tipologia = '04' \
+		and es.Pubblicato = 'S' \
+		and i.ID_Istituto = ? \
+	order by deposito.ID_Istituto
+
+## query per le localizzazioni dei depositi
+
+query.depositi.localizzazioni = \
+	select \
+		deposito.Indirizzo as text_indirizzo, \
+		deposito.Provincia as codi_provincia, \
+		deposito.citta as codi_comune, \
+		deposito.cap as text_cap, \
+		deposito.telefono as text_telefono, \
+		deposito.email as text_email, \
+		deposito.orario as text_orari_apertura \
+	from \
+		Elementi e, \
+		istituti i, \
+		elementi es, \
+		istituti deposito \
+	where \
+		i.id_elemento = e.ID_Elemento \
+		and deposito.id_elemento = es.ID_Elemento \
+		and es.ID_ElementoPadre = e.ID_Elemento \
+		and deposito.Tipologia = '04' \
+		and i.ID_Istituto = ? \
+	order by deposito.ID_Istituto
+
+## query per l'eventuale relazione col soggetto superiore
+
+query.sezioni = \
+	select \
+		COALESCE(i.ISAD_Nazione+i.ISAD_Codice+ i.ISAD_Sigla, '') as codi_provenienza_sogc_sup, \
+		COALESCE(sezione.ISAD_Nazione+sezione.ISAD_Codice+ sezione.ISAD_Sigla, '') as codi_provenienza_sogc \
+	from \
+		Elementi e, \
+		istituti i, \
+		elementi es, \
+		istituti sezione \
+	where \
+		i.id_elemento = e.ID_Elemento \
+		and sezione.id_elemento = es.ID_Elemento \
+		and es.ID_ElementoPadre = e.ID_Elemento \
+		and sezione.ID_Istituto = ?
+		
+## query per l'estrazione dei comparc legati a un istituto
+
+query.comparc = \
+	select \
+		c.ID_ComplessoDoc as ID_ComplessoDoc, \
+		COALESCE(c.ISAD_Nazione+'-'+c.ISAD_Codice+c.ISAD_Sigla+'-F'+convert(varchar(10), c.ID_ComplessoDoc) ,'') as codi_provenienza, \
+		case \
+			when c.desctipologia = 'Collection' then 1 \
+		  when c.desctipologia = 'fondo' then 3 \
+		  when c.desctipologia = 'Serie' then 6 \
+		  when c.desctipologia = 'Sottoserie' then 9 \
+		  when c.desctipologia = 'SottoSottoSerie' then 9 \
+		  when c.desctipologia = 'Subfondo' then 7 \
+		  when c.desctipologia = 'SuperFondo' then 2 \
+		end as fk_voc_tipo_comparc, \
+		c.Denominazione as text_den_uniformata, \
+		1 as fk_voc_stato_descrizione, \
+		'S' as flag_comparc_proprieta_statale_tf, \
+		COALESCE(c.ISAD_Nazione+c.ISAD_Codice+c.ISAD_Sigla, '') as fk_fonte, \
+		c.DescrizioneEstremi + COALESCE( ' (' + c.descrizioneestensioni + ')', '') as text_estr_crono_testuali, \
+		c.datainizio as date_estremo_remoto, \
+		c.datafine as date_estremo_recente, \
+		c.NoteStoriche as text_storia_archivistica, \
+		c.UrlLink as text_url, \
+		c.Ordinamento as text_num_corda, \
+		c.MetriLineari as nume_mt_lineari_complessivi, \
+		c.MetriLineariFigli as nume_riparto_mt_lineari_sottolvl \
+	from \
+		complessidoc c, \
+		elementi e \
+	where \
+		e.ID_Elemento = c.ID_Elemento \
+		and c.ID_Istituto = ? \
+		and e.Pubblicato = 'S' \
+	order by DescTipologia
+
+## query per l'estrazione delle denominazioni alternative dei comparc
+
+query.comparc.altreden = \
+	select \
+		DEN.AltraDenominazione as text_altreden, \
+		'non disponibile' as text_estr_crono_testuali \
+	from \
+		ComplessiDoc CD \
+	join \
+		ComplessiDocDenominazioni DEN on DEN.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+	join \
+		Elementi ELEM on ELEM.ID_Elemento = CD.ID_Elemento \
+		and cd.Id_complessodoc= ? \
+		and ELEM.Pubblicato = 'S'
+
+## configurazione a livello del database
+
+database.host = 172.16.196.129
+database.driver = com.microsoft.sqlserver.jdbc.SQLServerDriver
+database.name = archivista
+database.username = sa
+database.password = antonio
+database.instancename = SQLEXPRESS
+
+## la prima di queste chiavi serve al marshaller per segnalare ad un parser,
+## con l'opportuno attributo dell'elemento root, dove trovare lo schema
+## in particolare, in questo modo eclipse, che apre gli XML validandoli, non si
+## lamenta e soprattutto non sottolinea tutte le righe  
+
+xml.jaxb.schemaLocation = \
+	http://san.beniculturali.it/catalogo/envelope-catsas \
+	http://san.beniculturali.it/sas/catalogo/envelope-catsas.xsd
+
+## questa è diversa dalla precedente, che lega una URI a una URL; questa serve
+## solo al programma per trovare fisicamente lo schema; se omessa, il marshaller
+## non effettua validazione
+
+xml.schema.location =	http://san.beniculturali.it/sas/catalogo/envelope-catsas.xsd
+#xml.schema.location =	file:lib/xsd/envelope-catsas.xsd
+
+## file e directory di output
+
+xml.output.filename = d_sogc.xml
+xml.output.directory = tmp
+
+## validazione oppure no
+
+xml.jaxb.validate = false
+
+## file di log
+log.file = log
+log.level = info
+
+## fonte usata per evitare errori di validazione; in produzione va commentata
+#sogc.fk_fonte = ITASVT
