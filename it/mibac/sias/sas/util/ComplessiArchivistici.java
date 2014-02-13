@@ -113,21 +113,25 @@ public class ComplessiArchivistici
 				}
 				dcomparcw.setTextEstrCronoTestuali(rs
 						.getString("text_estr_crono_testuali"));
-				dcomparcw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
 				try
 				{
+					dcomparcw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
 					dcomparcw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
 				}
 				catch(DatatypeConfigurationException e)
 				{
-					log.warn("Istituto " + idIstituto + ", complesso "
-							+ rs.getString("ID_ComplessoDoc") + "scartato: " + e.getMessage());
+					log
+							.warn("Istituto " + idIstituto + ", complesso "
+									+ rs.getString("ID_ComplessoDoc") + "scartato: "
+									+ e.getMessage());
 					break;
 				}
 				catch(IllegalArgumentException e)
 				{
-					log.warn("Istituto " + idIstituto + ", complesso "
-							+ rs.getString("ID_ComplessoDoc") + "scartato: " + e.getMessage());
+					log
+							.warn("Istituto " + idIstituto + ", complesso "
+									+ rs.getString("ID_ComplessoDoc") + "scartato: "
+									+ e.getMessage());
 					break;
 				}
 				// dcomparcw.setDComparcDatiConsistenza(rs
@@ -136,10 +140,10 @@ public class ComplessiArchivistici
 						.getString("text_storia_archivistica"));
 				dcomparcw.setTextUrl(rs.getString("text_url"));
 				dcomparcw.setTextNumCorda(rs.getInt("text_num_corda"));
-				dcomparcw.setNumeMetriLineariComplessivi(rs
-						.getInt("nume_mt_lineari_complessivi"));
+				dcomparcw.setNumeMtLineariComplessivi(rs
+						.getBigDecimal("nume_mt_lineari_complessivi"));
 				dcomparcw.setNumeRipartoMtLineariSottolvl(rs
-						.getInt("nume_riparto_mt_lineari_sottolvl"));
+						.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
 
 				log.info("Istituto " + idIstituto + ", complesso "
 						+ rs.getString("ID_ComplessoDoc"));

@@ -1,5 +1,9 @@
 package it.mibac.sias.sas.test;
 
+import it.mibac.sias.sas.util.DB;
+import it.mibac.sias.sas.util.EnvelopeWrapper;
+import it.mibac.sias.sas.util.EsportaComplessiArchivistici;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,21 +15,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 
-import it.mibac.sias.sas.util.DB;
-import it.mibac.sias.sas.util.EnvelopeWrapper;
-import it.mibac.sias.sas.util.EsportaComplessiArchivistici;
-import it.mibac.sias.sas.util.EsportaSoggettiConservatori;
+import org.apache.log4j.Logger;
 
 /*
  * Classe per provare l'esportazione dei soggetti conservatori. Si limita a
@@ -34,10 +33,12 @@ import it.mibac.sias.sas.util.EsportaSoggettiConservatori;
 
 public class TestEsportaComplessiArchivistici
 {
+	private static Logger log;
 
 	public static void main(String[] args)
 	{
 		Properties config = new Properties();
+		log = Logger.getLogger("COMPARC");
 		try
 		{
 			config.load(new FileReader(new File("query.prop")));
@@ -72,8 +73,7 @@ public class TestEsportaComplessiArchivistici
 			e1.printStackTrace();
 		}
 		ResultSet rs;
-		int rows;
-		int maxIstituti = 1;
+		int maxIstituti = 1000;
 		EsportaComplessiArchivistici eca = new EsportaComplessiArchivistici();
 		try
 		{
@@ -93,9 +93,8 @@ public class TestEsportaComplessiArchivistici
 			{
 				idIstituto = rs.getInt("ID_Istituto");
 				fonte = rs.getString("fk_fonte");
-//				idIstituto = 794000000;
-				idIstituto = 228200000;
-				fonte = "ITASBO";
+				// idIstituto = 794000000;
+				// idIstituto = 228200000; fonte = "ITASBO";
 				Iterator<EnvelopeWrapper> ewi = eca.creaMultiEnvelope(idIstituto);
 				EnvelopeWrapper ew = null;
 				SimpleDateFormat sdf;
@@ -131,10 +130,19 @@ public class TestEsportaComplessiArchivistici
 					}
 					zos.closeEntry();
 				}
-				bis.close();
-				zos.flush();
-				zos.close();
-				fos.close();
+				try
+				{
+					bis.close();
+					zos.flush();
+					zos.close();
+					fos.close();
+				}
+				catch(ZipException e)
+				{
+					log.warn("Istituto " + idIstituto + "(" + fonte
+							+ "), nessun complesso valido, ZIP non creato");
+					// e.printStackTrace();
+				}
 			}
 		}
 		catch(SQLException e)

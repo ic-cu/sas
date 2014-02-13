@@ -1,23 +1,18 @@
 package it.mibac.sias.sas.util;
 
 import it.beniculturali.sas.catalogo.commons.DUrl;
-import it.beniculturali.sas.catalogo.commons.ObjectFactory;
 import it.beniculturali.sas.catalogo.comparc.DComparc;
 import it.beniculturali.sas.catalogo.comparc.DComparcAltreden;
-import it.beniculturali.sas.catalogo.comparc.DComparcDatiConsistenza;
 import it.beniculturali.sas.catalogo.comparc.FkFonte;
 import it.beniculturali.sas.catalogo.comparc.FkVocTipoComparc;
-import it.beniculturali.sas.catalogo.comparc.DComparcDatiConsistenza.FkVocTipoOggettiCons;
 import it.beniculturali.sas.catalogo.fonti.ProfGroup;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocTipoComparc;
-import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocTipoOggettiCons;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.GregorianCalendar;
 import java.util.Properties;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -110,7 +105,8 @@ public class DComparcWrapper
 		DVocTipoComparc dVoc = vocComparcObf.createDVocTipoComparc();
 		dVoc.setSequVocTipoComparc(l);
 		FkVocTipoComparc fkVoc = dcomparcObf.createFkVocTipoComparc();
-		fkVoc.getDVocTipoComparc().add(dVoc);
+		// fkVoc.getDVocTipoComparc().add(dVoc);
+		fkVoc.setDVocTipoComparc(dVoc);
 		dcomparc.setFkVocTipoComparc(fkVoc);
 	}
 
@@ -136,10 +132,12 @@ public class DComparcWrapper
 	}
 
 	public void setDateEstremoRemoto(String s)
+			throws DatatypeConfigurationException, IllegalArgumentException
 	{
 		int aa = 0;
 		int mm = 0;
 		int dd = 0;
+		String msg = null;
 		XMLGregorianCalendar xgc = null;
 		if(s != null)
 		{
@@ -174,7 +172,15 @@ public class DComparcWrapper
 		}
 		catch(DatatypeConfigurationException e)
 		{
-			e.printStackTrace();
+			DatatypeConfigurationException ee;
+			ee = new DatatypeConfigurationException(msg);
+			throw ee;
+		}
+		catch(IllegalArgumentException e)
+		{
+			IllegalArgumentException ee;
+			ee = new IllegalArgumentException("date_estremo_recente = " + s);
+			throw ee;
 		}
 		dcomparc.setDateEstremoRemoto(xgc);
 	}
@@ -256,6 +262,11 @@ public class DComparcWrapper
 
 	public void setTextUrl(String s)
 	{
+		if(s == null || s.trim() == null)
+		{
+			s = "http://nessuna.url.it";
+			log.warn("url nulla, avrà un valore fittizio");
+		}
 		DUrl du;
 		du = comObf.createDUrl();
 		du.setTextUrl(s);
@@ -267,17 +278,13 @@ public class DComparcWrapper
 		dcomparc.setTextNumCorda(i);
 	}
 
-	public void setNumeMetriLineariComplessivi(float f)
+	public void setNumeMtLineariComplessivi(BigDecimal bd)
 	{
-		BigDecimal bd;
-		bd = new BigDecimal(f);
 		dcomparc.setNumeMtLineariComplessivi(bd);
 	}
 
-	public void setNumeRipartoMtLineariSottolvl(float f)
+	public void setNumeRipartoMtLineariSottolvl(BigDecimal bd)
 	{
-		BigDecimal bd;
-		bd = new BigDecimal(f);
 		dcomparc.setNumeRipartoMtLineariSottolvl(bd);
 	}
 
