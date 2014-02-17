@@ -279,7 +279,16 @@ public class DComparcWrapper
 	}
 
 	public void setNumeMtLineariComplessivi(BigDecimal bd)
+			throws IllegalArgumentException
 	{
+		if(bd.abs().floatValue() >= 1)
+		{
+			IllegalArgumentException ee;
+			ee = new IllegalArgumentException("nume_mt_lineari_complessivi = "
+					+ bd.floatValue() + ", sarà impostato a 0.9999");
+			bd = new BigDecimal(0.9999);
+			throw ee;
+		}
 		dcomparc.setNumeMtLineariComplessivi(bd);
 	}
 
