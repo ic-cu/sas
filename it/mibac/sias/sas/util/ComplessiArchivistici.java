@@ -140,10 +140,20 @@ public class ComplessiArchivistici
 						.getString("text_storia_archivistica"));
 				dcomparcw.setTextUrl(rs.getString("text_url"));
 				dcomparcw.setTextNumCorda(rs.getInt("text_num_corda"));
-				dcomparcw.setNumeMtLineariComplessivi(rs
-						.getBigDecimal("nume_mt_lineari_complessivi"));
-				dcomparcw.setNumeRipartoMtLineariSottolvl(rs
-						.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
+				try
+				{
+					dcomparcw.setNumeMtLineariComplessivi(rs
+							.getBigDecimal("nume_mt_lineari_complessivi"));
+					dcomparcw.setNumeRipartoMtLineariSottolvl(rs
+							.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
+				}
+				catch(IllegalArgumentException e)
+				{
+					log
+					.warn("Istituto " + idIstituto + ", complesso "
+							+ rs.getString("ID_ComplessoDoc") + ": "
+							+ e.getMessage());
+				}
 
 				log.info("Istituto " + idIstituto + ", complesso "
 						+ rs.getString("ID_ComplessoDoc"));
