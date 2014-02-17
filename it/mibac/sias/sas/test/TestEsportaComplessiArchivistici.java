@@ -54,6 +54,7 @@ public class TestEsportaComplessiArchivistici
 
 		int idIstituto;
 		String fonte;
+		String tmpDir = config.getProperty("xml.output.directory");
 		DB db = new DB();
 		Connection connection = db.getConnection();
 		PreparedStatement stmtIstituti = null;
@@ -103,7 +104,7 @@ public class TestEsportaComplessiArchivistici
 				DecimalFormat df;
 				df = new DecimalFormat("000");
 				int i = 0;
-				String zipFileName = "tmp/ca/zip/SIAS-" + fonte + "-"
+				String zipFileName = tmpDir + "/ca/zip/SIAS-" + fonte + "-"
 						+ sdf.format(new Date()) + ".zip";
 				fos = new FileOutputStream(zipFileName);
 				zos = new ZipOutputStream(fos);
@@ -117,9 +118,9 @@ public class TestEsportaComplessiArchivistici
 					fileName += df.format(++i);
 					fileName += ".xml";
 					System.err.println("Envelope numero " + i);
-					ew.marshall("tmp/ca/xml/" + fileName);
+					ew.marshall(tmpDir + "/ca/xml/" + fileName);
 					ze = new ZipEntry(fileName);
-					fis = new FileInputStream("tmp/ca/xml/" + fileName);
+					fis = new FileInputStream(tmpDir + "/ca/xml/" + fileName);
 					bis = new BufferedInputStream(fis, 2048);
 					zos.putNextEntry(ze);
 					int count;
