@@ -23,33 +23,43 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.log4j.Logger;
 
 /*
- * Classe wrapper attorno ad un DSogc. Non aggiunge quasi niente a DSogc, ma
- * reimplemente alcuni dei metodi di DSogc in modo che accettino tipi primitivi.
- * Viene così nascosta la complessità di certe chiamate, così da rendere il
- * codice invocante più pulito
+ * Classe wrapper attorno ad un DComparc. Non aggiunge quasi niente a DComparc,
+ * ma reimplementa quasi tutti i metodi di DComparc corrispondenti a dati Sias
+ * in modo che accettino i tipi primitivi provenienti da Sias. Viene così
+ * nascosta la complessità di certe chiamate, così da rendere il codice
+ * invocante più pulito. La soluzione giusta sarebbe derivare una classe da
+ * DComparc, ma questo non è possibile se si usano le factory.
  */
+
 public class DComparcWrapper
 {
-	/*
-	 * Serviranno spesso alcune object factory, istanziate nel costruttore
-	 */
+/*
+ * Serviranno spesso alcune object factory, istanziate nel costruttore
+ */
 	private it.beniculturali.sas.catalogo.comparc.ObjectFactory dcomparcObf;
 	private it.beniculturali.sas.catalogo.commons.ObjectFactory comObf;
 	private it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory vocComparcObf;
+	private it.beniculturali.sas.catalogo.fonti.ObjectFactory fontiObf;
+
+/*
+ * Il logger è configurato altrove, e qui viene solo richiamato (vedi
+ * costruttore). Non è certo che debbe essere per forza static, altrove non lo
+ * è.
+ */
+
 	private static Logger log;
 
-	/*
-	 * Il member più importante è un DSogc: tutto quello che fa questa classe
-	 * impatta su di esso.
-	 */
+/*
+ * Il member più importante è un DComparc: tutto quello che fa questa classe
+ * impatta su di esso.
+ */
 
 	private it.beniculturali.sas.catalogo.comparc.DComparc dcomparc;
 
-	/*
-	 * Questa mappa permette di convertire le sigle automobilistiche e i nomi dei
-	 * comuni nei corrispondenti codici istat. Ho qualche preoccupazione circa
-	 * l'encoding, perché sembra che l'istat esporti in latin1.
-	 */
+/*
+ * Queste mappe permettono di convertire le sigle automobilistiche e i nomi dei
+ * comuni nei corrispondenti codici istat.
+ */
 	private Properties comuIstat;
 	private Properties provIstat;
 
@@ -59,15 +69,19 @@ public class DComparcWrapper
 		dcomparcObf = new it.beniculturali.sas.catalogo.comparc.ObjectFactory();
 		vocComparcObf = new it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory();
 		comObf = new it.beniculturali.sas.catalogo.commons.ObjectFactory();
-		new it.beniculturali.sas.catalogo.commons.ObjectFactory();
-		new it.beniculturali.sas.catalogo.luoghi.ObjectFactory();
+		fontiObf = new it.beniculturali.sas.catalogo.fonti.ObjectFactory();
+		initLogger();
+		loadConfig();
+	}
+
+	private void loadConfig()
+	{
 		comuIstat = new Properties();
 		provIstat = new Properties();
 		try
 		{
 			comuIstat.load(new FileReader(new File("comuni-istat.prop")));
 			provIstat.load(new FileReader(new File("province-istat.prop")));
-			log = Logger.getLogger("COMPARC");
 			log.debug("Caricati codici ISTAT");
 		}
 		catch(FileNotFoundException e)
@@ -80,15 +94,26 @@ public class DComparcWrapper
 		}
 	}
 
-	/*
-	 * Questo metodo è fondamentale: dopo aver lavorato sul wrapper, il chiamante
-	 * gli deve chiedere il DSogc embedded
-	 */
+	private void initLogger()
+	{
+		log = Logger.getLogger("COMPARC");
+	}
+
+/*
+ * Questo metodo è fondamentale: dopo aver lavorato sul wrapper, il chiamante
+ * gli deve chiedere il DComparc embedded
+ */
 
 	public DComparc getDComparc()
 	{
 		return dcomparc;
 	}
+
+/*
+ * Comincia qui una serie di metodi che sono di solito omonimi di quelli di
+ * DComparc, ma richiedono tipi primitivi poi opportunamente inseriti nel
+ * DComparc.
+ */
 
 	public void setCodiProvenienza(String s)
 	{
@@ -105,7 +130,6 @@ public class DComparcWrapper
 		DVocTipoComparc dVoc = vocComparcObf.createDVocTipoComparc();
 		dVoc.setSequVocTipoComparc(l);
 		FkVocTipoComparc fkVoc = dcomparcObf.createFkVocTipoComparc();
-		// fkVoc.getDVocTipoComparc().add(dVoc);
 		fkVoc.setDVocTipoComparc(dVoc);
 		dcomparc.setFkVocTipoComparc(fkVoc);
 	}
@@ -118,8 +142,6 @@ public class DComparcWrapper
 	public void setFkFonte(String s)
 	{
 		FkFonte fkf = dcomparcObf.createFkFonte();
-		it.beniculturali.sas.catalogo.fonti.ObjectFactory fontiObf;
-		fontiObf = new it.beniculturali.sas.catalogo.fonti.ObjectFactory();
 		ProfGroup pg = fontiObf.createProfGroup();
 		pg.setGroupName(s);
 		fkf.setProfGroup(pg);
@@ -130,6 +152,11 @@ public class DComparcWrapper
 	{
 		dcomparc.setTextEstrCronoTestuali(s);
 	}
+
+/*
+ * Questi due metodi relativi agli estremi cronologici vanno uniformati, perché
+ * il codice è quasi interamente duplicato
+ */
 
 	public void setDateEstremoRemoto(String s)
 			throws DatatypeConfigurationException, IllegalArgumentException
@@ -267,7 +294,6 @@ public class DComparcWrapper
 		{
 			s = "http://localhost";
 			se = new SiasSasException("url nulla, sarà impostata a " + s);
-//			log.warn("url nulla, sarà impostata a " + s);
 			throw se;
 		}
 		DUrl du;
@@ -282,16 +308,7 @@ public class DComparcWrapper
 	}
 
 	public void setNumeMtLineariComplessivi(BigDecimal bd)
-			throws IllegalArgumentException
 	{
-		if(bd.abs().floatValue() >= 1000000000000000.0)
-		{
-			IllegalArgumentException ee;
-			ee = new IllegalArgumentException("nume_mt_lineari_complessivi = "
-					+ bd.floatValue() + ", sarà impostato a 0.9999");
-			bd = new BigDecimal(0.9999);
-			throw ee;
-		}
 		dcomparc.setNumeMtLineariComplessivi(bd);
 	}
 
