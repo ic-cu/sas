@@ -21,9 +21,10 @@ import org.apache.log4j.Logger;
 
 public class ComplessiArchivistici
 {
-	Properties queryProp;
-	PreparedStatement stmtDComparc;
-	PreparedStatement stmtDComparcAltreden;
+	private Properties queryProp;
+	private PreparedStatement stmtDComparc;
+	private PreparedStatement stmtDComparcAltreden;
+	private PreparedStatement stmtIstituto;
 	ResultSet rs, rsad;
 	FkFonte fkf;
 	String fkFonte = null;
@@ -48,6 +49,10 @@ public class ComplessiArchivistici
 					.getProperty("query.comparc"));
 			stmtDComparcAltreden = conn.prepareStatement(queryProp
 					.getProperty("query.comparc.altreden"));
+			stmtIstituto = conn.prepareStatement(queryProp
+					.getProperty("query.istituto"), ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+
 			fkFonte = queryProp.getProperty("sogc.fk_fonte");
 			log = Logger.getLogger("COMPARC");
 		}
@@ -77,9 +82,15 @@ public class ComplessiArchivistici
 		DComparcWrapper dcomparcw = null;
 		ArrayList<DComparc> dwl = null;
 		dwl = new ArrayList<DComparc>();
-		log.info("Istituto " + idIstituto + ", inizio elaborazione");
+		String siglaIstituto = null;
 		try
 		{
+			stmtIstituto.setInt(1, idIstituto);
+			stmtIstituto.execute();
+			rs = stmtIstituto.getResultSet();
+			rs.next();
+			siglaIstituto = rs.getString("fk_fonte");
+			log.info("Istituto " + siglaIstituto + ", inizio elaborazione");
 			/*
 			 * A questo punto la connessione è stabilita. Si prepara una query e si
 			 * esegue con id_istituto
@@ -121,7 +132,7 @@ public class ComplessiArchivistici
 				catch(DatatypeConfigurationException e)
 				{
 					log
-							.warn("Istituto " + idIstituto + ", complesso "
+							.warn("Istituto " + siglaIstituto + ", complesso "
 									+ rs.getString("ID_ComplessoDoc") + "scartato: "
 									+ e.getMessage());
 					break;
@@ -129,19 +140,19 @@ public class ComplessiArchivistici
 				catch(IllegalArgumentException e)
 				{
 					log
-							.warn("Istituto " + idIstituto + ", complesso "
+							.warn("Istituto " + siglaIstituto + ", complesso "
 									+ rs.getString("ID_ComplessoDoc") + "scartato: "
 									+ e.getMessage());
 					break;
 				}
 				// dcomparcw.setDComparcDatiConsistenza(rs
 				// .getLong("dati_consistenza_nume_consistenza"));
-				dcomparcw.setTextStoriaArchivistica(rs
-						.getString("text_storia_archivistica"));
-				dcomparcw.setTextUrl(rs.getString("text_url"));
-				dcomparcw.setTextNumCorda(rs.getInt("text_num_corda"));
 				try
 				{
+					dcomparcw.setTextStoriaArchivistica(rs
+							.getString("text_storia_archivistica"));
+					dcomparcw.setTextUrl(rs.getString("text_url"));
+					dcomparcw.setTextNumCorda(rs.getInt("text_num_corda"));
 					dcomparcw.setNumeMtLineariComplessivi(rs
 							.getBigDecimal("nume_mt_lineari_complessivi"));
 					dcomparcw.setNumeRipartoMtLineariSottolvl(rs
@@ -149,13 +160,16 @@ public class ComplessiArchivistici
 				}
 				catch(IllegalArgumentException e)
 				{
-					log
-					.warn("Istituto " + idIstituto + ", complesso "
-							+ rs.getString("ID_ComplessoDoc") + ": "
-							+ e.getMessage());
+					log.warn("Istituto " + siglaIstituto + ", complesso "
+							+ rs.getString("ID_ComplessoDoc") + ": " + e.getMessage());
+				}
+				catch(SiasSasException e)
+				{
+					log.warn("Istituto " + siglaIstituto + ", complesso "
+							+ rs.getString("ID_ComplessoDoc") + ": " + e.getMessage());
 				}
 
-				log.info("Istituto " + idIstituto + ", complesso "
+				log.info("Istituto " + siglaIstituto + ", complesso "
 						+ rs.getString("ID_ComplessoDoc"));
 
 				/*
@@ -172,8 +186,9 @@ public class ComplessiArchivistici
 
 				while(rsad.next())
 				{
-					dcomparcw.addAltraDen(rsad.getString("text_altreden"));
-					log.info("Istituto " + idIstituto + ", elaborata altra denominazione"
+					dcomparcw.addAltraDen(rsad.getString("text_altreden"), rsad.getString("text_estr_crono_testuali"));
+					log.info("Istituto " + siglaIstituto
+							+ ", elaborata altra denominazione "
 							+ rsad.getString("text_altreden"));
 				}
 				dwl.add(dcomparcw.getDComparc());
@@ -183,7 +198,7 @@ public class ComplessiArchivistici
 		{
 			e.printStackTrace();
 		}
-		log.info("Istituto " + idIstituto + ", fine elaborazione");
+		log.info("Istituto " + siglaIstituto + ", fine elaborazione");
 		return dwl.iterator();
 	}
 }
