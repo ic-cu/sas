@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,8 +28,10 @@ import java.util.zip.ZipOutputStream;
 import org.apache.log4j.Logger;
 
 /*
- * Classe per provare l'esportazione dei soggetti conservatori. Si limita a
- * qualche inizializzazione e a invocare poi il metodo opportuno
+ * Classe per provare l'esportazione dei complessi archivistici. Si limita a
+ * qualche inizializzazione e a invocare poi il metodo opportuno. Inoltre
+ * gestisce la creazione degli envelope limitando il numero di record per
+ * ciascuno.
  */
 
 public class TestEsportaComplessiArchivistici
@@ -39,6 +42,7 @@ public class TestEsportaComplessiArchivistici
 	{
 		Properties config = new Properties();
 		log = Logger.getLogger("COMPARC");
+	//	org.pmw.tinylog.Configurator.currentConfig().activate();
 		try
 		{
 			config.load(new FileReader(new File("query.prop")));
@@ -63,6 +67,16 @@ public class TestEsportaComplessiArchivistici
 		ZipEntry ze;
 		FileInputStream fis;
 		BufferedInputStream bis = null;
+		PrintWriter pw = null;
+		File tDir = null;
+
+		// si creano le directory temporanee, caso mai non esistessero
+
+		tDir = new File(tmpDir + "/ca/xml");
+		tDir.mkdirs();
+		tDir = new File(tmpDir + "/ca/zip");
+		tDir.mkdirs();
+
 		try
 		{
 			stmtIstituti = connection.prepareStatement(config
@@ -74,21 +88,12 @@ public class TestEsportaComplessiArchivistici
 			e1.printStackTrace();
 		}
 		ResultSet rs;
-		int maxIstituti = 1000;
+		int maxIstituti = 10;
 		EsportaComplessiArchivistici eca = new EsportaComplessiArchivistici();
 		try
 		{
 			stmtIstituti.execute();
 			rs = stmtIstituti.getResultSet();
-			// if(rows > max)
-			// {
-			// log.info("Estratti " + rows + " id di istituti, ne saranno lavorati "
-			// + max);
-			// }
-			// else
-			// {
-			// log.info("Estratti " + rows + " id di istituti");
-			// }
 
 			while(rs.next() && (maxIstituti-- > 0))
 			{
@@ -104,6 +109,9 @@ public class TestEsportaComplessiArchivistici
 				DecimalFormat df;
 				df = new DecimalFormat("000");
 				int i = 0;
+
+				// si crea il necessario alla gestione del file ZIP
+
 				String zipFileName = tmpDir + "/ca/zip/SIAS-" + fonte + "-"
 						+ sdf.format(new Date()) + ".zip";
 				fos = new FileOutputStream(zipFileName);
@@ -113,12 +121,18 @@ public class TestEsportaComplessiArchivistici
 				{
 					ew = ewi.next();
 					// fileName = "SIAS-ITASVT-";
-					fileName = ew.getSource() + "-" + ew.getFonte() + "-";
+					fileName = ew.getSource() + "-";
+					fileName += fonte + "-";
+//					fileName += ew.getFonte() + "-";
 					fileName += sdf.format(new Date()) + "-";
 					fileName += df.format(++i);
 					fileName += ".xml";
 					System.err.println("Envelope numero " + i);
-					ew.marshall(tmpDir + "/ca/xml/" + fileName);
+					log.info("Istituto " + fonte + ", envelope numero " + i);
+					org.pmw.tinylog.Logger.info("Istituto " + fonte
+							+ ", envelope numero " + i);
+					pw = new PrintWriter(new File(tmpDir + "/ca/xml/" + fileName));
+					ew.marshall(pw);
 					ze = new ZipEntry(fileName);
 					fis = new FileInputStream(tmpDir + "/ca/xml/" + fileName);
 					bis = new BufferedInputStream(fis, 2048);
