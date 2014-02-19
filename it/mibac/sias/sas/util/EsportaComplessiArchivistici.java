@@ -24,13 +24,15 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.WriterAppender;
 
+import org.pmw.tinylog.*;
+
 public class EsportaComplessiArchivistici
 {
 
 	public Connection connection;
 	private DB db;
 	private Properties config;
-	public static Logger log, valLog;
+	public Logger log, valLog;
 	private static String logLayout = "%05r %p %C{1}.%M - %m%n";
 	String fkFonte = null;
 
@@ -45,6 +47,10 @@ public class EsportaComplessiArchivistici
 		try
 		{
 			db = new DB();
+			config = new Properties();
+			FileReader prop = new FileReader("query.prop");
+			config.load(prop);
+			prop.close();
 
 			// logger generico
 			log = Logger.getLogger("COMPARC");
@@ -69,12 +75,9 @@ public class EsportaComplessiArchivistici
 			valLog.addAppender(wa);
 			// BasicConfigurator.configure(wa);
 
-			config = new Properties();
 			connection = db.getConnection();
-			FileReader prop = new FileReader("query.prop");
-			config.load(prop);
-			prop.close();
 			log.info("Inizio esportazione complessi archivistici");
+			org.pmw.tinylog.Logger.info("Inizio esportazione complessi archivistici");
 			fkFonte = config.getProperty("sogc.fk_fonte");
 		}
 		catch(FileNotFoundException e)
