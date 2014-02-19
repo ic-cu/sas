@@ -260,12 +260,15 @@ public class DComparcWrapper
 		dcomparc.setTextStoriaArchivistica(s);
 	}
 
-	public void setTextUrl(String s)
+	public void setTextUrl(String s) throws SiasSasException
 	{
+		SiasSasException se;
 		if(s == null || s.trim() == null)
 		{
-			s = "http://nessuna.url.it";
-			log.warn("url nulla, avrà un valore fittizio");
+			s = "http://localhost";
+			se = new SiasSasException("url nulla, sarà impostata a " + s);
+//			log.warn("url nulla, sarà impostata a " + s);
+			throw se;
 		}
 		DUrl du;
 		du = comObf.createDUrl();
@@ -281,7 +284,7 @@ public class DComparcWrapper
 	public void setNumeMtLineariComplessivi(BigDecimal bd)
 			throws IllegalArgumentException
 	{
-		if(bd.abs().floatValue() >= 1)
+		if(bd.abs().floatValue() >= 1000000000000000.0)
 		{
 			IllegalArgumentException ee;
 			ee = new IllegalArgumentException("nume_mt_lineari_complessivi = "
@@ -297,11 +300,12 @@ public class DComparcWrapper
 		dcomparc.setNumeRipartoMtLineariSottolvl(bd);
 	}
 
-	public void addAltraDen(String s)
+	public void addAltraDen(String s, String t)
 	{
 		DComparcAltreden da;
 		da = dcomparcObf.createDComparcAltreden();
 		da.setTextAltreden(s);
+		da.setTextEstrCronoTestuali(t);
 		dcomparc.getDComparcAltreden().add(da);
 	}
 }
