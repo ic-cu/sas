@@ -44,6 +44,19 @@ query.istituti = \
 	where \
 		(tipologia = '01' or tipologia = '02')
 
+## query identica alla precedente, ma parametrizzata per selezionare alcune
+## informazioni relative ad un istituto specifico
+
+query.istituto = \
+	select \
+		ID_Istituto, \
+		COALESCE(ISAD_Nazione+ISAD_Codice+ ISAD_Sigla, '') as fk_fonte \
+	from \
+		istituti \
+	where \
+		(tipologia = '01' or tipologia = '02') \
+		and ID_Istituto = ?
+
 ## query per popolare d_localizzazione (principale) in d_sogc 
 
 query.localizzazione.principale = \
@@ -239,7 +252,7 @@ xml.schema.location =	http://san.beniculturali.it/sas/catalogo/envelope-catsas.x
 ## file e directory di output
 
 xml.output.filename = d_sogc.xml
-xml.output.directory = tmp
+xml.output.directory = /tmp
 
 ## validazione oppure no
 
@@ -248,6 +261,7 @@ xml.jaxb.validate = false
 ## file di log
 log.file = log
 log.level = info
+log.layout = %05r %p %C{1}.%M - %m%n
 
 ## fonte usata per evitare errori di validazione; in produzione va commentata
-#sogc.fk_fonte = ITASVT
+sogc.fk_fonte = ITASVT
