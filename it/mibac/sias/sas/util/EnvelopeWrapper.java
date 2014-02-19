@@ -20,6 +20,7 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -126,6 +127,7 @@ public class EnvelopeWrapper
 			jc = JAXBContext
 					.newInstance("it.beniculturali.sas.catalogo.envelope_catsas");
 			Marshaller m = jc.createMarshaller();
+			Unmarshaller u = jc.createUnmarshaller();
 			m.setProperty("jaxb.formatted.output", true);
 
 			/*
@@ -161,7 +163,9 @@ public class EnvelopeWrapper
 				Schema schema = sf.newSchema(new URL(config
 						.getProperty("xml.schema.location")));
 				m.setSchema(schema);
-				m.setEventHandler(new SasValidationEventHandler());
+				u.setSchema(schema);
+//				m.setEventHandler(new SasValidationEventHandler());
+				u.setEventHandler(new SasValidationEventHandler());
 			}
 			// m.marshal(env, new PrintWriter(new File(config
 			// .getProperty("xml.output.filename"))));
@@ -169,6 +173,7 @@ public class EnvelopeWrapper
 			fileName = config.getProperty("xml.output.directory");
 			fileName+= "/" + getSource() + ".xml";
 			m.marshal(env, new PrintWriter(new File(fileName)));
+			u.unmarshal(new File(fileName));
 		}
 		catch(JAXBException e)
 		{
@@ -199,6 +204,7 @@ public class EnvelopeWrapper
 			jc = JAXBContext
 					.newInstance("it.beniculturali.sas.catalogo.envelope_catsas");
 			Marshaller m = jc.createMarshaller();
+			Unmarshaller u = jc.createUnmarshaller();
 			m.setProperty("jaxb.formatted.output", true);
 
 			/*
@@ -234,9 +240,80 @@ public class EnvelopeWrapper
 				Schema schema = sf.newSchema(new URL(config
 						.getProperty("xml.schema.location")));
 				m.setSchema(schema);
-				m.setEventHandler(new SasValidationEventHandler());
+				u.setSchema(schema);
+//				m.setEventHandler(new SasValidationEventHandler());
+				u.setEventHandler(new SasValidationEventHandler());
 			}
 			m.marshal(env, new PrintWriter(new File(fileName)));
+			u.unmarshal(new File(fileName));
+		}
+		catch(JAXBException e)
+		{
+			e.printStackTrace();
+		}
+		catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch(SAXException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void marshall(PrintWriter pw)
+	{
+		/*
+		 * Si istanza e si applica il marshaller, con poche opzioni
+		 */
+		JAXBContext jc = null;
+		try
+		{
+			jc = JAXBContext
+					.newInstance("it.beniculturali.sas.catalogo.envelope_catsas");
+			Marshaller m = jc.createMarshaller();
+			m.setProperty("jaxb.formatted.output", true);
+	
+			/*
+			 * Il marshaller creato così ha il difetto di dare ai namespace che
+			 * incontra dei nomi non parlanti, tipicamente "nsXX" dove XX è un
+			 * progressivo numerico. Il risultato resta un XML valido, ma non è
+			 * pratico da leggere, specie in una fase di sviluppo codice. È necessario
+			 * allora un mappatore che è appunto quello creato qui sotto. Gli va
+			 * indicata una mappa, e poi va indicato a sua volta come prperty del
+			 * marshaller.
+			 */
+	
+			SasNamespacePrefixMapper mapper = new SasNamespacePrefixMapper();
+	
+			Properties mapping = new Properties();
+			mapping.load(new FileReader(new File("sas-namespace.map")));
+			mapper.setMapping(mapping);
+			m.setProperty("com.sun.xml.bind.namespacePrefixMapper", mapper);
+			m.setProperty("jaxb.schemaLocation", config
+					.getProperty("xml.jaxb.schemaLocation"));
+	
+			/*
+			 * Per validare l'output occorre prima istanziare un'oggetto Schema.
+			 * Inoltre il marshaller deve avere un eventhandler per evitare che ogni
+			 * errore di validazione sia gestito come exception. Tutto però se non è
+			 * nulla la location dello schema, altrimenti non si effettua la
+			 * validazione
+			 */
+			if(config.getProperty("xml.schema.location") != null)
+			{
+				SchemaFactory sf = SchemaFactory
+						.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				Schema schema = sf.newSchema(new URL(config
+						.getProperty("xml.schema.location")));
+				m.setSchema(schema);
+				m.setEventHandler(new SasValidationEventHandler());
+			}
+			m.marshal(env, pw);
 		}
 		catch(JAXBException e)
 		{
