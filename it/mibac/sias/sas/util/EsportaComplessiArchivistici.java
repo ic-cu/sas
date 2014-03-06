@@ -126,7 +126,7 @@ public class EsportaComplessiArchivistici
  * improprio, perché in realtà ritorna una lista, e andrebbe cambiato.
  */
 		ewl = new ArrayList<EnvelopeWrapper>();
-		ca = new ComplessiArchivistici(idIstituto, db.getConnection());
+		ca = new ComplessiArchivistici(db.getConnection());
 		di = ca.createEntity(idIstituto);
 
 /*
