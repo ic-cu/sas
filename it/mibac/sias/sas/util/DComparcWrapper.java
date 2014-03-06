@@ -3,9 +3,12 @@ package it.mibac.sias.sas.util;
 import it.beniculturali.sas.catalogo.commons.DUrl;
 import it.beniculturali.sas.catalogo.comparc.DComparc;
 import it.beniculturali.sas.catalogo.comparc.DComparcAltreden;
+import it.beniculturali.sas.catalogo.comparc.DComparcCondAccesso;
 import it.beniculturali.sas.catalogo.comparc.FkFonte;
+import it.beniculturali.sas.catalogo.comparc.FkVocStatoDescrizione;
 import it.beniculturali.sas.catalogo.comparc.FkVocTipoComparc;
 import it.beniculturali.sas.catalogo.fonti.ProfGroup;
+import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocStatoDescrizione;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocTipoComparc;
 
 import java.io.File;
@@ -15,6 +18,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Properties;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
@@ -40,6 +44,7 @@ public class DComparcWrapper
 	private it.beniculturali.sas.catalogo.commons.ObjectFactory comObf;
 	private it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory vocComparcObf;
 	private it.beniculturali.sas.catalogo.fonti.ObjectFactory fontiObf;
+	private it.beniculturali.sas.catalogo.comparc.DComparcCondAccesso condAccessoObf;
 
 /*
  * Il logger è configurato altrove, e qui viene solo richiamato (vedi
@@ -117,11 +122,6 @@ public class DComparcWrapper
 
 	public void setCodiProvenienza(String s)
 	{
-		if(s.trim() == null)
-		{
-			log.warn("codiProvenienza nullo, sarà impostato a ITASVT");
-			s = "ITASVT";
-		}
 		dcomparc.setCodiProvenienza(s.trim());
 	}
 
@@ -324,5 +324,55 @@ public class DComparcWrapper
 		da.setTextAltreden(s);
 		da.setTextEstrCronoTestuali(t);
 		dcomparc.getDComparcAltreden().add(da);
+	}
+	
+	public void setFkVocStatoDescrizione(int i)
+	{
+		DVocStatoDescrizione dVoc;
+		dVoc = vocComparcObf.createDVocStatoDescrizione();
+		dVoc.setSequVocStatoDescrizione(i);
+		FkVocStatoDescrizione fkVoc;
+		fkVoc = dcomparcObf.createFkVocStatoDescrizione();
+		fkVoc.setDVocStatoDescrizione(dVoc);
+		dcomparc.setFkVocStatoDescrizione(fkVoc);
+	}
+	
+	public void setFlagComparcProprietaStatale(String s)
+	{
+		dcomparc.setFlagComparcProprietaStataleTf(s);
+	}
+	
+	public void setTextNote(String s)
+	{
+		dcomparc.setTextNote(s);
+	}
+
+	public void setFlagConsultabileConservatore(String s)
+	{
+		DComparcCondAccesso ca;
+		ca = dcomparcObf.createDComparcCondAccesso();
+		JAXBElement<Boolean> je;
+		je = condAccessoObf.getFlagConsultabileConservatoreTf();
+		if(s == "1")
+		{
+			je.setValue(true);
+		}
+		else
+		{
+			je.setValue(true);
+		}
+		ca.setFlagConsultabileConservatoreTf(je);
+		dcomparc.getDComparcCondAccesso().add(ca);
+	}
+
+	public void setTextTitolareDiritti(String s)
+	{
+		DComparcCondAccesso ca;
+		ca = dcomparcObf.createDComparcCondAccesso();
+		JAXBElement<String> je;
+		je = condAccessoObf.getTextTitolareDiritti();
+			je.setValue(s);
+		ca.setTextTitolareDiritti(je);
+		dcomparc.getDComparcCondAccesso().add(ca);
 	}
 }
