@@ -232,6 +232,7 @@ query.comparc.pl = \
 		c.ID_Elemento = e.ID_Elemento \
 		and e.ID_ElementoPadre = i.ID_Elemento \
 		and i.ID_Istituto = ? \
+		and e.Pubblicato = 'S' \
 		order by c.Ordinamento, c.Denominazione
 	
 query.comparc.pl.full = \
@@ -258,6 +259,7 @@ query.comparc.pl.full = \
 		c.ID_Elemento = e.ID_Elemento \
 		and e.ID_ElementoPadre = i.ID_Elemento \
 		and i.ID_Istituto = ? \
+		and e.Pubblicato = 'S' \
 		order by c.Ordinamento, c.Denominazione
 
 ## query per i complessi di livello inferiore, anche questa in due versioni
