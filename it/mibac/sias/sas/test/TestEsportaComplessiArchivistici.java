@@ -42,7 +42,6 @@ public class TestEsportaComplessiArchivistici
 	{
 		Properties config = new Properties();
 		log = Logger.getLogger("COMPARC");
-	//	org.pmw.tinylog.Configurator.currentConfig().activate();
 		try
 		{
 			config.load(new FileReader(new File("query.prop")));
@@ -131,8 +130,6 @@ public class TestEsportaComplessiArchivistici
 					fileName += ".xml";
 					System.err.println("Envelope numero " + i);
 					log.info("Istituto " + fonte + ", envelope numero " + i);
-					org.pmw.tinylog.Logger.info("Istituto " + fonte
-							+ ", envelope numero " + i);
 					pw = new PrintWriter(new File(tmpDir + "/ca/xml/" + fileName));
 					ew.marshall(pw);
 					ze = new ZipEntry(fileName);
