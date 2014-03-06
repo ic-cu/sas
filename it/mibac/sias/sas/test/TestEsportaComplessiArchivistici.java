@@ -88,7 +88,7 @@ public class TestEsportaComplessiArchivistici
 			e1.printStackTrace();
 		}
 		ResultSet rs;
-		int maxIstituti = 10;
+		int maxIstituti = 1;
 		EsportaComplessiArchivistici eca = new EsportaComplessiArchivistici();
 		try
 		{
@@ -100,7 +100,9 @@ public class TestEsportaComplessiArchivistici
 				idIstituto = rs.getInt("ID_Istituto");
 				fonte = rs.getString("fk_fonte");
 				// idIstituto = 794000000;
-				// idIstituto = 228200000; fonte = "ITASBO";
+				 idIstituto = 228200000; fonte = "ITASBO";
+//				idIstituto = 180900000; fonte = "ITASBL";
+//				idIstituto = 450180000; fonte = "ITASIM";
 				Iterator<EnvelopeWrapper> ewi = eca.creaMultiEnvelope(idIstituto);
 				EnvelopeWrapper ew = null;
 				SimpleDateFormat sdf;
