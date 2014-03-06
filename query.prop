@@ -173,7 +173,7 @@ query.sezioni = \
 		and es.ID_ElementoPadre = e.ID_Elemento \
 		and sezione.ID_Istituto = ?
 		
-## query per l'estrazione dei comparc legati a un istituto
+## query per l'estrazione dei dati di un comparc; si entra per idComplesso 
 
 query.comparc = \
 	select \
@@ -196,18 +196,127 @@ query.comparc = \
 		c.datainizio as date_estremo_remoto, \
 		c.datafine as date_estremo_recente, \
 		c.NoteStoriche as text_storia_archivistica, \
+		coalesce ('Note gestionali: ' + c.Note, '') as text_note, \
+		coalesce ('Note Direzione: ' + c.NoteDirezione , '') as text_note, \
 		c.UrlLink as text_url, \
-		c.Ordinamento as text_num_corda, \
 		c.MetriLineari as nume_mt_lineari_complessivi, \
-		c.MetriLineariFigli as nume_riparto_mt_lineari_sottolvl \
+		c.MetriLineariFigli as nume_riparto_mt_lineari_sottolvl, \
+		1 as flag_consultabile_conservatore_tf, \
+		rtrim (i.Denominazione) as text_titolare_diritti \
 	from \
 		complessidoc c, \
-		elementi e \
+		elementi e, \
+		istituti i \
 	where \
 		e.ID_Elemento = c.ID_Elemento \
-		and c.ID_Istituto = ? \
-		and e.Pubblicato = 'S' \
-	order by DescTipologia
+		and c.ID_Istituto = i.ID_Istituto \
+		and c.ID_ComplessoDoc = ? \
+		and e.Pubblicato = 'S'
+
+## query per l'estrazione dei complessi di primo livello, in due versioni,
+## una limitata a idcomplesso e numcorda, l'altra più estesa
+
+query.comparc.pl = \
+	select \
+		c.ID_ComplessoDoc idComplesso, \
+		case \
+			when c.ordinamento is not null then c.ordinamento \
+			else (ROW_NUMBER() OVER(ORDER BY c.denominazione)) \
+		end as text_num_corda, \
+		e.Figli figli \
+	from \
+		ComplessiDoc c, \
+		Elementi e, \
+		istituti i \
+	where \
+		c.ID_Elemento = e.ID_Elemento \
+		and e.ID_ElementoPadre = i.ID_Elemento \
+		and i.ID_Istituto = ? \
+		order by c.Ordinamento, c.Denominazione
+	
+query.comparc.pl.full = \
+	select c.ID_ComplessoDoc, \
+		COALESCE( \
+			c.ISAD_Nazione \
+			+ '-' \
+			+ c.ISAD_Codice \
+			+ c.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), c.ID_ComplessoDoc) ,'' \
+			) \
+		as codi_provenienza, \
+		case \
+			when c.ordinamento is not null then c.ordinamento \
+			else (ROW_NUMBER() OVER(ORDER BY c.denominazione)) \
+		end as text_num_corda, \
+		e.Figli \
+	from \
+		ComplessiDoc c, \
+		Elementi e, \
+		istituti i \
+	where \
+		c.ID_Elemento = e.ID_Elemento \
+		and e.ID_ElementoPadre = i.ID_Elemento \
+		and i.ID_Istituto = ? \
+		order by c.Ordinamento, c.Denominazione
+
+## query per i complessi di livello inferiore, anche questa in due versioni
+
+query.comparc.sl = \
+	select \
+		figlio.ID_ComplessoDoc idFiglio, \
+		case \
+			when figlio.ordinamento is not null then figlio.ordinamento \
+			else (ROW_NUMBER() OVER(ORDER BY figlio.denominazione)) \
+		end as text_num_corda, \
+		figlio.QuantitaFigli figli \
+	from \
+		complessidoc cd, \
+		Elementi cdelem, \
+		ComplessiDoc figlio, \
+		elementi figlioelem \
+	where \
+		cd.ID_Elemento = cdelem.ID_Elemento \
+		and figlioelem.ID_ElementoPadre = cdelem.ID_Elemento \
+		and figlioelem.ID_Elemento = figlio.ID_Elemento \
+		and figlioelem.Pubblicato = 'S' \
+		and cdelem.pubblicato = 'S' \
+		and cd.ID_ComplessoDoc = ? \
+	order by \
+		figlio.Ordinamento, \
+		figlio.Denominazione
+
+query.comparc.sl.full = \
+	select \
+		figlio.ID_ComplessoDoc, \
+		COALESCE( \
+			figlio.ISAD_Nazione \
+			+ '-' \
+			+ figlio.ISAD_Codice \
+			+ figlio.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), figlio.ID_ComplessoDoc) ,'' \
+		) as codi_provenienza, \
+		case \
+			when figlio.ordinamento is not null then figlio.ordinamento \
+			else (ROW_NUMBER() OVER(ORDER BY figlio.denominazione)) \
+		end as text_num_corda, \
+		figlio.QuantitaFigli \
+	from \
+		complessidoc cd, \
+		Elementi cdelem, \
+		ComplessiDoc figlio, \
+		elementi figlioelem \
+	where \
+		cd.ID_Elemento = cdelem.ID_Elemento \
+		and figlioelem.ID_ElementoPadre = cdelem.ID_Elemento \
+		and figlioelem.ID_Elemento = figlio.ID_Elemento \
+		and figlioelem.Pubblicato = 'S' \
+		and cdelem.pubblicato = 'S' \
+		and cd.ID_ComplessoDoc = ? \
+	order by \
+		figlio.Ordinamento, \
+		figlio.Denominazione
 
 ## query per l'estrazione delle denominazioni alternative dei comparc
 
@@ -266,3 +375,43 @@ log.layout = %05r %p %C{1}.%M - %m%n
 
 ## fonte usata per evitare errori di validazione; in produzione va commentata
 sogc.fk_fonte = ITASVT
+
+
+######
+
+## vecchia versione della query per popolare elementi d_comparc
+
+query.comparc.old = \
+	select \
+		c.ID_ComplessoDoc as ID_ComplessoDoc, \
+		COALESCE(c.ISAD_Nazione+'-'+c.ISAD_Codice+c.ISAD_Sigla+'-F'+convert(varchar(10), c.ID_ComplessoDoc) ,'') as codi_provenienza, \
+		case \
+			when c.desctipologia = 'Collection' then 1 \
+		  when c.desctipologia = 'fondo' then 3 \
+		  when c.desctipologia = 'Serie' then 6 \
+		  when c.desctipologia = 'Sottoserie' then 9 \
+		  when c.desctipologia = 'SottoSottoSerie' then 9 \
+		  when c.desctipologia = 'Subfondo' then 7 \
+		  when c.desctipologia = 'SuperFondo' then 2 \
+		end as fk_voc_tipo_comparc, \
+		c.Denominazione as text_den_uniformata, \
+		1 as fk_voc_stato_descrizione, \
+		'S' as flag_comparc_proprieta_statale_tf, \
+		COALESCE(c.ISAD_Nazione+c.ISAD_Codice+c.ISAD_Sigla, '') as fk_fonte, \
+		c.DescrizioneEstremi + COALESCE( ' (' + c.descrizioneestensioni + ')', '') as text_estr_crono_testuali, \
+		c.datainizio as date_estremo_remoto, \
+		c.datafine as date_estremo_recente, \
+		c.NoteStoriche as text_storia_archivistica, \
+		c.UrlLink as text_url, \
+		c.Ordinamento as text_num_corda, \
+		c.MetriLineari as nume_mt_lineari_complessivi, \
+		c.MetriLineariFigli as nume_riparto_mt_lineari_sottolvl \
+	from \
+		complessidoc c, \
+		elementi e \
+	where \
+		e.ID_Elemento = c.ID_Elemento \
+		and c.ID_Istituto = ? \
+		and e.Pubblicato = 'S' \
+	order by DescTipologia
+
