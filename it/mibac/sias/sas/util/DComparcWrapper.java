@@ -44,7 +44,6 @@ public class DComparcWrapper
 	private it.beniculturali.sas.catalogo.commons.ObjectFactory comObf;
 	private it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory vocComparcObf;
 	private it.beniculturali.sas.catalogo.fonti.ObjectFactory fontiObf;
-	private it.beniculturali.sas.catalogo.comparc.DComparcCondAccesso condAccessoObf;
 
 /*
  * Il logger è configurato altrove, e qui viene solo richiamato (vedi
@@ -347,19 +346,18 @@ public class DComparcWrapper
 		dcomparc.setTextNote(s);
 	}
 
-	public void setFlagConsultabileConservatore(String s)
+	public void setFlagConsultabileConservatore(int i)
 	{
 		DComparcCondAccesso ca;
 		ca = dcomparcObf.createDComparcCondAccesso();
 		JAXBElement<Boolean> je;
-		je = condAccessoObf.getFlagConsultabileConservatoreTf();
-		if(s == "1")
+		if(i == 1)
 		{
-			je.setValue(true);
+			je = dcomparcObf.createDComparcCondAccessoFlagConsultabileConservatoreTf(true);
 		}
 		else
 		{
-			je.setValue(true);
+			je = dcomparcObf.createDComparcCondAccessoFlagConsultabileConservatoreTf(false);
 		}
 		ca.setFlagConsultabileConservatoreTf(je);
 		dcomparc.getDComparcCondAccesso().add(ca);
@@ -370,8 +368,7 @@ public class DComparcWrapper
 		DComparcCondAccesso ca;
 		ca = dcomparcObf.createDComparcCondAccesso();
 		JAXBElement<String> je;
-		je = condAccessoObf.getTextTitolareDiritti();
-			je.setValue(s);
+		je = dcomparcObf.createDComparcCondAccessoTextTitolareDiritti(s);
 		ca.setTextTitolareDiritti(je);
 		dcomparc.getDComparcCondAccesso().add(ca);
 	}
