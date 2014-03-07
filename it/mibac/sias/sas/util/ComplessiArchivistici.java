@@ -231,10 +231,13 @@ public class ComplessiArchivistici
 					dcomparcw.setFkVocTipoComparc(rs.getLong("fk_voc_tipo_comparc"));
 					dcomparcw.setFkVocTipoComparc(1);
 					dcomparcw.setTextDenUniformata(rs.getString("text_den_uniformata"));
+					dcomparcw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
+					dcomparcw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
 
 /*
  * Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli XSD, si
- * usa una fonte fittizia sicuramente valida
+ * usa una fonte fittizia sicuramente valida, presa dal file di configurazione, e solo se questa è
+ * valorizzata
  */
 
 					if(fkFonte != null)
@@ -245,6 +248,7 @@ public class ComplessiArchivistici
 					{
 						dcomparcw.setFkFonte(rs.getString("fk_fonte"));
 					}
+
 					dcomparcw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
 					try
 					{
@@ -253,35 +257,32 @@ public class ComplessiArchivistici
 					}
 					catch(DatatypeConfigurationException e)
 					{
-						log.warn("Istituto " + siglaIstituto + ", complesso " + rs.getString("ID_ComplessoDoc") + "scartato: "
-								+ e.getMessage());
+						log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
 						continue;
 					}
 					catch(IllegalArgumentException e)
 					{
-						log.warn("Istituto " + siglaIstituto + ", complesso " + rs.getString("ID_ComplessoDoc") + "scartato: "
-								+ e.getMessage());
+						log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
 						continue;
 					}
-					// dcomparcw.setDComparcDatiConsistenza(rs
-					// .getLong("dati_consistenza_nume_consistenza"));
 					try
 					{
 						dcomparcw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
+						dcomparcw.setTextNote(rs.getString("text_note"));
 						dcomparcw.setTextUrl(rs.getString("text_url"));
 						dcomparcw.setNumeMtLineariComplessivi(rs.getBigDecimal("nume_mt_lineari_complessivi"));
 						dcomparcw.setNumeRipartoMtLineariSottolvl(rs.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
 					}
 					catch(IllegalArgumentException e)
 					{
-						log.warn("Istituto " + siglaIstituto + ", complesso " + rs.getString("ID_ComplessoDoc") + ": "
-								+ e.getMessage());
+						log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
 					}
 					catch(SiasSasException e)
 					{
-						log.warn("Istituto " + siglaIstituto + ", complesso " + rs.getString("ID_ComplessoDoc") + ": "
-								+ e.getMessage());
+						log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
 					}
+					dcomparcw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
+					dcomparcw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
 
 					log.info("Istituto " + siglaIstituto + ", complesso " + rs.getString("ID_ComplessoDoc"));
 
@@ -300,7 +301,7 @@ public class ComplessiArchivistici
 					{
 						dcomparcw.addAltraDen(rsad.getString("text_altreden"), rsad.getString("text_estr_crono_testuali"));
 						log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata altra denominazione "
-										+ rsad.getString("text_altreden"));
+								+ rsad.getString("text_altreden"));
 					}
 					dwl.add(dcomparcw.getDComparc());
 				}
