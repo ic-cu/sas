@@ -136,7 +136,6 @@ public class EsportaComplessiArchivistici
 		while(di.hasNext())
 		{
 			dcomparc = di.next();
-			System.err.println("complesso numero " + i);
 
 /*
  * Se il contatore è un multiplo del massimo numero di record per envelope, si
