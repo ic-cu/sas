@@ -19,10 +19,13 @@ import javax.xml.datatype.DatatypeConfigurationException;
 
 import org.apache.log4j.Logger;
 
+import com.microsoft.sqlserver.jdbc.SQLServerException;
+
 public class ComplessiArchivistici
 {
 	private Properties				config;
 	private PreparedStatement	stmtDComparc;
+	private PreparedStatement	stmtDComparcFusioneDI;
 	private PreparedStatement	stmtDComparcPrimoLivello;
 	private PreparedStatement	stmtDComparcSottoLivelli;
 	private PreparedStatement	stmtDComparcAltreden;
@@ -32,6 +35,14 @@ public class ComplessiArchivistici
 	String										fkFonte	= null;
 	ProfGroup									pg;
 	private static Logger			log;
+
+/*
+ * Questi campi sono usati da diversi metodi per evitare un complesso e inutile passaggio di
+ * informazioni sostanzialmente condivise. Altri dati invece restano parametri dei singoli metodi
+ */
+	private DComparcWrapper		dw;
+	private String						siglaIstituto;
+	private int								numComplesso;
 
 	/*
 	 * Questo costruttore richiede solo una connessione (che non tocca a lui chiudere, attenzione) che
@@ -47,6 +58,7 @@ public class ComplessiArchivistici
 			prop.close();
 			new it.beniculturali.sas.catalogo.commons.ObjectFactory();
 			stmtDComparc = conn.prepareStatement(config.getProperty("query.comparc"));
+			stmtDComparcFusioneDI = conn.prepareStatement(config.getProperty("query.comparc.di"));
 			stmtDComparcPrimoLivello = conn.prepareStatement(config.getProperty("query.comparc.pl"));
 			stmtDComparcSottoLivelli = conn.prepareStatement(config.getProperty("query.comparc.sl"),
 					ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.HOLD_CURSORS_OVER_COMMIT);
@@ -69,6 +81,99 @@ public class ComplessiArchivistici
 		{
 			e.printStackTrace();
 		}
+	}
+
+	private void popolaDComparc(long idComplesso, long numCorda) throws SQLException, IllegalArgumentException,
+			DatatypeConfigurationException, SiasSasException
+	{
+		String temp;
+
+/*
+ * Prelevato l'id di un complesso e il suo numero di corda, passiamo a popolare tutti gli altri dati
+ * di questo complesso entrando col suo id nella query apposita. Ma subito viene impostato il numero
+ * di corda
+ */
+		stmtDComparc.setLong(1, idComplesso);
+		stmtDComparc.execute();
+		rs = stmtDComparc.getResultSet();
+		log.info("Istituto " + siglaIstituto + ", elaborazione complesso " + idComplesso + " (" + numComplesso++ + ")");
+
+/*
+ * È opportuno controllare che il resultset abbia delle righe e segnalare il caso contrario
+ */
+
+		if(rs.next())
+		{
+// dw = new DComparcWrapper();
+			dw.setTextNumCorda((int) numCorda);
+			temp = rs.getString("codi_provenienza");
+			if(temp.length() == 0 || temp == null)
+			{
+				temp = siglaIstituto + "-F" + idComplesso;
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso
+						+ ", codi_provenienza nullo o vuoto, sarà impostato a " + temp);
+			}
+			dw.setCodiProvenienza(temp);
+			dw.setFkVocTipoComparc(rs.getLong("fk_voc_tipo_comparc"));
+			dw.setFkVocTipoComparc(1);
+			dw.setTextDenUniformata(rs.getString("text_den_uniformata"));
+			dw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
+			dw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
+
+			/*
+			 * Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli
+			 * XSD, si usa una fonte fittizia sicuramente valida, presa dal file di configurazione, e solo
+			 * se questa è valorizzata
+			 */
+
+			if(fkFonte != null)
+			{
+				dw.setFkFonte(fkFonte);
+			}
+			else
+			{
+				dw.setFkFonte(rs.getString("fk_fonte"));
+			}
+
+			dw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+			dw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
+			dw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
+			dw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
+			dw.setTextNote(rs.getString("text_note"));
+			dw.setTextUrl(rs.getString("text_url"));
+			dw.setNumeMtLineariComplessivi(rs.getBigDecimal("nume_mt_lineari_complessivi"));
+			dw.setNumeRipartoMtLineariSottolvl(rs.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
+			dw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
+			dw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
+
+			log.info("Istituto " + siglaIstituto + ", complesso " + rs.getString("ID_ComplessoDoc"));
+		}
+		else
+		{
+			log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", la query non ha prodotto risultati");
+		}
+
+	}
+
+	private void popolaDatiInventariali(long idComplesso) throws SQLException
+	{
+		stmtDComparcFusioneDI.setLong(1, idComplesso);
+		stmtDComparcFusioneDI.execute();
+	}
+
+	private void popolaAltreDen(long idComplesso) throws SQLException
+	{
+		stmtDComparcAltreden.setLong(1, idComplesso);
+		stmtDComparcAltreden.execute();
+		ResultSet rs;
+		rs = stmtDComparcAltreden.getResultSet();
+		while(rs.next())
+		{
+			dw.addAltraDen(rs.getString("text_altreden"), rs.getString("text_estr_crono_testuali"));
+			log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata altra denominazione "
+					+ rs.getString("text_altreden"));
+		}
+
 	}
 
 /*
@@ -169,15 +274,11 @@ public class ComplessiArchivistici
 	 */
 	public Iterator<DComparc> createEntity(int idIstituto)
 	{
-		DComparcWrapper dcomparcw = null;
 		ArrayList<DComparc> dwl = null;
 		Iterator<long[]> idComplessi;
 		dwl = new ArrayList<DComparc>();
-		String siglaIstituto = null;
-		String temp = null;
 		long idComplesso, numCorda;
 		long[] coppia;
-		int numComplesso = 0;
 
 /*
  * Una prima query serve a reperire informazioni minimali circa un istituto
@@ -190,131 +291,67 @@ public class ComplessiArchivistici
 			rs = stmtIstituto.getResultSet();
 			rs.next();
 			siglaIstituto = rs.getString("fk_fonte");
-			log.info("Istituto " + siglaIstituto + ", inizio elaborazione");
+		}
+		catch(SQLException e)
+		{
+			log.warn("Istituto " + siglaIstituto + " (" + idIstituto + ") scartato: " + e.getMessage());
+		}
+		log.info("Istituto " + siglaIstituto + ", inizio elaborazione");
+
 /*
  * Si ricava l'iteratore sull'elenco di tutti gli id dei complessi legati a questo istituto,
  * ciascuno con un "numero di corda" da usare per l'ordinamento, poi si cicla sull'iteratore
  */
-			idComplessi = getComparcIterator(idIstituto);
-			while(idComplessi.hasNext())
-			{
-				coppia = idComplessi.next();
-				idComplesso = coppia[0];
-				numCorda = coppia[1];
 
-/*
- * Prelevato l'id di un complesso e il suo numero di corda, passiamo a popolare tutti gli altri dati
- * di questo complesso entrando col suo id nella query apposita. Ma subito viene impostato il numero
- * di corda
- */
-				stmtDComparc.setLong(1, idComplesso);
-				stmtDComparc.execute();
-				rs = stmtDComparc.getResultSet();
-				log.info("Istituto " + siglaIstituto + ", elaborazione complesso " + idComplesso + " (" + numComplesso++ + ")");
-
-/*
- * È opportuno controllare che il resultset abbia delle righe e segnalare il caso contrario
- */
-
-				if(rs.next())
-				{
-					dcomparcw = new DComparcWrapper();
-					dcomparcw.setTextNumCorda((int) numCorda);
-					temp = rs.getString("codi_provenienza");
-					if(temp.length() == 0 || temp == null)
-					{
-						temp = siglaIstituto + "-F" + idComplesso;
-						log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso
-								+ ", codi_provenienza nullo o vuoto, sarà impostato a " + temp);
-					}
-					dcomparcw.setCodiProvenienza(temp);
-					dcomparcw.setFkVocTipoComparc(rs.getLong("fk_voc_tipo_comparc"));
-					dcomparcw.setFkVocTipoComparc(1);
-					dcomparcw.setTextDenUniformata(rs.getString("text_den_uniformata"));
-					dcomparcw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
-					dcomparcw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
-
-/*
- * Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli XSD, si
- * usa una fonte fittizia sicuramente valida, presa dal file di configurazione, e solo se questa è
- * valorizzata
- */
-
-					if(fkFonte != null)
-					{
-						dcomparcw.setFkFonte(fkFonte);
-					}
-					else
-					{
-						dcomparcw.setFkFonte(rs.getString("fk_fonte"));
-					}
-
-					dcomparcw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
-					try
-					{
-						dcomparcw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
-						dcomparcw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
-					}
-					catch(DatatypeConfigurationException e)
-					{
-						log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
-						continue;
-					}
-					catch(IllegalArgumentException e)
-					{
-						log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
-						continue;
-					}
-					try
-					{
-						dcomparcw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
-						dcomparcw.setTextNote(rs.getString("text_note"));
-						dcomparcw.setTextUrl(rs.getString("text_url"));
-						dcomparcw.setNumeMtLineariComplessivi(rs.getBigDecimal("nume_mt_lineari_complessivi"));
-						dcomparcw.setNumeRipartoMtLineariSottolvl(rs.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
-					}
-					catch(IllegalArgumentException e)
-					{
-						log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
-					}
-					catch(SiasSasException e)
-					{
-						log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
-					}
-					dcomparcw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
-					dcomparcw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
-
-					log.info("Istituto " + siglaIstituto + ", complesso " + rs.getString("ID_ComplessoDoc"));
-
-/*
- * Popoliamo le localizzazioni. Si usa ovviamente un'altra statement, ma si ricicla il resultset rs.
- * Le localizzazioni secondarie sono ripetibili, per cui si dovrà ciclare sul resultset,
- * diversamente da prima.
- */
-
-					stmtDComparcAltreden.setLong(1, idComplesso);
-					stmtDComparcAltreden.execute();
-					rsad = stmtDComparcAltreden.getResultSet();
-					// rsad.next();
-
-					while(rsad.next())
-					{
-						dcomparcw.addAltraDen(rsad.getString("text_altreden"), rsad.getString("text_estr_crono_testuali"));
-						log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata altra denominazione "
-								+ rsad.getString("text_altreden"));
-					}
-					dwl.add(dcomparcw.getDComparc());
-				}
-				else
-				{
-					log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", la query non ha prodotto risultati");
-				}
-			}
-		}
-		catch(SQLException e)
+		idComplessi = getComparcIterator(idIstituto);
+		while(idComplessi.hasNext())
 		{
-			e.printStackTrace();
+			coppia = idComplessi.next();
+			idComplesso = coppia[0];
+			numCorda = coppia[1];
+			dw = new DComparcWrapper();
+
+/*
+ * Si popola prima la gran parte degli elementi del d_comparc, poi le altre denominazioni. 			
+ */
+
+			try
+			{
+				popolaDComparc(idComplesso, numCorda);
+				popolaAltreDen(idComplesso);
+			}
+			catch(IllegalArgumentException e)
+			{
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
+				continue;
+			}
+			catch(DatatypeConfigurationException e)
+			{
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
+				continue;
+			}
+			catch(SiasSasException e)
+			{
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
+			}
+			catch(SQLServerException e)
+			{
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
 		}
+			catch(SQLException e)
+			{
+				e.printStackTrace();
+			}
+
+/*
+ * Si può aggiungere il complesso attuale alla relatia lista e ricominciare col prossimo
+ */
+			dwl.add(dw.getDComparc());
+		}
+		
+/*
+ * Finiti i complessi, si riporta al chiamante l'iteratore alla lista dei complessi		
+ */
 		log.info("Istituto " + siglaIstituto + ", fine elaborazione");
 		return dwl.iterator();
 	}
