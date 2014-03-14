@@ -1,0 +1,9 @@
+## configurazione a livello del database
+
+database.host = 127.0.0.1
+database.driver = com.microsoft.sqlserver.jdbc.SQLServerDriver
+database.name = archivista_??
+database.username = 
+database.password = 
+database.instancename = SQLEXPRESS
+

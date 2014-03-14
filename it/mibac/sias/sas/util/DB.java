@@ -28,7 +28,7 @@ public class DB
 		try
 		{
 			config = new Properties();
-			config.load(new FileReader("query.prop"));
+			config.load(new FileReader("db.prop"));
 			Class.forName(config.getProperty("database.driver"));
 			ds = new SQLServerDataSource();
 			ds.setServerName(config.getProperty("database.host"));

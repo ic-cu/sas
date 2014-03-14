@@ -1,20 +1,25 @@
 package it.mibac.sias.sas.test;
 
+import it.mibac.sias.sas.util.EnvelopeWrapper;
+import it.mibac.sias.sas.util.EsportaSoggettiConservatori;
+
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import it.mibac.sias.sas.util.EnvelopeWrapper;
-import it.mibac.sias.sas.util.EsportaSoggettiConservatori;
+import org.apache.log4j.Logger;
 
 /*
  * Classe per provare l'esportazione dei soggetti conservatori. Si limita a
@@ -23,9 +28,25 @@ import it.mibac.sias.sas.util.EsportaSoggettiConservatori;
 
 public class TestEsportaSoggettiConservatori
 {
+	private static Logger log;
 
 	public static void main(String[] args)
 	{
+		Properties config = new Properties();
+		log = Logger.getLogger("SOGC");
+		try
+		{
+			config.load(new FileReader(new File("query.prop")));
+		}
+		catch(FileNotFoundException e1)
+		{
+			e1.printStackTrace();
+		}
+		catch(IOException e1)
+		{
+			e1.printStackTrace();
+		}
+
 		EsportaSoggettiConservatori esc = new EsportaSoggettiConservatori();
 		// esc.creaEnvelope().marshall();
 		FileOutputStream fos;
@@ -33,6 +54,16 @@ public class TestEsportaSoggettiConservatori
 		ZipEntry ze;
 		FileInputStream fis;
 		BufferedInputStream bis = null;
+		PrintWriter pw = null;
+		File tDir = null;
+
+		// si creano le directory temporanee, caso mai non esistessero
+
+		String tmpDir = config.getProperty("xml.output.directory");
+		tDir = new File(tmpDir + "/sc/xml");
+		tDir.mkdirs();
+		tDir = new File(tmpDir + "/sc/zip");
+		tDir.mkdirs();
 
 		Iterator<EnvelopeWrapper> ewi = esc.creaMultiEnvelope();
 		EnvelopeWrapper ew;
@@ -44,7 +75,7 @@ public class TestEsportaSoggettiConservatori
 		int i = 0;
 		try
 		{
-			String zipFileName = "tmp/sc/zip/SIAS-ITASVT-" + sdf.format(new Date())
+			String zipFileName = tmpDir + "/sc/zip/SIAS-ITASVT-" + sdf.format(new Date())
 					+ ".zip";
 			fos = new FileOutputStream(zipFileName);
 			zos = new ZipOutputStream(fos);
@@ -52,13 +83,16 @@ public class TestEsportaSoggettiConservatori
 			while(ewi.hasNext())
 			{
 				ew = ewi.next();
-				fileName = "SIAS-ITASVT-";
+				fileName = "SIAS-";
+				fileName += ew.getFonte() + "-";
 				fileName += sdf.format(new Date()) + "-";
 				fileName += df.format(++i);
 				fileName += ".xml";
-				ew.marshall("tmp/sc/xml/" + fileName);
+				pw = new PrintWriter(new File(tmpDir + "/sc/xml/" + fileName));
+				ew.marshall(pw);
+//				ew.marshall(tmpDir + "/sc/xml/" + fileName);
 				ze = new ZipEntry(fileName);
-				fis = new FileInputStream("tmp/sc/xml/" + fileName);
+				fis = new FileInputStream(tmpDir + "/sc/xml/" + fileName);
 				bis = new BufferedInputStream(fis, 2048);
 				zos.putNextEntry(ze);
 				int count;

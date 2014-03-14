@@ -98,8 +98,8 @@ public class TestEsportaComplessiArchivistici
 			{
 				idIstituto = rs.getInt("ID_Istituto");
 				fonte = rs.getString("fk_fonte");
-				// idIstituto = 794000000;
-				 idIstituto = 228200000; fonte = "ITASBO";
+				idIstituto = 794000000; fonte = "ITASRM";
+//				idIstituto = 228200000; fonte = "ITASBO";
 //				idIstituto = 180900000; fonte = "ITASBL";
 //				idIstituto = 450180000; fonte = "ITASIM";
 				Iterator<EnvelopeWrapper> ewi = eca.creaMultiEnvelope(idIstituto);
@@ -128,7 +128,6 @@ public class TestEsportaComplessiArchivistici
 					fileName += sdf.format(new Date()) + "-";
 					fileName += df.format(++i);
 					fileName += ".xml";
-					System.err.println("Envelope numero " + i);
 					log.info("Istituto " + fonte + ", envelope numero " + i);
 					pw = new PrintWriter(new File(tmpDir + "/ca/xml/" + fileName));
 					ew.marshall(pw);

@@ -239,9 +239,9 @@ public class EnvelopeWrapper
 						.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 				Schema schema = sf.newSchema(new URL(config
 						.getProperty("xml.schema.location")));
-				m.setSchema(schema);
+//				m.setSchema(schema);
 				u.setSchema(schema);
-//				m.setEventHandler(new SasValidationEventHandler());
+				m.setEventHandler(new SasValidationEventHandler());
 				u.setEventHandler(new SasValidationEventHandler());
 			}
 			m.marshal(env, new PrintWriter(new File(fileName)));

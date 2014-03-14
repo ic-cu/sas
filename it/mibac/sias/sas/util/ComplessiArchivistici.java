@@ -155,10 +155,24 @@ public class ComplessiArchivistici
 
 	}
 
+/*
+ * Questo metodo si occupa di reperire un eventuale sottolivello inventario che può essere usato per
+ * integrare i dati di questo comparc. Si assume che la query riporti al più una riga.
+ */
+
 	private void popolaDatiInventariali(long idComplesso) throws SQLException
 	{
 		stmtDComparcFusioneDI.setLong(1, idComplesso);
 		stmtDComparcFusioneDI.execute();
+		ResultSet rs;
+		rs = stmtDComparcAltreden.getResultSet();
+		if(rs.next())
+		{
+			/*
+			 * Si comincia con altre_cron
+			 */
+			dw.setAltreCronTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+		}
 	}
 
 	private void popolaAltreDen(long idComplesso) throws SQLException
@@ -312,7 +326,7 @@ public class ComplessiArchivistici
 			dw = new DComparcWrapper();
 
 /*
- * Si popola prima la gran parte degli elementi del d_comparc, poi le altre denominazioni. 			
+ * Si popola prima la gran parte degli elementi del d_comparc, poi le altre denominazioni.
  */
 
 			try
@@ -337,7 +351,7 @@ public class ComplessiArchivistici
 			catch(SQLServerException e)
 			{
 				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
-		}
+			}
 			catch(SQLException e)
 			{
 				e.printStackTrace();
@@ -348,9 +362,9 @@ public class ComplessiArchivistici
  */
 			dwl.add(dw.getDComparc());
 		}
-		
+
 /*
- * Finiti i complessi, si riporta al chiamante l'iteratore alla lista dei complessi		
+ * Finiti i complessi, si riporta al chiamante l'iteratore alla lista dei complessi
  */
 		log.info("Istituto " + siglaIstituto + ", fine elaborazione");
 		return dwl.iterator();

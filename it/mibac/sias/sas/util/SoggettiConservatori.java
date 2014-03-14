@@ -111,7 +111,7 @@ public class SoggettiConservatori
 			dsogcw.setTextAcronimo(rs.getString("text_acronimo"));
 			dsogcw.setFkVocTipoSogc(rs.getLong("tipologia"));
 			dsogcw.setFkVocNaturagiuridica(rs.getLong("fk_natura_giuridica"));
-			//dsogcw.setDContattiTextAnagrafica(rs.getString("text_anagrafica"));
+			dsogcw.setDContattiTextAnagrafica(rs.getString("text_anagrafica"));
 			dsogcw.setFkVocTipoContatto(1);
 			dsogcw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
 			log.info("Istituto " + idIstituto + ", elaborata anagrafica");

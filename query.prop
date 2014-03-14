@@ -20,6 +20,7 @@ query.sogc = \
 		i.ISAD_Sigla as text_sigla_isad, \
 		COALESCE(i.ISAD_Nazione + i.ISAD_Codice + i.ISAD_Sigla, '') as text_acronimo, \
 		1 as fk_natura_giuridica, \
+		'non disponibile' as text_anagrafica, \
 		datazioni.data_testuale as text_estr_crono_testuali, \
 		datazioni.estremo_remoto as data_inizio, \
 		datazioni.estremo_recente as data_fine \
@@ -213,6 +214,55 @@ query.comparc = \
 		and c.ID_ComplessoDoc = ? \
 		and e.Pubblicato = 'S'
 
+## query per la fusione con i dati inventariali
+
+query.comparc.di = \
+	select \
+		case \
+  		when di.Tipologia =  '01' then 3 \
+  		when di.Tipologia =  '02' then 7 \
+  		when di.Tipologia =  '03' then 6 \
+  		when di.Tipologia =  '04' then 9 \
+		end as fk_voc_tipo_comparc, \
+		case \
+  		when di.Tipologia = '01'  then 'Fondo' \
+  		when di.Tipologia = '02'  then 'Sub-fondo' \
+  		when di.Tipologia = '03'  then 'Serie' \
+  		when di.Tipologia = '04'  then 'Sottoserie' \
+		end as tipologia_sias, \
+		di.DescrizioneEstremi as text_estr_crono_testuali, \
+		di.datainizio as date_estremo_remoto, \
+		di.DataFine as date_estremo_recente, \
+		coalesce (di.DescrizioneTestuale, '') as text_note_1, \
+		coalesce (di.Descrizione, '') as text_note_2, \
+		case \
+			when di.Note not like '%antica segnatura%' then coalesce ('Note gestionali: ' + di.Note, '') \
+		end as text_note_3, \
+		coalesce ('Dati acquisizione: ' + di.Acquisizione, '') as text_note_4, \
+		di.CriteriOrdinamento as text_criteri_ordinamento, \
+		case \
+			when accesso like '%non%' then 0 else 1 \
+		end as flag_consultabile_conservatore_tf, \
+		di.Accesso as text_limiti_consultazione, \
+		di.Riproduzione as text_modo_riproduzione, \
+# d_antiche_segnature
+		case \
+			when di.note like '%antica segnatura%' then di.note \
+		end as text_antica_segnatura, \
+		di.Classificazione as consistenza, \
+		di.Lingua, \
+		di.Conservazione as text_note_stato_conservazione \
+	from \
+		Elementi e, \
+		DatiInventariali di, \
+		ComplessiDoc c \
+	where \
+		c.ID_Elemento = di.Id_ElemComplDoc \
+		and e.ID_Elemento = di.ID_Elemento \
+		and e.MD5Link is null \
+		and e.Pubblicato = 'S' \
+		and c.ID_ComplessoDoc = ?
+	
 ## query per l'estrazione dei complessi di primo livello, in due versioni,
 ## una limitata a idcomplesso e numcorda, l'altra più estesa
 
@@ -335,14 +385,8 @@ query.comparc.altreden = \
 		and cd.Id_complessodoc= ? \
 		and ELEM.Pubblicato = 'S'
 
-## configurazione a livello del database
-
-database.host = 172.16.196.129
-database.driver = com.microsoft.sqlserver.jdbc.SQLServerDriver
-database.name = archivista
-database.username = sa
-database.password = antonio
-database.instancename = SQLEXPRESS
+## la configurazione a livello del database è stata spostata in un file db.prop, 
+## da non includere mai nella gestione delle versioni 
 
 ## la prima di queste chiavi serve al marshaller per segnalare ad un parser,
 ## con l'opportuno attributo dell'elemento root, dove trovare lo schema
@@ -376,7 +420,7 @@ log.level = info
 log.layout = %05r %p %C{1}.%M - %m%n
 
 ## fonte usata per evitare errori di validazione; in produzione va commentata
-sogc.fk_fonte = ITASVT
+#sogc.fk_fonte = ITASVT
 
 
 ######
