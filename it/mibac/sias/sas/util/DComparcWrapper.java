@@ -407,9 +407,34 @@ public class DComparcWrapper
 		dcomparc.setFlagComparcProprietaStataleTf(s);
 	}
 
+/*
+ * Questi due metodi agiscono sull'unico elemento text_note, ma siccome esso può alimentarsi da
+ * diversi campi SIAS, il secondo metodo permette di aggiungere pezzi all'unica stringa.
+ * Punteggiatura e spaziatura sono a carico del chiamante: il metodo si limita ad un append
+ */
 	public void setTextNote(String s)
 	{
-		dcomparc.setTextNote(s);
+		if(s != null && s.trim() != null && s.length() != 0)
+		{
+			dcomparc.setTextNote(s);
+		}
+	}
+
+	public void addTextNote(String s)
+	{
+		if(s != null && s.trim() != null && s.length() != 0)
+		{
+			String tmp = dcomparc.getTextNote();
+			if(tmp != null)
+			{
+				tmp += s;
+			}
+			else
+			{
+				tmp = s;
+			}
+			dcomparc.setTextNote(tmp);
+		}
 	}
 
 	public void setFlagConsultabileConservatore(int i)
