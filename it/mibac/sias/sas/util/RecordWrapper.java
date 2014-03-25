@@ -10,20 +10,19 @@ import it.beniculturali.sas.catalogo.relazioni.Relazioni;
 import it.mibac.sias.sas.cmd.Exporter;
 
 /*
- * Classe wrapper attorno a un envelope/recordlist/record. Maschera l'header e
- * il body e alcune altre complicazioni evitabili
+ * Classe wrapper attorno a un envelope/recordlist/record. Maschera l'header e il body e alcune
+ * altre complicazioni evitabili
  */
 public class RecordWrapper
 {
-	private it.beniculturali.sas.catalogo.envelope_catsas.ObjectFactory envObf;
+	private it.beniculturali.sas.catalogo.envelope_catsas.ObjectFactory	envObf;
 
-	private Record r = null;
-	private RecordHeader rh = null;
-	private RecordBody rb = null;
+	private Record																											r		= null;
+	private RecordHeader																								rh	= null;
+	private RecordBody																									rb	= null;
 
 /*
- * Costruttore che inizializza il record e le sue parti, legandole subito fra
- * loro
+ * Costruttore che inizializza il record e le sue parti, legandole subito fra loro
  */
 	public RecordWrapper()
 	{
@@ -36,8 +35,8 @@ public class RecordWrapper
 	}
 
 /*
- * Come in altri wrapper, occorre poter tirar fuori il vero record da fornire a
- * oggetti che ne hanno bisogno
+ * Come in altri wrapper, occorre poter tirar fuori il vero record da fornire a oggetti che ne hanno
+ * bisogno
  */
 
 	public Record getRecord()
@@ -46,11 +45,14 @@ public class RecordWrapper
 	}
 
 /*
- * Serie di metodi che si limitano a invocare metodi omonimi per head e body
+ * Serie di metodi che si limitano a invocare metodi omonimi per head e body. Il primo merita
+ * attenzione: elimina eventuali punti dal recordId, perché essi non sono permessi dal pattern
+ * dell'elemento finale. Questo non è un problema, perché non introduce conflitti, e il recordId
+ * serve appunto solo come identificativo univoco del singolo record.
  */
 	public void setRecordIdentifier(String s)
 	{
-		rh.setRecordIdentifier(s);
+		rh.setRecordIdentifier(s.replaceAll("\\.", ""));
 	}
 
 	public void setRecordDatestamp(Date d)
@@ -72,7 +74,7 @@ public class RecordWrapper
 	{
 		rb.setEntity(e);
 	}
-	
+
 	public void setRelazioni(Relazioni rel)
 	{
 		rb.setRelazioni(rel);
