@@ -60,6 +60,7 @@ public class TestEsportaSoggettiConservatori
 		// si creano le directory temporanee, caso mai non esistessero
 
 		String tmpDir = config.getProperty("xml.output.directory");
+		String sep = config.getProperty("xml.output.separator");
 		tDir = new File(tmpDir + "/sc/xml");
 		tDir.mkdirs();
 		tDir = new File(tmpDir + "/sc/zip");
@@ -75,17 +76,19 @@ public class TestEsportaSoggettiConservatori
 		int i = 0;
 		try
 		{
-			String zipFileName = tmpDir + "/sc/zip/SIAS-ITASVT-" + sdf.format(new Date())
-					+ ".zip";
+			String zipFileName = tmpDir; 
+			zipFileName += "/sc/zip/SIAS" + sep;
+			zipFileName += "ITASVT" + sep;
+			zipFileName += sdf.format(new Date()) + ".zip";
 			fos = new FileOutputStream(zipFileName);
 			zos = new ZipOutputStream(fos);
 			byte[] data = new byte[2048];
 			while(ewi.hasNext())
 			{
 				ew = ewi.next();
-				fileName = "SIAS-";
-				fileName += ew.getFonte() + "-";
-				fileName += sdf.format(new Date()) + "-";
+				fileName = "SIAS" + sep;
+				fileName += ew.getFonte() + sep;
+				fileName += sdf.format(new Date()) + sep;
 				fileName += df.format(++i);
 				fileName += ".xml";
 				pw = new PrintWriter(new File(tmpDir + "/sc/xml/" + fileName));
