@@ -17,6 +17,7 @@ import java.util.Properties;
 public class Depositi
 {
 	Properties queryProp;
+	Properties fontiMap;
 	PreparedStatement stmtDDepositi;
 	PreparedStatement stmtDLocalizzazione;
 	ResultSet rs;
@@ -29,11 +30,13 @@ public class Depositi
 	public Depositi(Connection conn)
 	{
 		queryProp = new Properties();
+		fontiMap = new Properties();
 		depObf = new it.beniculturali.sas.catalogo.depositi.ObjectFactory();
 		fontiObf = new it.beniculturali.sas.catalogo.fonti.ObjectFactory();
 		try
 		{
 			queryProp.load(new FileReader("query.prop"));
+			fontiMap.load(new FileReader("fonti.map"));
 			stmtDDepositi = conn.prepareStatement(queryProp
 					.getProperty("query.depositi"));
 			stmtDLocalizzazione = conn.prepareStatement(queryProp
@@ -91,7 +94,7 @@ public class Depositi
 				}
 				else
 				{
-					ddepw.setFkFonte(rs.getString("fk_fonte"));
+					ddepw.setFkFonte(fontiMap.getProperty(rs.getString("fk_fonte")));
 				}
 				ddepw.setFkVocTipoDeposito(rs.getLong("fk_voc_tipo_deposito"));
 				ddepw

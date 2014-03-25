@@ -37,19 +37,20 @@ import org.apache.log4j.WriterAppender;
 public class EsportaSoggettiConservatori
 {
 
-	public Connection connection;
-	private DB db;
-	private Properties config;
-	private PreparedStatement stmtIstituti;
-	public static Logger log, valLog;
-	private static String logLayout = "%05r %p %C{1}.%M - %m%n";
-	String fkFonte = null;
+	public Connection					connection;
+	private DB								db;
+	private Properties				config;
+	private Properties				fontiMap;
+	private PreparedStatement	stmtIstituti;
+	public static Logger			log, valLog;
+	private static String			logLayout	= "%05r %p %C{1}.%M - %m%n";
+	String										fkFonte		= null;
 
 	// private static PatternLayout pl;
 
 	/*
-	 * Questo costruttore prepara la connessione, impostando qualche parametro.
-	 * Sarebbe opportuno esternalizzare i parametri.
+	 * Questo costruttore prepara la connessione, impostando qualche parametro. Sarebbe opportuno
+	 * esternalizzare i parametri.
 	 */
 	public EsportaSoggettiConservatori()
 	{
@@ -81,11 +82,12 @@ public class EsportaSoggettiConservatori
 			// BasicConfigurator.configure(wa);
 
 			config = new Properties();
+			fontiMap = new Properties();
 			connection = db.getConnection();
 			config.load(new FileReader(new File("query.prop")));
-			stmtIstituti = connection.prepareStatement(config
-					.getProperty("query.istituti"), ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
+			fontiMap.load(new FileReader(new File("fonti.map")));
+			stmtIstituti = connection.prepareStatement(config.getProperty("query.istituti"),
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 			log.info("Inizio esportazione soggetti conservatori");
 			fkFonte = config.getProperty("sogc.fk_fonte");
 		}
@@ -135,14 +137,13 @@ public class EsportaSoggettiConservatori
 		String codiProvenienzaDeposito = null;
 
 		/*
-		 * Si costruisce pezzo pezzo l'envelope, per ora sensato solo nel record
-		 * vero e proprio. Cerchiamo di usare sempre le objectFactory opportune,
-		 * anche se questo comporta il ricorso a FQDN di lunghezza disarmante
+		 * Si costruisce pezzo pezzo l'envelope, per ora sensato solo nel record vero e proprio.
+		 * Cerchiamo di usare sempre le objectFactory opportune, anche se questo comporta il ricorso a
+		 * FQDN di lunghezza disarmante
 		 */
 		EnvelopeWrapper ew = new EnvelopeWrapper();
 
-		ew.setCREATED(EsportaSoggettiConservatori.now().toGregorianCalendar()
-				.getTime());
+		ew.setCREATED(EsportaSoggettiConservatori.now().toGregorianCalendar().getTime());
 		ew.setSource("SIAS");
 		ew.setFonte("ARCHIVI_DI_STATO");
 
@@ -154,15 +155,14 @@ public class EsportaSoggettiConservatori
 			int rows = rs.getRow();
 			rs.beforeFirst();
 			int max = 1000;
-			log.info("Estratti " + rows + " id di istituti, ne saranno lavorati "
-					+ max);
+			log.info("Estratti " + rows + " id di istituti, ne saranno lavorati " + max);
 			while(rs.next() && (max-- > 0))
 			{
 
 				idIstituto = rs.getInt("ID_Istituto");
 				/*
-				 * Si crea una entity in cui metteremo un sogc. Più avanti la entity
-				 * sarà aggiunta alla recordlist
+				 * Si crea una entity in cui metteremo un sogc. Più avanti la entity sarà aggiunta alla
+				 * recordlist
 				 */
 				Entity ent = envObf.createEnvelopeRecordListRecordRecordBodyEntity();
 				// più avanti serve anche una Relazioni
@@ -173,8 +173,8 @@ public class EsportaSoggettiConservatori
 				DSogc dsogc = sc.createEntity(idIstituto);
 
 				/*
-				 * Il codi_provenienza del dsogc va messo via in un oggetto Dominante
-				 * che poi servirà nella relazione. C'è qualche dubbio sulla tipologia.
+				 * Il codi_provenienza del dsogc va messo via in un oggetto Dominante che poi servirà nella
+				 * relazione. C'è qualche dubbio sulla tipologia.
 				 */
 
 				Dominante dominante;
@@ -189,10 +189,9 @@ public class EsportaSoggettiConservatori
 				// Finalmente si aggiunge il dsogc alla entity
 				ent.getContent().add(dsogc); // ancona
 				/*
-				 * Ora la entity col sogc è pronta. Possiamo aggiungerla a un
-				 * recordbody, che si aggiunge a un record, che si aggiunge a una
-				 * recordlist, che si aggiunge all'envelope, più facile di così... Si
-				 * parte da un recordheader, ovviamente
+				 * Ora la entity col sogc è pronta. Possiamo aggiungerla a un recordbody, che si aggiunge a
+				 * un record, che si aggiunge a una recordlist, che si aggiunge all'envelope, più facile di
+				 * così... Si parte da un recordheader, ovviamente
 				 */
 
 				RecordWrapper rw = new RecordWrapper();
@@ -202,8 +201,7 @@ public class EsportaSoggettiConservatori
 				rw.setRecordDatestamp();
 				rw.setEntity(ent);
 /*
- * Si crea la recordlist cui si aggiunge il record, e che poi si aggiunge a sua
- * volta all'envelope
+ * Si crea la recordlist cui si aggiunge il record, e che poi si aggiunge a sua volta all'envelope
  */
 
 				rl.getRecord().add(rw.getRecord());
@@ -239,8 +237,8 @@ public class EsportaSoggettiConservatori
 					}
 
 					/*
-					 * Adesso va aggiunto anche un record relazioni per legare questo
-					 * deposito al dominante. Proviamo a riciclare rb ed rh, ma non r.
+					 * Adesso va aggiunto anche un record relazioni per legare questo deposito al dominante.
+					 * Proviamo a riciclare rb ed rh, ma non r.
 					 */
 					rel.setRelazione("d_rel_sogc_depositi");
 					DRelSogcDepositi drelSogcDepositi = relObf.createDRelSogcDepositi();
@@ -255,8 +253,7 @@ public class EsportaSoggettiConservatori
 					 * anche il body è parzialmente di fantasia
 					 */
 					rw = new RecordWrapper();
-					rw.setRecordIdentifier("id-"
-							+ EsportaSoggettiConservatori.now().getMillisecond());
+					rw.setRecordIdentifier("id-" + EsportaSoggettiConservatori.now().getMillisecond());
 					rw.setRecordDatestamp();
 					rw.setDIRECTIVE("UPSERT");
 					rw.setRelazioni(rel);
@@ -264,13 +261,11 @@ public class EsportaSoggettiConservatori
 				}
 
 /*
- * Solo se questo soggetto ha un superiore si crea la corretta relazione con
- * esso. Si potrebbe fare molto meglio di così, evitando una query
- * potenzialmente inutile quando potremmo sapere già se questo istituto è una
- * sezione o no
+ * Solo se questo soggetto ha un superiore si crea la corretta relazione con esso. Si potrebbe fare
+ * molto meglio di così, evitando una query potenzialmente inutile quando potremmo sapere già se
+ * questo istituto è una sezione o no
  */
-				RelazioniSoggettiSuperiori relSup = new RelazioniSoggettiSuperiori(db
-						.getConnection());
+				RelazioniSoggettiSuperiori relSup = new RelazioniSoggettiSuperiori(db.getConnection());
 				rel = relSup.createRelazione(idIstituto);
 				if(rel != null)
 				{
@@ -295,8 +290,8 @@ public class EsportaSoggettiConservatori
 	}
 
 	/*
-	 * Crea una lista di envelope, uno per ogni soggetto conservatore. Ritorna un
-	 * iterator per comodità
+	 * Crea una lista di envelope, uno per ogni soggetto conservatore. Ritorna un iterator per
+	 * comodità
 	 */
 	public Iterator<EnvelopeWrapper> creaMultiEnvelope()
 	{
@@ -326,8 +321,7 @@ public class EsportaSoggettiConservatori
 			rs.beforeFirst();
 			if(rows > max)
 			{
-				log.info("Estratti " + rows + " id di istituti, ne saranno lavorati "
-						+ max);
+				log.info("Estratti " + rows + " id di istituti, ne saranno lavorati " + max);
 			}
 			else
 			{
@@ -343,8 +337,8 @@ public class EsportaSoggettiConservatori
 				ew = new EnvelopeWrapper();
 				ew.setCREATED();
 				/*
-				 * Si crea una entity in cui metteremo un sogc. Più avanti la entity
-				 * sarà aggiunta alla recordlist
+				 * Si crea una entity in cui metteremo un sogc. Più avanti la entity sarà aggiunta alla
+				 * recordlist
 				 */
 				Entity ent = envObf.createEnvelopeRecordListRecordRecordBodyEntity();
 				// più avanti serve anche una Relazioni
@@ -354,8 +348,9 @@ public class EsportaSoggettiConservatori
 				codiProvenienzaDSogc = dsogc.getCodiProvenienza();
 				ew.setSource("SIAS");
 				/*
-				 * Per evitare errori di validazione delle fonti, non tutte codificate
-				 * correttamente negli XSD, si usa una fonte fittizia sicuramente valida
+				 * Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli
+				 * XSD, inizialmente si usava una fonte fittizia sicuramente valida. Grazie alla mappatura
+				 * fra le fonti, questo in teoria non è più necessario.
 				 */
 				if(fkFonte != null)
 				{
@@ -367,8 +362,8 @@ public class EsportaSoggettiConservatori
 				}
 
 				/*
-				 * Il codi_provenienza del dsogc va messo via in un oggetto Dominante
-				 * che poi servirà nella relazione. C'è qualche dubbio sulla tipologia.
+				 * Il codi_provenienza del dsogc va messo via in un oggetto Dominante che poi servirà nella
+				 * relazione. C'è qualche dubbio sulla tipologia.
 				 */
 
 				Dominante dominante = relObf.createRelazioniDominante();
@@ -382,10 +377,9 @@ public class EsportaSoggettiConservatori
 				// Finalmente si aggiunge il dsogc alla entity
 				ent.getContent().add(dsogc);
 				/*
-				 * Ora la entity col sogc è pronta. Possiamo aggiungerla a un
-				 * recordbody, che si aggiunge a un record, che si aggiunge a una
-				 * recordlist, che si aggiunge all'envelope, più facile di così... Si
-				 * parte da un recordheader, ovviamente
+				 * Ora la entity col sogc è pronta. Possiamo aggiungerla a un recordbody, che si aggiunge a
+				 * un record, che si aggiunge a una recordlist, che si aggiunge all'envelope, più facile di
+				 * così... Si parte da un recordheader, ovviamente
 				 */
 
 				RecordWrapper rw = new RecordWrapper();
@@ -394,8 +388,8 @@ public class EsportaSoggettiConservatori
 				rw.setRecordDatestamp();
 				rw.setEntity(ent);
 				/*
-				 * Si crea la recordlist cui si aggiunge il record, e che poi si
-				 * aggiunge a sua volta all'envelope
+				 * Si crea la recordlist cui si aggiunge il record, e che poi si aggiunge a sua volta
+				 * all'envelope
 				 */
 
 				rl = envObf.createEnvelopeRecordList();
@@ -428,15 +422,14 @@ public class EsportaSoggettiConservatori
 						rl.getRecord().add(rw.getRecord());
 
 						/*
-						 * Adesso va aggiunto anche un record relazioni per legare questo
-						 * deposito al dominante. Proviamo a riciclare rb ed rh, ma non r.
+						 * Adesso va aggiunto anche un record relazioni per legare questo deposito al dominante.
+						 * Proviamo a riciclare rb ed rh, ma non r.
 						 */
 						rel = relObf.createRelazioni();
 						rel.setRelazione("d_rel_sogc_depositi");
 						DRelSogcDepositi drelSogcDepositi = relObf.createDRelSogcDepositi();
 						drelSogcDepositi.setCodiProvenienzaSogc(dsogc.getCodiProvenienza());
-						drelSogcDepositi
-								.setCodiProvenienzaDepositi(codiProvenienzaDeposito);
+						drelSogcDepositi.setCodiProvenienzaDepositi(codiProvenienzaDeposito);
 						rel.getDRelSogcDepositi().add(drelSogcDepositi);
 
 						/*
@@ -446,8 +439,7 @@ public class EsportaSoggettiConservatori
 						 * anche il body è parzialmente di fantasia
 						 */
 						rw = new RecordWrapper();
-						rw.setRecordIdentifier("REL-" + codiProvenienzaDeposito + "-"
-								+ codiProvenienzaDominante.getValue());
+						rw.setRecordIdentifier("REL-" + codiProvenienzaDeposito + "-" + codiProvenienzaDominante.getValue());
 						// + EsportaSoggettiConservatori.now().getMillisecond());
 						rw.setRecordDatestamp();
 						rw.setDIRECTIVE("UPSERT");
@@ -457,10 +449,9 @@ public class EsportaSoggettiConservatori
 				}
 
 				/*
-				 * Solo se questo soggetto ha un superiore si crea la corretta relazione
-				 * con esso. Si potrebbe fare molto meglio di così, evitando una query
-				 * potenzialmente inutile quando potremmo sapere già se questo istituto
-				 * è una sezione o no
+				 * Solo se questo soggetto ha un superiore si crea la corretta relazione con esso. Si
+				 * potrebbe fare molto meglio di così, evitando una query potenzialmente inutile quando
+				 * potremmo sapere già se questo istituto è una sezione o no
 				 */
 				RelazioniSoggettiSuperiori relSup;
 				relSup = new RelazioniSoggettiSuperiori(db.getConnection());
@@ -468,12 +459,10 @@ public class EsportaSoggettiConservatori
 				if(rel != null)
 				{
 					String codiProvenienzaSup;
-					codiProvenienzaSup = rel.getDominante().getCodiProvenienza()
-							.getValue();
+					codiProvenienzaSup = rel.getDominante().getCodiProvenienza().getValue();
 					rw = new RecordWrapper();
 					// rw.setRecordIdentifier("id-" + new Random().nextLong());
-					rw.setRecordIdentifier("REL-" + codiProvenienzaDSogc + "-"
-							+ codiProvenienzaSup);
+					rw.setRecordIdentifier("REL-" + codiProvenienzaDSogc + "-" + codiProvenienzaSup);
 					rw.setRecordDatestamp();
 					rw.setDIRECTIVE("UPSERT");
 					rw.setRelazioni(rel);
