@@ -131,6 +131,25 @@ public class EnvelopeWrapper
 			m.setProperty("jaxb.formatted.output", true);
 
 			/*
+			 * Per validare l'output occorre prima istanziare un'oggetto Schema.
+			 * Inoltre il marshaller deve avere un eventhandler per evitare che ogni
+			 * errore di validazione sia gestito come exception. Tutto però se non è
+			 * nulla la location dello schema, altrimenti non si effettua la
+			 * validazione
+			 */
+			if(config.getProperty("xml.schema.location") != null)
+			{
+				SchemaFactory sf = SchemaFactory
+						.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				Schema schema = sf.newSchema(new URL(config
+						.getProperty("xml.schema.location")));
+				m.setSchema(schema);
+				u.setSchema(schema);
+//				m.setEventHandler(new SasValidationEventHandler());
+				u.setEventHandler(new SasValidationEventHandler());
+			}
+
+			/*
 			 * Il marshaller creato così ha il difetto di dare ai namespace che
 			 * incontra dei nomi non parlanti, tipicamente "nsXX" dove XX è un
 			 * progressivo numerico. Il risultato resta un XML valido, ma non è
@@ -149,24 +168,6 @@ public class EnvelopeWrapper
 			m.setProperty("jaxb.schemaLocation", config
 					.getProperty("xml.jaxb.schemaLocation"));
 
-			/*
-			 * Per validare l'output occorre prima istanziare un'oggetto Schema.
-			 * Inoltre il marshaller deve avere un eventhandler per evitare che ogni
-			 * errore di validazione sia gestito come exception. Tutto però se non è
-			 * nulla la location dello schema, altrimenti non si effettua la
-			 * validazione
-			 */
-			if(config.getProperty("xml.schema.location") != null)
-			{
-				SchemaFactory sf = SchemaFactory
-						.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-				Schema schema = sf.newSchema(new URL(config
-						.getProperty("xml.schema.location")));
-				m.setSchema(schema);
-				u.setSchema(schema);
-//				m.setEventHandler(new SasValidationEventHandler());
-				u.setEventHandler(new SasValidationEventHandler());
-			}
 			// m.marshal(env, new PrintWriter(new File(config
 			// .getProperty("xml.output.filename"))));
 			String fileName;
@@ -279,6 +280,23 @@ public class EnvelopeWrapper
 			m.setProperty("jaxb.formatted.output", true);
 	
 			/*
+			 * Per validare l'output occorre prima istanziare un'oggetto Schema.
+			 * Inoltre il marshaller deve avere un eventhandler per evitare che ogni
+			 * errore di validazione sia gestito come exception. Tutto però se non è
+			 * nulla la location dello schema, altrimenti non si effettua la
+			 * validazione
+			 */
+			if(config.getProperty("xml.schema.location") != null)
+			{
+				SchemaFactory sf = SchemaFactory
+						.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				Schema schema = sf.newSchema(new URL(config
+						.getProperty("xml.schema.location")));
+				m.setSchema(schema);
+				m.setEventHandler(new SasValidationEventHandler());
+			}
+			
+			/*
 			 * Il marshaller creato così ha il difetto di dare ai namespace che
 			 * incontra dei nomi non parlanti, tipicamente "nsXX" dove XX è un
 			 * progressivo numerico. Il risultato resta un XML valido, ma non è
@@ -296,23 +314,6 @@ public class EnvelopeWrapper
 			m.setProperty("com.sun.xml.bind.namespacePrefixMapper", mapper);
 			m.setProperty("jaxb.schemaLocation", config
 					.getProperty("xml.jaxb.schemaLocation"));
-	
-			/*
-			 * Per validare l'output occorre prima istanziare un'oggetto Schema.
-			 * Inoltre il marshaller deve avere un eventhandler per evitare che ogni
-			 * errore di validazione sia gestito come exception. Tutto però se non è
-			 * nulla la location dello schema, altrimenti non si effettua la
-			 * validazione
-			 */
-			if(config.getProperty("xml.schema.location") != null)
-			{
-				SchemaFactory sf = SchemaFactory
-						.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-				Schema schema = sf.newSchema(new URL(config
-						.getProperty("xml.schema.location")));
-				m.setSchema(schema);
-				m.setEventHandler(new SasValidationEventHandler());
-			}
 			m.marshal(env, pw);
 		}
 		catch(JAXBException e)
