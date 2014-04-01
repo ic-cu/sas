@@ -73,6 +73,7 @@ public class SoggettiConservatori
 	{
 		DSogcWrapper dsogcw = null;
 		log.info("Istituto " + idIstituto + ", inizio elaborazione");
+		String siglaIstituto = null;
 		try
 		{
 			/*
@@ -89,7 +90,8 @@ public class SoggettiConservatori
 			rs.next();
 
 			dsogcw = new DSogcWrapper();
-			dsogcw.setCodiProvenienza(fontiMap.getProperty(rs.getString("codi_provenienza")));
+			siglaIstituto = rs.getString("codi_provenienza");
+			dsogcw.setCodiProvenienza(siglaIstituto);
 			dsogcw.setTextNazioneIsad(rs.getString("text_nazione_isad"));
 			dsogcw.setTextDenominazione(rs.getString("text_denominazione"));
 /*
@@ -117,7 +119,15 @@ public class SoggettiConservatori
 			dsogcw.setFkVocTipoContatto(1);
 			dsogcw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
 			log.info("Istituto " + idIstituto + ", elaborata anagrafica");
+		}
+		catch(SQLException e)
+		{
+			log.warn("Istituto " + siglaIstituto + " (" + idIstituto + "): " + e.getMessage() + ", istituto scartato");
+			return null;
+		}
 
+		try
+		{
 			/*
 			 * Popoliamo le localizzazioni. Si usa ovviamente un'altra statement, ma si ricicla il
 			 * resultset rs. Le localizzazioni secondarie sono ripetibili, per cui si dovrà ciclare sul
@@ -141,7 +151,14 @@ public class SoggettiConservatori
 			dsogcw.setDLocalizzazioneOrariApertura(rs.getString("text_orari_apertura"));
 			dsogcw.addDLocalizzazione();
 			log.info("Istituto " + idIstituto + ", elaborata localizzazione principale " + rs.getString("text_indirizzo"));
+		}
+		catch(SQLException e)
+		{
+			log.warn("Istituto " + siglaIstituto + " (" + idIstituto + "): " + e.getMessage());
+		}
 
+		try
+		{
 			stmtDLocalizzazioneSecondaria.setInt(1, idIstituto);
 			stmtDLocalizzazioneSecondaria.execute();
 			rs = stmtDLocalizzazioneSecondaria.getResultSet();
@@ -162,9 +179,9 @@ public class SoggettiConservatori
 				log.info("Istituto " + idIstituto + ", elaborata localizzazione secondaria " + rs.getString("text_indirizzo"));
 			}
 		}
-		catch(SQLException e)
+		catch (SQLException e) 
 		{
-			e.printStackTrace();
+			log.warn("Istituto " + siglaIstituto + " (" + idIstituto + "): " + e.getMessage());
 		}
 		log.info("Istituto " + idIstituto + ", fine elaborazione");
 		return dsogcw.getDSogc();
