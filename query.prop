@@ -394,7 +394,7 @@ query.comparc.altreden = \
 ## lamenta e soprattutto non sottolinea tutte le righe  
 
 xml.jaxb.schemaLocation = \
-	http://san.beniculturali.it/catalogo/envelope-catsas \
+	http://sas.beniculturali.it/catalogo/envelope-catsas \
 	http://san.beniculturali.it/sas/catalogo/envelope-catsas.xsd
 
 ## questa è diversa dalla precedente, che lega una URI a una URL; questa serve
@@ -407,7 +407,7 @@ xml.schema.location =	http://san.beniculturali.it/sas/catalogo/envelope-catsas.x
 ## file e directory di output
 
 xml.output.filename = d_sogc.xml
-xml.output.directory = /tmp
+xml.output.directory = tmp
 xml.output.separator = _
 xml.output.maxrecords = 100
 
