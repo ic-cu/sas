@@ -48,7 +48,6 @@ public class TestEsportaSoggettiConservatori
 		}
 
 		EsportaSoggettiConservatori esc = new EsportaSoggettiConservatori();
-		// esc.creaEnvelope().marshall();
 		FileOutputStream fos;
 		ZipOutputStream zos;
 		ZipEntry ze;
@@ -93,7 +92,6 @@ public class TestEsportaSoggettiConservatori
 				fileName += ".xml";
 				pw = new PrintWriter(new File(tmpDir + "/sc/xml/" + fileName));
 				ew.marshall(pw);
-//				ew.marshall(tmpDir + "/sc/xml/" + fileName);
 				ze = new ZipEntry(fileName);
 				fis = new FileInputStream(tmpDir + "/sc/xml/" + fileName);
 				bis = new BufferedInputStream(fis, 2048);
@@ -115,7 +113,5 @@ public class TestEsportaSoggettiConservatori
 		{
 			e.printStackTrace();
 		}
-
-		// esc.creaEnvelope().marshall();
 	}
 }
