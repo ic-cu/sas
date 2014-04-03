@@ -179,7 +179,15 @@ query.sezioni = \
 query.comparc = \
 	select \
 		c.ID_ComplessoDoc as ID_ComplessoDoc, \
-		COALESCE(c.ISAD_Nazione+'-'+c.ISAD_Codice+c.ISAD_Sigla+'-F'+convert(varchar(10), c.ID_ComplessoDoc) ,'') as codi_provenienza, \
+		COALESCE( \
+			c.ISAD_Nazione \
+			+ '-' \
+			+ c.ISAD_Codice \
+			+ c.ISAD_Sigla \
+			+'-F' \
+			+ convert(varchar(10), c.ID_ComplessoDoc)	,'' \
+			) \
+		as codi_provenienza, \
 		case \
 			when c.desctipologia = 'Collection' then 1 \
 		  when c.desctipologia = 'fondo' then 3 \
@@ -193,7 +201,8 @@ query.comparc = \
 		1 as fk_voc_stato_descrizione, \
 		'S' as flag_comparc_proprieta_statale_tf, \
 		COALESCE(c.ISAD_Nazione+c.ISAD_Codice+c.ISAD_Sigla, '') as fk_fonte, \
-		c.DescrizioneEstremi + COALESCE( ' (' + c.descrizioneestensioni + ')', '') as text_estr_crono_testuali, \
+		c.DescrizioneEstremi as text_estr_crono_testuali, \
+		c.descrizioneestensioni as text_note_data, \
 		c.datainizio as date_estremo_remoto, \
 		c.datafine as date_estremo_recente, \
 		c.NoteStoriche as text_storia_archivistica, \
