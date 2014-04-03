@@ -149,6 +149,11 @@ public class DComparcWrapper
 		dcomparc.setTextEstrCronoTestuali(s);
 	}
 
+	public void setTextNoteData(String s)
+	{
+		dcomparc.setTextNoteData(s);
+	}
+
 	public XMLGregorianCalendar stringToXGC(String s)
 			throws DatatypeConfigurationException, IllegalArgumentException, SiasSasException
 	{
