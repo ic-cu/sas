@@ -24,6 +24,7 @@ import com.microsoft.sqlserver.jdbc.SQLServerException;
 public class ComplessiArchivistici
 {
 	private Properties				config;
+	private Properties				fontiMap;
 	private PreparedStatement	stmtDComparc;
 	private PreparedStatement	stmtDComparcFusioneDI;
 	private PreparedStatement	stmtDComparcPrimoLivello;
@@ -51,10 +52,14 @@ public class ComplessiArchivistici
 	public ComplessiArchivistici(Connection conn)
 	{
 		config = new Properties();
+		fontiMap = new Properties();
 		try
 		{
 			FileReader prop = new FileReader("query.prop");
 			config.load(prop);
+			prop.close();
+			prop = new FileReader("fonti.map");
+			fontiMap.load(new FileReader("fonti.map"));
 			prop.close();
 			new it.beniculturali.sas.catalogo.commons.ObjectFactory();
 			stmtDComparc = conn.prepareStatement(config.getProperty("query.comparc"));
@@ -83,8 +88,8 @@ public class ComplessiArchivistici
 		}
 	}
 
-	private void popolaDComparc(long idComplesso, long numCorda) throws SQLException, IllegalArgumentException,
-			DatatypeConfigurationException, SiasSasException
+	private void popolaDComparc(long idComplesso, long numCorda)
+			throws SQLException, IllegalArgumentException, DatatypeConfigurationException, SiasSasException
 	{
 		String temp;
 
@@ -99,12 +104,14 @@ public class ComplessiArchivistici
 		log.info("Istituto " + siglaIstituto + ", elaborazione complesso " + idComplesso + " (" + numComplesso++ + ")");
 
 /*
- * È opportuno controllare che il resultset abbia delle righe e segnalare il caso contrario
+ * È opportuno controllare che il resultset abbia delle righe e segnalare il caso contrario. Ma
+ * anche in caso positivo va considerato subito il caso di codi_provenienza nullo, nel qual caso si
+ * rimedia usando la siglaIstituto per costruire un codi_provenienza plausibile, ovviamente
+ * segnalando la cosa
  */
 
 		if(rs.next())
 		{
-// dw = new DComparcWrapper();
 			dw.setTextNumCorda((int) numCorda);
 			temp = rs.getString("codi_provenienza");
 			if(temp.length() == 0 || temp == null)
@@ -115,7 +122,7 @@ public class ComplessiArchivistici
 			}
 			dw.setCodiProvenienza(temp);
 			dw.setFkVocTipoComparc(rs.getLong("fk_voc_tipo_comparc"));
-			dw.setFkVocTipoComparc(1);
+			//dw.setFkVocTipoComparc(1); ???
 			dw.setTextDenUniformata(rs.getString("text_den_uniformata"));
 			dw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
 			dw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
@@ -132,10 +139,12 @@ public class ComplessiArchivistici
 			}
 			else
 			{
-				dw.setFkFonte(rs.getString("fk_fonte"));
+//				dw.setFkFonte(rs.getString("fk_fonte"));
+				dw.setFkFonte(fontiMap.getProperty(rs.getString("fk_fonte")));
 			}
 
 			dw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+			dw.setTextNoteData(rs.getString("text_note_data"));
 			dw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
 			dw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
 			dw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
