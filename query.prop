@@ -270,8 +270,24 @@ query.comparc.di = \
 		and e.ID_Elemento = di.ID_Elemento \
 		and e.MD5Link is null \
 		and e.Pubblicato = 'S' \
-		and c.ID_ComplessoDoc = ?
-	
+		and c.ID_ComplessoDoc = ? \
+		and c.id_complessodoc not in \
+			( \
+			select \
+				c.ID_ComplessoDoc \
+      from \
+      	Elementi e, \
+      	DatiInventariali di, \
+      	ComplessiDoc c \
+     	where \
+				c.ID_Elemento = di.Id_ElemComplDoc \
+				and e.ID_Elemento = di.ID_Elemento \
+				and e.MD5Link is null \
+				and e.Pubblicato = 'S' \
+				group by c.ID_ComplessoDoc \
+				having count(di.ID_DatoInventariale) > 1 \
+			)
+
 ## query per l'estrazione dei complessi di primo livello, in due versioni,
 ## una limitata a idcomplesso e numcorda, l'altra più estesa
 
