@@ -1,6 +1,7 @@
 package it.mibac.sias.sas.util;
 
 import it.beniculturali.sas.catalogo.commons.DUrl;
+import it.beniculturali.sas.catalogo.comparc.DAnticheSegnature;
 import it.beniculturali.sas.catalogo.comparc.DComparc;
 import it.beniculturali.sas.catalogo.comparc.DComparcAltrecron;
 import it.beniculturali.sas.catalogo.comparc.DComparcAltreden;
@@ -121,13 +122,20 @@ public class DComparcWrapper
 		dcomparc.setCodiProvenienza(s.trim());
 	}
 
-	public void setFkVocTipoComparc(long l)
+	public void setFkVocTipoComparc(long l) throws SiasSasException
 	{
+		SiasSasException e = null;
+		if(l < 1 || l > 18)
+		{
+			e = new SiasSasException("tipologia complesso " + l + " errata, impostata a 1");
+			l = 1;
+		}
 		DVocTipoComparc dVoc = vocComparcObf.createDVocTipoComparc();
 		dVoc.setSequVocTipoComparc(l);
 		FkVocTipoComparc fkVoc = dcomparcObf.createFkVocTipoComparc();
 		fkVoc.setDVocTipoComparc(dVoc);
 		dcomparc.setFkVocTipoComparc(fkVoc);
+		if(e != null) throw e;
 	}
 
 	public void setTextDenUniformata(String s)
@@ -135,13 +143,19 @@ public class DComparcWrapper
 		dcomparc.setTextDenUniformata(s);
 	}
 
-	public void setFkFonte(String s)
+	public void setFkFonte(String s) throws SiasSasException
 	{
-		FkFonte fkf = dcomparcObf.createFkFonte();
-		ProfGroup pg = fontiObf.createProfGroup();
-		pg.setGroupName(s);
-		fkf.setProfGroup(pg);
-		dcomparc.setFkFonte(fkf);
+		log.info("fonte: [" + s + "]");
+		if(s != null)
+		{
+			FkFonte fkf = dcomparcObf.createFkFonte();
+			ProfGroup pg = fontiObf.createProfGroup();
+			pg.setGroupName(s);
+			fkf.setProfGroup(pg);
+			dcomparc.setFkFonte(fkf);
+		}
+		else
+			throw new SiasSasException("fonte nulla");
 	}
 
 	public void setTextEstrCronoTestuali(String s)
@@ -160,7 +174,6 @@ public class DComparcWrapper
 		int aa = 0;
 		int mm = 0;
 		int dd = 0;
-		String msg = null;
 		XMLGregorianCalendar xgc = null;
 		if(s != null)
 		{
@@ -497,5 +510,38 @@ public class DComparcWrapper
 		je = dcomparcObf.createDateEstremoRemoto(stringToXGC(s));
 		ac.setDateEstremoRemoto(je);
 		dcomparc.getDComparcAltrecron().add(ac);
+	}
+
+	public void setTextCriteriOrdinamento(String s)
+	{
+		dcomparc.setTextCriteriOrdinamento(s);
+	}
+
+	public void setTextLimitiConsultazione(String s)
+	{
+		DComparcCondAccesso ca;
+		ca = dcomparcObf.createDComparcCondAccesso();
+		JAXBElement<String> je;
+		je = dcomparcObf.createDComparcCondAccessoTextLimitiConsultazione(s);
+		ca.setTextLimitiConsultazione(je);
+		dcomparc.getDComparcCondAccesso().add(ca);
+	}
+
+	public void setTextModoRiproduzione(String s)
+	{
+		DComparcCondAccesso ca;
+		ca = dcomparcObf.createDComparcCondAccesso();
+		JAXBElement<String> je;
+		je = dcomparcObf.createDComparcCondAccessoTextModoRiproduzione(s);
+		ca.setTextModoRiproduzione(je);
+		dcomparc.getDComparcCondAccesso().add(ca);
+	}
+
+	public void setTextAnticaSegnatura(String s)
+	{
+		DAnticheSegnature as;
+		as = dcomparcObf.createDAnticheSegnature();
+		as.setTextAnticaSegnatura(s);
+		dcomparc.getDAnticheSegnature().add(as);
 	}
 }
