@@ -89,7 +89,7 @@ public class ComplessiArchivistici
 	}
 
 	private void popolaDComparc(long idComplesso, long numCorda)
-			throws SQLException, IllegalArgumentException, DatatypeConfigurationException, SiasSasException
+			throws SQLException, IllegalArgumentException, DatatypeConfigurationException
 	{
 		String temp;
 
@@ -121,8 +121,15 @@ public class ComplessiArchivistici
 						+ ", codi_provenienza nullo o vuoto, sarà impostato a " + temp);
 			}
 			dw.setCodiProvenienza(temp);
-			dw.setFkVocTipoComparc(rs.getLong("fk_voc_tipo_comparc"));
-			//dw.setFkVocTipoComparc(1); ???
+			try
+			{
+				dw.setFkVocTipoComparc(rs.getLong("fk_voc_tipo_comparc"));
+			}
+			catch(SiasSasException e)
+			{
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
+			}
+			// dw.setFkVocTipoComparc(1); ???
 			dw.setTextDenUniformata(rs.getString("text_den_uniformata"));
 			dw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
 			dw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
@@ -133,14 +140,21 @@ public class ComplessiArchivistici
 			 * se questa è valorizzata
 			 */
 
-			if(fkFonte != null)
+			try
 			{
-				dw.setFkFonte(fkFonte);
+				if(fkFonte != null)
+				{
+					dw.setFkFonte(fkFonte);
+				}
+				else
+				{
+					log.info("fonte: [" + rs.getString("fk_fonte") + "]");
+					dw.setFkFonte(fontiMap.getProperty(rs.getString("fk_fonte")));
+				}
 			}
-			else
+			catch(SiasSasException e)
 			{
-//				dw.setFkFonte(rs.getString("fk_fonte"));
-				dw.setFkFonte(fontiMap.getProperty(rs.getString("fk_fonte")));
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
 			}
 
 			dw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
@@ -150,7 +164,14 @@ public class ComplessiArchivistici
 			dw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
 			dw.setTextNote(rs.getString("text_note_1"));
 			dw.addTextNote(" " + rs.getString("text_note_2"));
-			dw.setTextUrl(rs.getString("text_url"));
+			try
+			{
+				dw.setTextUrl(rs.getString("text_url"));
+			}
+			catch(SiasSasException e)
+			{
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
+			}
 			dw.setNumeMtLineariComplessivi(rs.getBigDecimal("nume_mt_lineari_complessivi"));
 			dw.setNumeRipartoMtLineariSottolvl(rs.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
 			dw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
@@ -167,10 +188,12 @@ public class ComplessiArchivistici
 
 /*
  * Questo metodo si occupa di reperire un eventuale sottolivello inventario che può essere usato per
- * integrare i dati di questo comparc. Si assume che la query riporti al più una riga.
+ * integrare i dati di questo comparc. Si assume che la query riporti al più una riga. I metodi del
+ * wrapper invocati andranno in sovrascrittura di eventuali dati già creati da popolaDComparc.
  */
 
-	private void popolaDatiInventariali(long idComplesso) throws SQLException
+	private void popolaDatiInventariali(long idComplesso)
+			throws SQLException, IllegalArgumentException, DatatypeConfigurationException, SiasSasException
 	{
 		stmtDComparcFusioneDI.setLong(1, idComplesso);
 		stmtDComparcFusioneDI.execute();
@@ -178,10 +201,20 @@ public class ComplessiArchivistici
 		rs = stmtDComparcAltreden.getResultSet();
 		if(rs.next())
 		{
-			/*
-			 * Si comincia con altre_cron
-			 */
+			dw.setFkVocTipoComparc(rs.getInt("fk_voc_tipo_comparc"));
 			dw.setAltreCronTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+			dw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
+			dw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
+			dw.setTextNote(rs.getString("text_note_1"));
+			dw.addTextNote(" " + rs.getString("text_note_2"));
+			dw.addTextNote(" " + rs.getString("text_note_3"));
+			dw.addTextNote(" " + rs.getString("text_note_4"));
+			dw.setTextCriteriOrdinamento(rs.getString("text_criteri_ordinamento"));
+			dw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
+			dw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
+			dw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
+			dw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
+			log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborati dati inventariali");
 		}
 	}
 
@@ -342,7 +375,8 @@ public class ComplessiArchivistici
 			try
 			{
 				popolaDComparc(idComplesso, numCorda);
-				popolaAltreDen(idComplesso);
+// popolaAltreDen(idComplesso);
+// popolaDatiInventariali(idComplesso);
 			}
 			catch(IllegalArgumentException e)
 			{
@@ -353,10 +387,6 @@ public class ComplessiArchivistici
 			{
 				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
 				continue;
-			}
-			catch(SiasSasException e)
-			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
 			}
 			catch(SQLServerException e)
 			{
