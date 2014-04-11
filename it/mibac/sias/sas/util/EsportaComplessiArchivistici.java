@@ -20,25 +20,24 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.WriterAppender;
 
 /*
- * Classe per la creazione degli envelope dei comlessi archivistici. A parte
- * inizializzazioni varie, il metodo importante è creaMultiEnvelope, che ritorna
- * un Iterator di EnvelopeWrapper. Scorrendo questo iteratore, un chiamante può
- * decidere cosa fare di tutti gli envelope ottenuti.
+ * Classe per la creazione degli envelope dei comlessi archivistici. A parte inizializzazioni varie,
+ * il metodo importante è creaMultiEnvelope, che ritorna un Iterator di EnvelopeWrapper. Scorrendo
+ * questo iteratore, un chiamante può decidere cosa fare di tutti gli envelope ottenuti.
  */
 public class EsportaComplessiArchivistici
 {
 
-	public Connection connection;
-	private DB db;
-	private Properties config;
-	public Logger log, valLog;
-	private static String logLayout = "%05r %p %C{1}.%M - %m%n";
-	String fkFonte = null;
-	private int maxRecords;
+	public Connection			connection;
+	private DB						db;
+	private Properties		config;
+	public Logger					log, valLog;
+	private static String	logLayout	= "%05r %p %C{1}.%M - %m%n";
+	String								fkFonte		= null;
+	private int						maxRecords;
 
 	/*
-	 * Questo costruttore prepara la connessione, impostando qualche parametro.
-	 * Sarebbe opportuno esternalizzare i parametri.
+	 * Questo costruttore prepara la connessione, impostando qualche parametro. Sarebbe opportuno
+	 * esternalizzare i parametri.
 	 */
 	public EsportaComplessiArchivistici()
 	{
@@ -49,7 +48,6 @@ public class EsportaComplessiArchivistici
 			db = new DB();
 			connection = db.getConnection();
 			log.info("Inizio esportazione complessi archivistici");
-			org.pmw.tinylog.Logger.info("Inizio esportazione complessi archivistici");
 		}
 		catch(FileNotFoundException e)
 		{
@@ -102,8 +100,8 @@ public class EsportaComplessiArchivistici
 	}
 
 /*
- * Crea una lista di envelope, ognuno contenente al massimo maxRecords entity
- * dcomparc. Ritorna un iterator per comodità.
+ * Crea una lista di envelope, ognuno contenente al massimo maxRecords entity dcomparc. Ritorna un
+ * iterator per comodità.
  */
 
 	public Iterator<EnvelopeWrapper> creaMultiEnvelope(int idIstituto)
@@ -121,9 +119,9 @@ public class EsportaComplessiArchivistici
 		int i = 0;
 
 /*
- * Si istanzia la lista di envelope ewl e la lista dei complessi di, passando
- * per la classe ComplessiArchivistici. Il metodo createEntity ha un nome
- * improprio, perché in realtà ritorna una lista, e andrebbe cambiato.
+ * Si istanzia la lista di envelope ewl e la lista dei complessi di, passando per la classe
+ * ComplessiArchivistici. Il metodo createEntity ha un nome improprio, perché in realtà ritorna una
+ * lista, e andrebbe cambiato.
  */
 		ewl = new ArrayList<EnvelopeWrapper>();
 		ca = new ComplessiArchivistici(db.getConnection());
@@ -138,12 +136,11 @@ public class EsportaComplessiArchivistici
 			dcomparc = di.next();
 
 /*
- * Se il contatore è un multiplo del massimo numero di record per envelope, si
- * crea un nuovo envelope, anche se nascosto dentro un wrapper. All'enveloper va
- * aggiunta una nuova recordlist, e poi si può aggiungere l'envelope alla lista
- * degli envelope. I prossimi maxRecords dcomparc saranno aggiunti a questa
- * recordlist, poi se ne farà una nuova. Il test è positivo anche alla prima
- * iterazione, quando il contatore è nullo.
+ * Se il contatore è un multiplo del massimo numero di record per envelope, si crea un nuovo
+ * envelope, anche se nascosto dentro un wrapper. All'enveloper va aggiunta una nuova recordlist, e
+ * poi si può aggiungere l'envelope alla lista degli envelope. I prossimi maxRecords dcomparc
+ * saranno aggiunti a questa recordlist, poi se ne farà una nuova. Il test è positivo anche alla
+ * prima iterazione, quando il contatore è nullo.
  */
 
 			if(i++ % maxRecords == 0)
@@ -157,11 +154,10 @@ public class EsportaComplessiArchivistici
 			}
 
 /*
- * Arrivati qui, una recordlist è pronta, nuova o già parzialmente popolata.
- * Possiamo aggiungere record. Per evitare errori di validazione delle fonti,
- * non tutte codificate correttamente negli XSD, si usa una fonte fittizia
- * sicuramente valida, inclusa nella configurazione, ma solo se questa è non
- * nulla, altrimenti si usa quella risultante dal dcomparc attuale
+ * Arrivati qui, una recordlist è pronta, nuova o già parzialmente popolata. Possiamo aggiungere
+ * record. Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli
+ * XSD, si usa una fonte fittizia sicuramente valida, inclusa nella configurazione, ma solo se
+ * questa è non nulla, altrimenti si usa quella risultante dal dcomparc attuale
  */
 
 			if(fkFonte != null)
@@ -174,8 +170,8 @@ public class EsportaComplessiArchivistici
 			}
 
 /*
- * Si inserisce il dcomparc attuale in una nuova entity, poi questa ad un nuovo
- * record, e il nuovo record alla recordlist dell'envelope attuale
+ * Si inserisce il dcomparc attuale in una nuova entity, poi questa ad un nuovo record, e il nuovo
+ * record alla recordlist dell'envelope attuale
  */
 
 			ent = envObf.createEnvelopeRecordListRecordRecordBodyEntity();
