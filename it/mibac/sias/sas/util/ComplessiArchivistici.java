@@ -148,7 +148,6 @@ public class ComplessiArchivistici
 				}
 				else
 				{
-					log.info("fonte: [" + rs.getString("fk_fonte") + "]");
 					dw.setFkFonte(fontiMap.getProperty(rs.getString("fk_fonte")));
 				}
 			}
@@ -164,14 +163,7 @@ public class ComplessiArchivistici
 			dw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
 			dw.setTextNote(rs.getString("text_note_1"));
 			dw.addTextNote(" " + rs.getString("text_note_2"));
-			try
-			{
-				dw.setTextUrl(rs.getString("text_url"));
-			}
-			catch(SiasSasException e)
-			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
-			}
+			dw.setTextUrl(rs.getString("text_url"));
 			dw.setNumeMtLineariComplessivi(rs.getBigDecimal("nume_mt_lineari_complessivi"));
 			dw.setNumeRipartoMtLineariSottolvl(rs.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
 			dw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
