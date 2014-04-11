@@ -145,8 +145,7 @@ public class DComparcWrapper
 
 	public void setFkFonte(String s) throws SiasSasException
 	{
-		log.info("fonte: [" + s + "]");
-		if(s != null)
+		if(s != null && s.trim() != null)
 		{
 			FkFonte fkf = dcomparcObf.createFkFonte();
 			ProfGroup pg = fontiObf.createProfGroup();
@@ -370,19 +369,15 @@ public class DComparcWrapper
 		dcomparc.setTextStoriaArchivistica(s);
 	}
 
-	public void setTextUrl(String s) throws SiasSasException
+	public void setTextUrl(String s)
 	{
-		SiasSasException se;
-		if(s == null || s.trim() == null)
+		if(s != null && s.trim() != null)
 		{
-			s = "http://localhost";
-			se = new SiasSasException("url nulla, sarà impostata a " + s);
-			throw se;
+			DUrl du;
+			du = comObf.createDUrl();
+			du.setTextUrl(s);
+			dcomparc.getDUrl().add(du);
 		}
-		DUrl du;
-		du = comObf.createDUrl();
-		du.setTextUrl(s);
-		dcomparc.getDUrl().add(du);
 	}
 
 	public void setTextNumCorda(int i)
