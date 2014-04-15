@@ -24,6 +24,7 @@ import com.microsoft.sqlserver.jdbc.SQLServerException;
 public class ComplessiArchivistici
 {
 	private Properties				config;
+	private Properties				comparcProp;
 	private Properties				fontiMap;
 	private PreparedStatement	stmtDComparc;
 	private PreparedStatement	stmtDComparcFusioneDI;
@@ -52,6 +53,7 @@ public class ComplessiArchivistici
 	public ComplessiArchivistici(Connection conn)
 	{
 		config = new Properties();
+		comparcProp = new Properties();
 		fontiMap = new Properties();
 		try
 		{
@@ -59,15 +61,18 @@ public class ComplessiArchivistici
 			config.load(prop);
 			prop.close();
 			prop = new FileReader("fonti.map");
-			fontiMap.load(new FileReader("fonti.map"));
+			fontiMap.load(prop);
+			prop.close();
+			prop = new FileReader("comparc.prop");
+			comparcProp.load(prop);
 			prop.close();
 			new it.beniculturali.sas.catalogo.commons.ObjectFactory();
-			stmtDComparc = conn.prepareStatement(config.getProperty("query.comparc"));
-			stmtDComparcFusioneDI = conn.prepareStatement(config.getProperty("query.comparc.di"));
-			stmtDComparcPrimoLivello = conn.prepareStatement(config.getProperty("query.comparc.pl"));
-			stmtDComparcSottoLivelli = conn.prepareStatement(config.getProperty("query.comparc.sl"),
+			stmtDComparc = conn.prepareStatement(comparcProp.getProperty("query.comparc"));
+			stmtDComparcFusioneDI = conn.prepareStatement(comparcProp.getProperty("query.comparc.di"));
+			stmtDComparcPrimoLivello = conn.prepareStatement(comparcProp.getProperty("query.comparc.pl"));
+			stmtDComparcSottoLivelli = conn.prepareStatement(comparcProp.getProperty("query.comparc.sl"),
 					ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.HOLD_CURSORS_OVER_COMMIT);
-			stmtDComparcAltreden = conn.prepareStatement(config.getProperty("query.comparc.altreden"));
+			stmtDComparcAltreden = conn.prepareStatement(comparcProp.getProperty("query.comparc.altreden"));
 			stmtIstituto = conn.prepareStatement(config.getProperty("query.istituto"), ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 

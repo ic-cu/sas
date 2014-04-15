@@ -1,0 +1,251 @@
+## Raccolta di query per l'esportazione dei complessi archivistici e dati affini
+
+## IMPORTANTE!!!
+## Fare sempre molta attenzione a spazi finali, che non si vedono ma fanno 
+## parte dei valori, e nelle righe "logiche" creano altri strani problemi
+
+## query per l'estrazione dei dati di un comparc; si entra per idComplesso 
+
+query.comparc = \
+	select \
+		c.ID_ComplessoDoc as ID_ComplessoDoc, \
+		COALESCE( \
+			c.ISAD_Nazione \
+			+ '-' \
+			+ c.ISAD_Codice \
+			+ c.ISAD_Sigla \
+			+'-F' \
+			+ convert(varchar(10), c.ID_ComplessoDoc)	,'' \
+			) \
+		as codi_provenienza, \
+		case \
+			when c.desctipologia = 'Collection' then 1 \
+		  when c.desctipologia = 'fondo' then 3 \
+		  when c.desctipologia = 'Serie' then 6 \
+		  when c.desctipologia = 'Sottoserie' then 9 \
+		  when c.desctipologia = 'SottoSottoSerie' then 9 \
+		  when c.desctipologia = 'Subfondo' then 7 \
+		  when c.desctipologia = 'SuperFondo' then 2 \
+		end as fk_voc_tipo_comparc, \
+		c.Denominazione as text_den_uniformata, \
+		1 as fk_voc_stato_descrizione, \
+		'S' as flag_comparc_proprieta_statale_tf, \
+		COALESCE(c.ISAD_Nazione+c.ISAD_Codice+c.ISAD_Sigla, '') as fk_fonte, \
+		c.DescrizioneEstremi as text_estr_crono_testuali, \
+		c.descrizioneestensioni as text_note_data, \
+		c.datainizio as date_estremo_remoto, \
+		c.datafine as date_estremo_recente, \
+		c.NoteStoriche as text_storia_archivistica, \
+		coalesce ('Note gestionali: ' + c.Note, '') as text_note_1, \
+		coalesce ('Note Direzione: ' + c.NoteDirezione , '') as text_note_2, \
+		c.UrlLink as text_url, \
+		c.MetriLineari as nume_mt_lineari_complessivi, \
+		c.MetriLineariFigli as nume_riparto_mt_lineari_sottolvl, \
+		1 as flag_consultabile_conservatore_tf, \
+		rtrim (i.Denominazione) as text_titolare_diritti \
+	from \
+		complessidoc c, \
+		elementi e, \
+		istituti i \
+	where \
+		e.ID_Elemento = c.ID_Elemento \
+		and c.ID_Istituto = i.ID_Istituto \
+		and c.ID_ComplessoDoc = ? \
+		and e.Pubblicato = 'S'
+
+## query per la fusione con i dati inventariali
+
+query.comparc.di = \
+	select \
+		case \
+  		when di.Tipologia =  '01' then 3 \
+  		when di.Tipologia =  '02' then 7 \
+  		when di.Tipologia =  '03' then 6 \
+  		when di.Tipologia =  '04' then 9 \
+		end as fk_voc_tipo_comparc, \
+		case \
+  		when di.Tipologia = '01'  then 'Fondo' \
+  		when di.Tipologia = '02'  then 'Sub-fondo' \
+  		when di.Tipologia = '03'  then 'Serie' \
+  		when di.Tipologia = '04'  then 'Sottoserie' \
+		end as tipologia_sias, \
+		di.DescrizioneEstremi as text_estr_crono_testuali, \
+		di.datainizio as date_estremo_remoto, \
+		di.DataFine as date_estremo_recente, \
+		coalesce (di.DescrizioneTestuale, '') as text_note_1, \
+		coalesce (di.Descrizione, '') as text_note_2, \
+		case \
+			when di.Note not like '%antica segnatura%' then coalesce ('Note gestionali: ' + di.Note, '') \
+		end as text_note_3, \
+		coalesce ('Dati acquisizione: ' + di.Acquisizione, '') as text_note_4, \
+		di.CriteriOrdinamento as text_criteri_ordinamento, \
+		case \
+			when accesso like '%non%' then 0 else 1 \
+		end as flag_consultabile_conservatore_tf, \
+		di.Accesso as text_limiti_consultazione, \
+		di.Riproduzione as text_modo_riproduzione, \
+		case \
+			when di.note like '%antica segnatura%' then di.note \
+		end as text_antica_segnatura, \
+		di.Classificazione as consistenza, \
+		di.Lingua, \
+		di.Conservazione as text_note_stato_conservazione \
+	from \
+		Elementi e, \
+		DatiInventariali di, \
+		ComplessiDoc c \
+	where \
+		c.ID_Elemento = di.Id_ElemComplDoc \
+		and e.ID_Elemento = di.ID_Elemento \
+		and e.MD5Link is null \
+		and e.Pubblicato = 'S' \
+		and c.ID_ComplessoDoc = ? \
+		and c.id_complessodoc not in \
+			( \
+			select \
+				c.ID_ComplessoDoc \
+      from \
+      	Elementi e, \
+      	DatiInventariali di, \
+      	ComplessiDoc c \
+     	where \
+				c.ID_Elemento = di.Id_ElemComplDoc \
+				and e.ID_Elemento = di.ID_Elemento \
+				and e.MD5Link is null \
+				and e.Pubblicato = 'S' \
+				group by c.ID_ComplessoDoc \
+				having count(di.ID_DatoInventariale) > 1 \
+			)
+
+## query per l'estrazione dei complessi di primo livello, in due versioni,
+## una limitata a idcomplesso e numcorda, l'altra più estesa
+
+query.comparc.pl = \
+	select \
+		c.ID_ComplessoDoc idComplesso, \
+		case \
+			when c.ordinamento is not null then c.ordinamento \
+			else (ROW_NUMBER() OVER(ORDER BY c.denominazione)) \
+		end as text_num_corda, \
+		e.Figli figli \
+	from \
+		ComplessiDoc c, \
+		Elementi e, \
+		istituti i \
+	where \
+		c.ID_Elemento = e.ID_Elemento \
+		and e.ID_ElementoPadre = i.ID_Elemento \
+		and i.ID_Istituto = ? \
+		and e.Pubblicato = 'S' \
+		order by c.Ordinamento, c.Denominazione
+	
+query.comparc.pl.full = \
+	select c.ID_ComplessoDoc, \
+		COALESCE( \
+			c.ISAD_Nazione \
+			+ '-' \
+			+ c.ISAD_Codice \
+			+ c.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), c.ID_ComplessoDoc) ,'' \
+			) \
+		as codi_provenienza, \
+		case \
+			when c.ordinamento is not null then c.ordinamento \
+			else (ROW_NUMBER() OVER(ORDER BY c.denominazione)) \
+		end as text_num_corda, \
+		e.Figli \
+	from \
+		ComplessiDoc c, \
+		Elementi e, \
+		istituti i \
+	where \
+		c.ID_Elemento = e.ID_Elemento \
+		and e.ID_ElementoPadre = i.ID_Elemento \
+		and i.ID_Istituto = ? \
+		and e.Pubblicato = 'S' \
+		order by c.Ordinamento, c.Denominazione
+
+## query per i complessi di livello inferiore, anche questa in due versioni
+
+query.comparc.sl = \
+	select \
+		figlio.ID_ComplessoDoc idFiglio, \
+		case \
+			when figlio.ordinamento is not null then figlio.ordinamento \
+			else (ROW_NUMBER() OVER(ORDER BY figlio.denominazione)) \
+		end as text_num_corda, \
+		figlio.QuantitaFigli figli \
+	from \
+		complessidoc cd, \
+		Elementi cdelem, \
+		ComplessiDoc figlio, \
+		elementi figlioelem \
+	where \
+		cd.ID_Elemento = cdelem.ID_Elemento \
+		and figlioelem.ID_ElementoPadre = cdelem.ID_Elemento \
+		and figlioelem.ID_Elemento = figlio.ID_Elemento \
+		and figlioelem.Pubblicato = 'S' \
+		and cdelem.pubblicato = 'S' \
+		and cd.ID_ComplessoDoc = ? \
+	order by \
+		figlio.Ordinamento, \
+		figlio.Denominazione
+
+query.comparc.sl.full = \
+	select \
+		figlio.ID_ComplessoDoc, \
+		COALESCE( \
+			figlio.ISAD_Nazione \
+			+ '-' \
+			+ figlio.ISAD_Codice \
+			+ figlio.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), figlio.ID_ComplessoDoc) ,'' \
+		) as codi_provenienza, \
+		case \
+			when figlio.ordinamento is not null then figlio.ordinamento \
+			else (ROW_NUMBER() OVER(ORDER BY figlio.denominazione)) \
+		end as text_num_corda, \
+		figlio.QuantitaFigli \
+	from \
+		complessidoc cd, \
+		Elementi cdelem, \
+		ComplessiDoc figlio, \
+		elementi figlioelem \
+	where \
+		cd.ID_Elemento = cdelem.ID_Elemento \
+		and figlioelem.ID_ElementoPadre = cdelem.ID_Elemento \
+		and figlioelem.ID_Elemento = figlio.ID_Elemento \
+		and figlioelem.Pubblicato = 'S' \
+		and cdelem.pubblicato = 'S' \
+		and cd.ID_ComplessoDoc = ? \
+	order by \
+		figlio.Ordinamento, \
+		figlio.Denominazione
+
+## query per l'estrazione delle denominazioni alternative dei comparc
+
+query.comparc.altreden = \
+	select \
+		DEN.AltraDenominazione as text_altreden, \
+		'non disponibile' as text_estr_crono_testuali \
+	from \
+		ComplessiDoc CD \
+	join \
+		ComplessiDocDenominazioni DEN on DEN.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+	join \
+		Elementi ELEM on ELEM.ID_Elemento = CD.ID_Elemento \
+		and cd.Id_complessodoc= ? \
+		and ELEM.Pubblicato = 'S'
+		
+## query per popolare d_comparc_dati_consistenza. Si entra per idComplesso
+
+query.comparc.dati_consistenza = \
+	select \
+		consistenza.nume_consistenza, \
+		consistenza.tipi_oggetti_consistenza, \
+		consistenza.note \
+	from \
+		m_complessi_consistenza consistenza \
+	where fk_comparc = ?
