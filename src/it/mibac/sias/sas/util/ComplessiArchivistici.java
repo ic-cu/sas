@@ -184,15 +184,22 @@ public class ComplessiArchivistici
  */
 
 	private void popolaDatiInventariali(long idComplesso)
-			throws SQLException, IllegalArgumentException, DatatypeConfigurationException, SiasSasException
+			throws SQLException, IllegalArgumentException, DatatypeConfigurationException
 	{
 		stmtDComparcFusioneDI.setLong(1, idComplesso);
 		stmtDComparcFusioneDI.execute();
 		ResultSet rs;
-		rs = stmtDComparcAltreden.getResultSet();
+		rs = stmtDComparcFusioneDI.getResultSet();
 		if(rs.next())
 		{
-			dw.setFkVocTipoComparc(rs.getInt("fk_voc_tipo_comparc"));
+			try
+			{
+				dw.setFkVocTipoComparc(rs.getInt("fk_voc_tipo_comparc"));
+			}
+			catch(SiasSasException e)
+			{
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
+			}
 			dw.setAltreCronTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
 			dw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
 			dw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
@@ -366,8 +373,8 @@ public class ComplessiArchivistici
 			try
 			{
 				popolaDComparc(idComplesso, numCorda);
-// popolaAltreDen(idComplesso);
-// popolaDatiInventariali(idComplesso);
+				popolaAltreDen(idComplesso);
+				popolaDatiInventariali(idComplesso);
 			}
 			catch(IllegalArgumentException e)
 			{

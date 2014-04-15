@@ -129,7 +129,6 @@ public class ComplessiArchivistici
 			{
 				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
 			}
-			// dw.setFkVocTipoComparc(1); ???
 			dw.setTextDenUniformata(rs.getString("text_den_uniformata"));
 			dw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
 			dw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));

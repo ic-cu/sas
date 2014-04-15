@@ -69,11 +69,18 @@ public class TestEsportaComplessiArchivistici
 		PrintWriter pw = null;
 		File tDir = null;
 
+		SimpleDateFormat sdf;
+		sdf = new SimpleDateFormat("yyyyMMdd");
+		String today = sdf.format(new Date());
+		String fileName;
+		DecimalFormat df;
+		df = new DecimalFormat("000");
+
 		// si creano le directory temporanee, caso mai non esistessero
 
-		tDir = new File(tmpDir + "/ca/xml");
+		tDir = new File(tmpDir + "/ca/xml/" + today);
 		tDir.mkdirs();
-		tDir = new File(tmpDir + "/ca/zip");
+		tDir = new File(tmpDir + "/ca/zip/" + today);
 		tDir.mkdirs();
 
 		try
@@ -87,7 +94,7 @@ public class TestEsportaComplessiArchivistici
 			e1.printStackTrace();
 		}
 		ResultSet rs;
-		int maxIstituti = 1000;
+		int maxIstituti = 5;
 		EsportaComplessiArchivistici eca = new EsportaComplessiArchivistici();
 		try
 		{
@@ -105,16 +112,11 @@ public class TestEsportaComplessiArchivistici
 //				idIstituto = 940220003; fonte = "ITSASVARAL";
 				Iterator<EnvelopeWrapper> ewi = eca.creaMultiEnvelope(idIstituto);
 				EnvelopeWrapper ew = null;
-				SimpleDateFormat sdf;
-				sdf = new SimpleDateFormat("yyyyMMdd");
-				String fileName;
-				DecimalFormat df;
-				df = new DecimalFormat("000");
 				int i = 0;
 
 				// si crea il necessario alla gestione del file ZIP
 
-				String zipFileName = tmpDir + "/ca/zip/SIAS-" + fonte + "-"
+				String zipFileName = tmpDir + "/ca/zip/" + today + "/SIAS-" + fonte + "-"
 						+ sdf.format(new Date()) + ".zip";
 				fos = new FileOutputStream(zipFileName);
 				zos = new ZipOutputStream(fos);
@@ -130,10 +132,10 @@ public class TestEsportaComplessiArchivistici
 					fileName += df.format(++i);
 					fileName += ".xml";
 					log.info("Istituto " + fonte + ", envelope numero " + i);
-					pw = new PrintWriter(new File(tmpDir + "/ca/xml/" + fileName));
+					pw = new PrintWriter(new File(tmpDir + "/ca/xml/" + today + "/" + fileName));
 					ew.marshall(pw);
 					ze = new ZipEntry(fileName);
-					fis = new FileInputStream(tmpDir + "/ca/xml/" + fileName);
+					fis = new FileInputStream(tmpDir + "/ca/xml/" + today + "/" + fileName);
 					bis = new BufferedInputStream(fis, 2048);
 					zos.putNextEntry(ze);
 					int count;

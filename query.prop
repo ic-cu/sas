@@ -254,7 +254,6 @@ query.comparc.di = \
 		end as flag_consultabile_conservatore_tf, \
 		di.Accesso as text_limiti_consultazione, \
 		di.Riproduzione as text_modo_riproduzione, \
-# d_antiche_segnature
 		case \
 			when di.note like '%antica segnatura%' then di.note \
 		end as text_antica_segnatura, \
