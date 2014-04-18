@@ -1,0 +1,62 @@
+## Raccolta di query per l'esportazione degli inventari elettronici e dati affini
+
+## IMPORTANTE!!!
+## Fare sempre molta attenzione a spazi finali, che non si vedono ma fanno 
+## parte dei valori, e nelle righe "logiche" creano altri strani problemi
+
+## estrazione degli inventari elettronici di un dato istituto
+
+q.inventari = \
+	select \
+		e.ID_Elemento, \
+		inv.ID_Inventario \
+	from \
+		inventari inv, \
+		elementi e \
+	where \
+		inv.TipoInventario = 'E' \
+		and e.ID_Elemento = inv.ID_Elemento \
+		and inv.ID_Istituto = ? \
+		and e.Pubblicato = 'S'
+
+## dati inventariali di primo livello di un inventario dato
+
+q.dati.inventariali.pl = \
+	select \
+		di.ID_datoinventariale, \
+		COALESCE(i.ISAD_Nazione+'-'+i.ISAD_Codice+i.ISAD_Sigla+'-DI'+convert(varchar(10), di.ID_datoinventariale),'') as codi_provenienza, \
+		case \
+		  when di.Tipologia = '01' then 3 \
+		 	when di.Tipologia = '02' then 7 \
+	  	when di.Tipologia = '03' then 6 \
+  		when di.Tipologia = '04' then 9 \
+  		when (di.Tipologia = '05' and e.MD5Link is null) then 10 \
+  		when (di.Tipologia = '06' and e.MD5Link is null) then 13 \
+  		when e.MD5Link is not null then 17 \
+		end as fk_voc_tipo_comparc, \
+		case \
+	  	when di.Tipologia = '01' then 'Fondo' \
+	  	when di.Tipologia = '02' then 'Sub-fondo' \
+		  when di.Tipologia = '03' then 'Serie' \
+	  	when di.Tipologia = '04' then 'Sottoserie' \
+	  	when (di.Tipologia = '05' and e.MD5Link is null) then 'Unità archivistica' \
+	  	when (di.Tipologia = '06' and e.MD5Link is null) then 'Unità documentaria' \
+	  	when e.MD5Link is not null then 'Cartografia' \
+		end as tipologia_sias, \
+		case \
+			when di.ordinamento is not null then di.ordinamento \
+			else (ROW_NUMBER() OVER(ORDER BY di.titolo)) \
+		end as text_num_corda, \
+		e.Figli \
+	from \
+		datiinventariali di, \
+		Elementi e, \
+		inventari inv, \
+		istituti i \
+	where \
+		di.ID_Elemento = e.ID_Elemento \
+		and inv.ID_Istituto = i.ID_Istituto \
+		and e.ID_ElementoPadre = inv.ID_Elemento \
+		and inv.ID_inventario = ? \
+		and e.Pubblicato = 'S' \
+	order by di.Ordinamento, di.titolo
