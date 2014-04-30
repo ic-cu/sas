@@ -12,6 +12,7 @@ import java.util.List;
  * chiesti tali attributi.
  */
 
+
 public class EntityWrapper
 {
 	private ObjectFactory envelopeObjF;
