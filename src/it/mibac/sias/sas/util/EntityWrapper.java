@@ -8,7 +8,7 @@ import java.util.List;
 /*
  * Classe wrapper attorno a una Entity. Necessaria per aggiungere a una Entity alcuni attributi come
  * il codi_provenienza, la fonte e poco altro. Ci sono infatti situazioni in cui non è possibile
- * sapere quale tipo di oggetto è cntenuto nella Entity, ma è proprio a tale oggetto che andrebbero
+ * sapere quale tipo di oggetto è contenuto nella Entity, ma è proprio a tale oggetto che andrebbero
  * chiesti tali attributi.
  */
 
@@ -24,6 +24,14 @@ public class EntityWrapper
 	{
 		envelopeObjF = new ObjectFactory();
 		entity = envelopeObjF.createEnvelopeRecordListRecordRecordBodyEntity();
+		codiProvenienza = null;
+		fonte = null;
+	}
+	
+	public EntityWrapper(Entity ent)
+	{
+		envelopeObjF = new ObjectFactory();
+		entity = ent;
 		codiProvenienza = null;
 		fonte = null;
 	}
@@ -48,6 +56,11 @@ public class EntityWrapper
 		return fonte;
 	}
 
+	public Entity getEntity()
+	{
+		return entity;
+	}
+	
 	public List<Object> getContent()
 	{
 		return entity.getContent();
