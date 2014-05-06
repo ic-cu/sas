@@ -75,6 +75,11 @@ public class RecordWrapper
 		rb.setEntity(e);
 	}
 
+	public void setEntity(EntityWrapper ew)
+	{
+		rb.setEntity(ew.getEntity());
+	}
+
 	public void setRelazioni(Relazioni rel)
 	{
 		rb.setRelazioni(rel);
