@@ -1,8 +1,6 @@
 package it.mibac.sias.sas.util;
 
-import it.beniculturali.sas.catalogo.comparc.DComparc;
 import it.beniculturali.sas.catalogo.envelope_catsas.Envelope.RecordList;
-import it.beniculturali.sas.catalogo.envelope_catsas.Envelope.RecordList.Record.RecordBody.Entity;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -173,11 +171,10 @@ public class EsportaInventariElettronici
  * record alla recordlist dell'envelope attuale
  */
 
-			entw = envObf.createEnvelopeRecordListRecordRecordBodyEntity();
-			entw.getContent().add(ewi);
+			entw = new EntityWrapper();
 			rw = new RecordWrapper();
 			rw.setDIRECTIVE("UPSERT");
-			rw.setRecordIdentifier("CA-" + entw.getContent().. getCodiProvenienza());
+			rw.setRecordIdentifier("CA-" + entw.getCodiProvenienza());
 			rw.setRecordDatestamp();
 			rw.setEntity(entw);
 			rl.getRecord().add(rw.getRecord());
