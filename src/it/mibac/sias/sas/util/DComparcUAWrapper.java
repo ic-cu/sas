@@ -7,10 +7,12 @@ import it.beniculturali.sas.catalogo.comparc.DComparcAltreden;
 import it.beniculturali.sas.catalogo.comparc.DComparcCondAccesso;
 import it.beniculturali.sas.catalogo.comparc.DComparcUa;
 import it.beniculturali.sas.catalogo.comparc.FkFonte;
+import it.beniculturali.sas.catalogo.comparc.FkVocStatoConservazione;
 import it.beniculturali.sas.catalogo.comparc.FkVocStatoDescrizione;
 import it.beniculturali.sas.catalogo.comparc.FkVocTipoComparc;
 import it.beniculturali.sas.catalogo.comparc.FkVocTipoLinguaContenuto;
 import it.beniculturali.sas.catalogo.fonti.ProfGroup;
+import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocStatoConservazione;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocStatoDescrizione;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocTipoComparc;
 import it.beniculturali.sas.catalogo.vocabolari_trasv.DVocTipoLingua;
@@ -159,6 +161,7 @@ public class DComparcUAWrapper
 		FkVocTipoLinguaContenuto fkVoc;
 		fkVoc = dcomparcObf.createFkVocTipoLinguaContenuto();
 		fkVoc.setDVocTipoLingua(dVoc);
+		
 		dcomparc_ua.setFkVocTipoLinguaContenuto(fkVoc);
 	}
 	
@@ -259,59 +262,6 @@ public class DComparcUAWrapper
 			if(e.getMessage().equals("data non valida"))
 				log.warn("date_estremo_remoto = " + s + ", il complesso sarà scartato");
 		}
-	}
-
-	public void ZZsetDateEstremoRemoto(String s) throws DatatypeConfigurationException, IllegalArgumentException
-	{
-		int aa = 0;
-		int mm = 0;
-		int dd = 0;
-		String msg = null;
-		XMLGregorianCalendar xgc = null;
-		if(s != null)
-		{
-			// Anno dal 1000
-			if(s.length() == 8)
-			{
-				aa = Integer.parseInt(s.substring(0, 4));
-				mm = Integer.parseInt(s.substring(4, 6));
-				dd = Integer.parseInt(s.substring(6, 8));
-			}
-			// Anno prima del 1000
-			else if(s != null && s.length() == 7)
-			{
-				aa = Integer.parseInt(s.substring(0, 3));
-				mm = Integer.parseInt(s.substring(3, 5));
-				dd = Integer.parseInt(s.substring(5, 7));
-			}
-			else
-			{
-				log.warn("date_estremo_remoto = " + s + ", il complesso sarà scartato");
-			}
-		}
-		else
-		{
-			log.warn("date_estremo_remoto nullo, il complesso sarà scartato");
-		}
-		try
-		{
-			DatatypeFactory dtf = DatatypeFactory.newInstance();
-			int tz = DatatypeConstants.FIELD_UNDEFINED;
-			xgc = dtf.newXMLGregorianCalendarDate(aa, mm, dd, tz);
-		}
-		catch(DatatypeConfigurationException e)
-		{
-			DatatypeConfigurationException ee;
-			ee = new DatatypeConfigurationException(msg);
-			throw ee;
-		}
-		catch(IllegalArgumentException e)
-		{
-			IllegalArgumentException ee;
-			ee = new IllegalArgumentException("date_estremo_recente = " + s);
-			throw ee;
-		}
-		dcomparc_ua.setDateEstremoRemoto(xgc);
 	}
 
 	public void setDateEstremoRecente(String s) throws DatatypeConfigurationException, IllegalArgumentException
@@ -496,36 +446,6 @@ public class DComparcUAWrapper
 		dcomparc_ua.getDComparcCondAccesso().add(ca);
 	}
 
-	public void setAltreCronTextEstrCronoTestuali(String s)
-	{
-		DComparcAltrecron ac;
-		ac = dcomparcObf.createDComparcAltrecron();
-		ac.setTextEstrCronoTestuali(s);
-		dcomparc_ua.getDComparcAltrecron().add(ac);
-	}
-
-	public void setAltreCronDateEstremoRecente(String s)
-			throws IllegalArgumentException, DatatypeConfigurationException, SiasSasException
-	{
-		DComparcAltrecron ac;
-		ac = dcomparcObf.createDComparcAltrecron();
-		JAXBElement<XMLGregorianCalendar> je;
-		je = dcomparcObf.createDateEstremoRecente(stringToXGC(s));
-		ac.setDateEstremoRecente(je);
-		dcomparc_ua.getDComparcAltrecron().add(ac);
-	}
-
-	public void setAltreCronDateEstremoRemoto(String s)
-			throws IllegalArgumentException, DatatypeConfigurationException, SiasSasException
-	{
-		DComparcAltrecron ac;
-		ac = dcomparcObf.createDComparcAltrecron();
-		JAXBElement<XMLGregorianCalendar> je;
-		je = dcomparcObf.createDateEstremoRemoto(stringToXGC(s));
-		ac.setDateEstremoRemoto(je);
-		dcomparc_ua.getDComparcAltrecron().add(ac);
-	}
-
 	public void setTextCriteriOrdinamento(String s)
 	{
 		dcomparc_ua.setTextCriteriOrdinamento(s);
@@ -549,6 +469,17 @@ public class DComparcUAWrapper
 		je = dcomparcObf.createDComparcCondAccessoTextModoRiproduzione(s);
 		ca.setTextModoRiproduzione(je);
 		dcomparc_ua.getDComparcCondAccesso().add(ca);
+	}
+	
+	public void setFkVocStatoConservazione(long l)
+	{
+		DVocStatoConservazione dVoc;
+		dVoc = vocComparcObf.createDVocStatoConservazione();
+		dVoc.setSequVocStatoConservazione(l);
+		FkVocStatoConservazione fkVoc;
+		fkVoc = dcomparcObf.createFkVocStatoConservazione();
+		fkVoc.setDVocStatoConservazione(dVoc);
+		dcomparc_ua.setFkVocStatoConservazione(fkVoc);
 	}
 
 	public void setTextAnticaSegnatura(String s)
