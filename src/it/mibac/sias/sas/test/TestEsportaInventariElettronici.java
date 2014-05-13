@@ -29,10 +29,9 @@ import java.util.zip.ZipOutputStream;
 import org.apache.log4j.Logger;
 
 /*
- * Classe per provare l'esportazione dei complessi archivistici. Si limita a
- * qualche inizializzazione e a invocare poi il metodo opportuno. Inoltre
- * gestisce la creazione degli envelope limitando il numero di record per
- * ciascuno.
+ * Classe per provare l'esportazione dei complessi archivistici. Si limita a qualche
+ * inizializzazione e a invocare poi il metodo opportuno. Inoltre gestisce la creazione degli
+ * envelope limitando il numero di record per ciascuno.
  */
 
 public class TestEsportaInventariElettronici
@@ -86,16 +85,15 @@ public class TestEsportaInventariElettronici
 
 		try
 		{
-			stmtIstituti = connection.prepareStatement(config
-					.getProperty("query.istituti"), ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
+			stmtIstituti = connection.prepareStatement(config.getProperty("query.istituti"),
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		}
 		catch(SQLException e1)
 		{
 			e1.printStackTrace();
 		}
 		ResultSet rs;
-		int maxIstituti = 1;
+		int maxIstituti = 15;
 		EsportaInventariElettronici eie = new EsportaInventariElettronici();
 		try
 		{
@@ -106,60 +104,61 @@ public class TestEsportaInventariElettronici
 			{
 				idIstituto = rs.getInt("ID_Istituto");
 				fonte = rs.getString("fk_fonte");
-//				idIstituto = 794000000; fonte = "ITASRM";
-//				idIstituto = 228200000; fonte = "ITASBO";
-//				idIstituto = 180900000; fonte = "ITASBL";
-//				idIstituto = 450180000; fonte = "ITASIM";
-//				idIstituto = 940220003; fonte = "ITSASVARAL";
-				idIstituto = 110040000; fonte = "ITASAG";
+// idIstituto = 794000000; fonte = "ITASRM";
+// idIstituto = 228200000; fonte = "ITASBO";
+// idIstituto = 180900000; fonte = "ITASBL";
+// idIstituto = 450180000; fonte = "ITASIM";
+// idIstituto = 940220003; fonte = "ITSASVARAL";
+// idIstituto = 110040000; fonte = "ITASAG";
 				Iterator<EnvelopeWrapper> ewi = eie.creaMultiEnvelope(idIstituto);
 				EnvelopeWrapper ew = null;
 				int i = 0;
 
 				// si crea il necessario alla gestione del file ZIP
 
-				String zipFileName = tmpDir + "/ie/zip/" + today + "/SIAS-" + fonte + "-"
-						+ sdf.format(new Date()) + ".zip";
-				fos = new FileOutputStream(zipFileName);
-				zos = new ZipOutputStream(fos);
-				byte[] data = new byte[2048];
-				while(ewi.hasNext())
+				if(ewi.hasNext())
 				{
-					ew = ewi.next();
-					// fileName = "SIAS-ITASVT-";
-					fileName = ew.getSource() + "-";
-					fileName += fonte + "-";
-//					fileName += ew.getFonte() + "-";
-					fileName += sdf.format(new Date()) + "-";
-					fileName += df.format(++i);
-					fileName += ".xml";
-					log.info("Istituto " + fonte + ", envelope numero " + i);
-					pw = new PrintWriter(new File(tmpDir + "/ie/xml/" + today + "/" + fileName));
-					ew.marshall(pw);
-					ze = new ZipEntry(fileName);
-					fis = new FileInputStream(tmpDir + "/ie/xml/" + today + "/" + fileName);
-					bis = new BufferedInputStream(fis, 2048);
-					zos.putNextEntry(ze);
-					int count;
-					while((count = bis.read(data, 0, 2048)) != -1)
+					String zipFileName = tmpDir + "/ie/zip/" + today + "/SIAS-" + fonte + "-" + sdf.format(new Date()) + ".zip";
+					fos = new FileOutputStream(zipFileName);
+					zos = new ZipOutputStream(fos);
+					byte[] data = new byte[2048];
+					while(ewi.hasNext())
 					{
-						zos.write(data, 0, count);
-						zos.flush();
+						ew = ewi.next();
+						// fileName = "SIAS-ITASVT-";
+						fileName = ew.getSource() + "-";
+						fileName += fonte + "-";
+// fileName += ew.getFonte() + "-";
+						fileName += sdf.format(new Date()) + "-";
+						fileName += df.format(++i);
+						fileName += ".xml";
+						log.info("Istituto " + fonte + ", envelope numero " + i);
+						pw = new PrintWriter(new File(tmpDir + "/ie/xml/" + today + "/" + fileName));
+						ew.marshall(pw);
+						ze = new ZipEntry(fileName);
+						fis = new FileInputStream(tmpDir + "/ie/xml/" + today + "/" + fileName);
+						bis = new BufferedInputStream(fis, 2048);
+						zos.putNextEntry(ze);
+						int count;
+						while((count = bis.read(data, 0, 2048)) != -1)
+						{
+							zos.write(data, 0, count);
+							zos.flush();
+						}
+						zos.closeEntry();
 					}
-					zos.closeEntry();
-				}
-				try
-				{
-					bis.close();
-					zos.flush();
-					zos.close();
-					fos.close();
-				}
-				catch(ZipException e)
-				{
-					log.warn("Istituto " + idIstituto + "(" + fonte
-							+ "), nessun inventario valido, ZIP non creato");
-					// e.printStackTrace();
+					try
+					{
+						bis.close();
+						zos.flush();
+						zos.close();
+						fos.close();
+					}
+					catch(ZipException e)
+					{
+						log.warn("Istituto " + idIstituto + "(" + fonte + "), nessun inventario valido, ZIP non creato");
+						// e.printStackTrace();
+					}
 				}
 			}
 		}
