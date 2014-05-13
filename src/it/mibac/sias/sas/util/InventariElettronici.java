@@ -39,7 +39,6 @@ public class InventariElettronici
  * Questi campi sono usati da diversi metodi per evitare un complesso e inutile passaggio di
  * informazioni sostanzialmente condivise. Altri dati invece restano parametri dei singoli metodi
  */
-	private DComparcUAWrapper	uaw;
 	private String						siglaIstituto;
 	private int								numInventario;
 	private it.beniculturali.sas.catalogo.comparc.ObjectFactory 		comparcObjF;
@@ -124,7 +123,7 @@ public class InventariElettronici
 		int tipo;
 		long idDatoInventariale;
 		String codiProvenienza;
-		Entity ent = null;
+		EntityWrapper entw = null;
 
 /*
  * Una prima query serve a reperire informazioni minimali circa un istituto
@@ -173,29 +172,37 @@ public class InventariElettronici
 					tipo = rs.getInt("fk_voc_tipo_comparc");
 					codiProvenienza = rs.getString("codi_provenienza");
 					numCorda = rs.getLong("text_num_corda");
-					uaw = new DComparcUAWrapper();
 					switch(tipo)
 					{
 						case 10:
-							ent = createEntityDComparcUA(idDatoInventariale, tipo, codiProvenienza, numCorda);
+							entw = createEntityDComparcUA(idDatoInventariale, tipo, codiProvenienza, numCorda);
 							break;
 						case 13:
-							ent = createEntityDComparcUD(idDatoInventariale, tipo, codiProvenienza, numCorda);
+//							entw = createEntityDComparcUD(idDatoInventariale, tipo, codiProvenienza, numCorda);
 							break;
 						case 17:
-							ent = createEntityDComparcUDSPXCartografie(idDatoInventariale, tipo, codiProvenienza, numCorda);
+//							entw = createEntityDComparcUDSPXCartografie(idDatoInventariale, tipo, codiProvenienza, numCorda);
 							break;
 						default:
-							ent = createEntityDComparc(idDatoInventariale, tipo, codiProvenienza, numCorda);
+//							entw = createEntityDComparc(idDatoInventariale, tipo, codiProvenienza, numCorda);
 							break;
 					}
 				}
 			}
-			catch(Exception e)
+			catch(IllegalArgumentException e)
 			{
-				// TODO: handle exception
+				log.warn("Istituto " + siglaIstituto + " (" + idIstituto + "), argomento non ammesso: " + e.getMessage());
 			}
-			ewl.add(new EntityWrapper(ent));
+			catch(SQLException e)
+			{
+				e.printStackTrace();
+			}
+			catch(DatatypeConfigurationException e)
+			{
+				log.warn("Istituto " + siglaIstituto + " (" + idIstituto + "), configurazione dati errata: " + e.getMessage());
+			}
+			if(entw != null)
+			ewl.add(entw);
 		}
 
 /*
@@ -205,21 +212,22 @@ public class InventariElettronici
 		return ewl.iterator();
 	}
 
-	private Entity createEntityDComparcUDSPXCartografie(long idInventario, int tipo, String codiProvenienza, long numCorda)
+	private EntityWrapper createEntityDComparcUDSPXCartografie(long idInventario, int tipo, String codiProvenienza, long numCorda)
 	{
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	private Entity createEntityDComparcUD(long idInventario, int tipo, String codiProvenienza, long numCorda)
+	private EntityWrapper createEntityDComparcUD(long idInventario, int tipo, String codiProvenienza, long numCorda)
 	{
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	private Entity createEntityDComparcUA(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda) throws IllegalArgumentException, DatatypeConfigurationException
+	private EntityWrapper createEntityDComparcUA(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda) throws IllegalArgumentException, DatatypeConfigurationException
 	{
-		Entity ent = envelopeObjF.createEnvelopeRecordListRecordRecordBodyEntity();
+		EntityWrapper entw = new EntityWrapper();
+		DComparcUAWrapper	uaw = new DComparcUAWrapper();
 		try
 		{
 			stmtDComparcUA.setLong(1, idDatoInventariale);
@@ -227,7 +235,7 @@ public class InventariElettronici
 			rs = stmtDComparcUA.getResultSet();
 			if(rs.next())
 			{
-				log.info("Istituto " + siglaIstituto + ", elaborazione dato inventariale " + idDatoInventariale + " (" + numInventario++ + ")");
+				log.info("Istituto " + siglaIstituto + ", elaborazione unità archivistica " + idDatoInventariale + " (" + numInventario++ + ")");
 				uaw.setFkVocTipoComparc(tipo);
 				uaw.setCodiProvenienza(codiProvenienza);
 				uaw.setTextNumCorda((int) numCorda);
@@ -264,15 +272,14 @@ public class InventariElettronici
 		{
 			e.printStackTrace();
 		}
-		uaw.setCodiProvenienza(codiProvenienza);
-		uaw.setTextNumCorda((int) numCorda);
-		ent.getContent().add(uaw.getDComparc());
-		return ent;
+		entw.setCodiProvenienza(codiProvenienza);
+		entw.getContent().add(uaw.getDComparc());
+		return entw;
 	}
 
-	private Entity createEntityDComparc(long idInventario, int tipo, String codiProvenienza, long numCorda)
+	private EntityWrapper createEntityDComparc(long idInventario, int tipo, String codiProvenienza, long numCorda)
 	{
-		Entity ent = envelopeObjF.createEnvelopeRecordListRecordRecordBodyEntity();
+		EntityWrapper ent = new EntityWrapper();
 		DComparcWrapper dw = new DComparcWrapper();
 		try
 		{
