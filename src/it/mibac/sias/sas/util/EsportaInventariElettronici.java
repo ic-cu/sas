@@ -111,7 +111,7 @@ public class EsportaInventariElettronici
 		ArrayList<EnvelopeWrapper> ewl = null;
 		EntityWrapper entw = null;
 		InventariElettronici inv = null;
-		Iterator<EntityWrapper> ewi = null;
+		Iterator<EntityWrapper> entwi = null;
 		RecordWrapper rw = null;
 		int i = 0;
 
@@ -122,15 +122,15 @@ public class EsportaInventariElettronici
  */
 		ewl = new ArrayList<EnvelopeWrapper>();
 		inv = new InventariElettronici(db.getConnection());
-		ewi = inv.createEntity(idIstituto);
+		entwi = inv.createEntity(idIstituto);
 
 /*
  * Si cicla sulle entity ottenute, tutti gli inventari dell'istituto attuale
  */
 
-		while(ewi.hasNext())
+		while(entwi.hasNext())
 		{
-			entw = ewi.next();
+			entw = entwi.next();
 
 /*
  * Se il contatore è un multiplo del massimo numero di record per envelope, si crea un nuovo
@@ -171,10 +171,9 @@ public class EsportaInventariElettronici
  * record alla recordlist dell'envelope attuale
  */
 
-			entw = new EntityWrapper();
 			rw = new RecordWrapper();
 			rw.setDIRECTIVE("UPSERT");
-			rw.setRecordIdentifier("CA-" + entw.getCodiProvenienza());
+			rw.setRecordIdentifier("IE-" + entw.getCodiProvenienza());
 			rw.setRecordDatestamp();
 			rw.setEntity(entw);
 			rl.getRecord().add(rw.getRecord());
