@@ -23,28 +23,28 @@ import com.microsoft.sqlserver.jdbc.SQLServerException;
 
 public class ComplessiArchivistici
 {
-	private Properties				config;
-	private Properties				comparcProp;
-	private Properties				fontiMap;
-	private PreparedStatement	stmtDComparc;
-	private PreparedStatement	stmtDComparcFusioneDI;
-	private PreparedStatement	stmtDComparcPrimoLivello;
-	private PreparedStatement	stmtDComparcSottoLivelli;
-	private PreparedStatement	stmtDComparcAltreden;
-	private PreparedStatement	stmtIstituto;
-	ResultSet									rs, rsad;
-	FkFonte										fkf;
-	String										fkFonte	= null;
-	ProfGroup									pg;
-	private static Logger			log;
+	private Properties config;
+	private Properties comparcProp;
+	private Properties fontiMap;
+	private PreparedStatement stmtDComparc;
+	private PreparedStatement stmtDComparcFusioneDI;
+	private PreparedStatement stmtDComparcPrimoLivello;
+	private PreparedStatement stmtDComparcSottoLivelli;
+	private PreparedStatement stmtDComparcAltreden;
+	private PreparedStatement stmtIstituto;
+	ResultSet rs, rsad;
+	FkFonte fkf;
+	String fkFonte = null;
+	ProfGroup pg;
+	private static Logger log;
 
 /*
  * Questi campi sono usati da diversi metodi per evitare un complesso e inutile passaggio di
  * informazioni sostanzialmente condivise. Altri dati invece restano parametri dei singoli metodi
  */
-	private DComparcWrapper		dw;
-	private String						siglaIstituto;
-	private int								numComplesso;
+	private DComparcWrapper dw;
+	private String siglaIstituto;
+	private int numComplesso;
 
 	/*
 	 * Questo costruttore richiede solo una connessione (che non tocca a lui chiudere, attenzione) che
@@ -138,11 +138,11 @@ public class ComplessiArchivistici
 			dw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
 			dw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
 
-			/*
-			 * Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli
-			 * XSD, si usa una fonte fittizia sicuramente valida, presa dal file di configurazione, e solo
-			 * se questa è valorizzata
-			 */
+/*
+ * Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli XSD, si
+ * usa una fonte fittizia sicuramente valida, presa dal file di configurazione, e solo se questa è
+ * valorizzata
+ */
 
 			try
 			{
