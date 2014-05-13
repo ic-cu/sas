@@ -16,6 +16,7 @@ import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocStatoConservazione;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocStatoDescrizione;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocTipoComparc;
 import it.beniculturali.sas.catalogo.vocabolari_trasv.DVocTipoLingua;
+import it.beniculturali.sas.catalogo.vocabolari_trasv.ObjectFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -78,6 +79,7 @@ public class DComparcUAWrapper
 		vocComparcObf = new it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory();
 		comObf = new it.beniculturali.sas.catalogo.commons.ObjectFactory();
 		fontiObf = new it.beniculturali.sas.catalogo.fonti.ObjectFactory();
+		vocTrasvObf = new it.beniculturali.sas.catalogo.vocabolari_trasv.ObjectFactory();
 		initLogger();
 		loadConfig();
 	}
