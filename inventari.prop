@@ -23,7 +23,7 @@ q.inventari = \
 
 q.dati.inventariali.pl = \
 	select \
-		di.ID_datoinventariale, \
+		di.ID_datoinventariale as ID_datoinventariale, \
 		COALESCE(i.ISAD_Nazione+'-'+i.ISAD_Codice+i.ISAD_Sigla+'-DI'+convert(varchar(10), di.ID_datoinventariale),'') as codi_provenienza, \
 		case \
 		  when di.Tipologia = '01' then 3 \
@@ -60,3 +60,56 @@ q.dati.inventariali.pl = \
 		and inv.ID_inventario = ? \
 		and e.Pubblicato = 'S' \
 	order by di.Ordinamento, di.titolo
+	
+## dati per elementi d_comparc_ua
+
+q.dati.inventariali.dcomparc.ua = \
+	select \
+		COALESCE(i.ISAD_Nazione+'-'+i.ISAD_Codice+i.ISAD_Sigla + '-DI' + convert(varchar(10),di.ID_DatoInventariale ), '') as codi_provenienza, \
+		di.Titolo as text_den_uniformata, \
+		di.titolo as text_den_critica, \
+		di.Lingua, \
+		1 as fk_voc_stato_descrizione, \
+		'S' as flag_comparc_proprieta_statale_tf, \
+		COALESCE(i.ISAD_Nazione+'-'+i.ISAD_Codice+i.ISAD_Sigla, '') as fk_fonte, \
+		di.CoseNotevoli, \
+		di.DescrizioneEstremi as text_estr_crono_testuali, \
+		di.datainizio as date_estremo_remoto, \
+		di.DataFine as date_estremo_recente, \
+		coalesce (di.DescrizioneTestuale, '') as text_note_1, \
+		case \
+			when di.Note not like '%antica segnatura%' then coalesce ('Note gestionali: ' + di.Note, '') \
+		end as text_note_2, \
+		di.Acquisizione as text_storia_archivistica, \
+		di.CriteriOrdinamento as text_criteri_ordinamento, \
+		case \
+			when accesso like '%non%' then 0 else 1 \
+		end as flag_consultabile_conservatore_tf, \
+		di.Accesso as text_limiti_consultazione, \
+		di.Riproduzione as text_modo_riproduzione, \
+		di.Descrizione as text_note_3, \
+		di.Numero as nume_consistenza, \
+		di.Classificazione as consistenza, \
+		case \
+			when di.Conservazione like '%buon%' then 1 \
+			when di.Conservazione like '%cattiv%' then 2 \
+			when di.Conservazione like '%discret%' then 3 \
+			when di.Conservazione like '%mediocre%' then 4 \
+			when di.Conservazione like '%ottim%' then 6 \
+			when di.Conservazione like '%perfett%'then 1001 \
+			when di.Conservazione like '%pessim%' then 7 \
+			when (di.Conservazione like '% non %' or di.Conservazione like '%non %') then 5 \
+			else 5 \
+		end as fk_voc_stato_conservazione, \
+		case \
+			when di.note like '%antica segnatura%' then di.note \
+		end as text_antica_segnatura, \
+		rtrim(i.Denominazione) as text_titolare_diritti \
+	from \
+		istituti i, \
+		inventari inv, \
+		DatiInventariali di \
+	where \
+		inv.ID_Istituto = i.ID_Istituto \
+		and inv.ID_Inventario = di.ID_Inventario \
+		and di.ID_DatoInventariale = ?
