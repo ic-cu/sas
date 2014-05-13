@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+
 import org.apache.log4j.Logger;
 
 public class InventariElettronici
@@ -37,7 +39,7 @@ public class InventariElettronici
  * Questi campi sono usati da diversi metodi per evitare un complesso e inutile passaggio di
  * informazioni sostanzialmente condivise. Altri dati invece restano parametri dei singoli metodi
  */
-	private DComparcWrapper		dw;
+	private DComparcUAWrapper	uaw;
 	private String						siglaIstituto;
 	private int								numInventario;
 	private it.beniculturali.sas.catalogo.comparc.ObjectFactory 		comparcObjF;
@@ -122,6 +124,7 @@ public class InventariElettronici
 		int tipo;
 		long idDatoInventariale;
 		String codiProvenienza;
+		Entity ent = null;
 
 /*
  * Una prima query serve a reperire informazioni minimali circa un istituto
@@ -162,7 +165,6 @@ public class InventariElettronici
 				e1.printStackTrace();
 			}
 
-			Entity ent = null;
 			try
 			{
 				while(rs.next())
@@ -171,6 +173,7 @@ public class InventariElettronici
 					tipo = rs.getInt("fk_voc_tipo_comparc");
 					codiProvenienza = rs.getString("codi_provenienza");
 					numCorda = rs.getLong("text_num_corda");
+					uaw = new DComparcUAWrapper();
 					switch(tipo)
 					{
 						case 10:
@@ -214,26 +217,44 @@ public class InventariElettronici
 		return null;
 	}
 
-	private Entity createEntityDComparcUA(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda)
+	private Entity createEntityDComparcUA(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda) throws IllegalArgumentException, DatatypeConfigurationException
 	{
 		Entity ent = envelopeObjF.createEnvelopeRecordListRecordRecordBodyEntity();
-		DComparcUAWrapper uaw = new DComparcUAWrapper();
-
 		try
 		{
 			stmtDComparcUA.setLong(1, idDatoInventariale);
 			stmtDComparcUA.execute();
 			rs = stmtDComparcUA.getResultSet();
-			log.info("Istituto " + siglaIstituto + ", elaborazione inventario " + idDatoInventariale + " (" + numInventario++ + ")");
 			if(rs.next())
 			{
+				log.info("Istituto " + siglaIstituto + ", elaborazione dato inventariale " + idDatoInventariale + " (" + numInventario++ + ")");
 				uaw.setFkVocTipoComparc(tipo);
 				uaw.setCodiProvenienza(codiProvenienza);
 				uaw.setTextNumCorda((int) numCorda);
 				uaw.setTextDenUniformata(rs.getString("text_den_uniformata"));
 				uaw.setTextDenCritica(rs.getString("text_den_uniformata"));
+				uaw.setFkVocTipoLinguaContenuto(rs.getLong("lingua"));
+				uaw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
+				uaw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
+				uaw.setFkFonte(rs.getString("fk_fonte"));
+				/* qui andrebbe gestito "CoseNotevoli"... */
+				uaw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+				uaw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
+				uaw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
+				uaw.setTextNote(rs.getString("text_note_1"));
+				uaw.addTextNote(rs.getString("text_note_2"));
+				uaw.addTextNote(rs.getString("text_note_3"));
+				uaw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
+				uaw.setTextCriteriOrdinamento(rs.getString("text_criteri_ordinamento"));
+				uaw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
+				uaw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
+				uaw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
+				/* gestire "nume_consistenza" */
+				/* gestire "consistenza" */
+				uaw.setFkVocStatoConservazione(rs.getLong("fk_voc_stato_conservazione"));
+				uaw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
+				uaw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
 			}
-			
 		}
 		catch(SQLException e)
 		{
@@ -243,9 +264,9 @@ public class InventariElettronici
 		{
 			e.printStackTrace();
 		}
-		dw.setCodiProvenienza(codiProvenienza);
-		dw.setTextNumCorda((int) numCorda);
-		ent.getContent().add(dw.getDComparc());
+		uaw.setCodiProvenienza(codiProvenienza);
+		uaw.setTextNumCorda((int) numCorda);
+		ent.getContent().add(uaw.getDComparc());
 		return ent;
 	}
 
