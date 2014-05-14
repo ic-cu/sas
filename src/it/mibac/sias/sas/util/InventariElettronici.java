@@ -27,6 +27,7 @@ public class InventariElettronici
 	private Properties				fontiMap;
 	private PreparedStatement	stmtInventari;
 	private PreparedStatement	stmtDComparcUA;
+	private PreparedStatement	stmtDComparcUD;
 	private PreparedStatement	stmtDatiInventarialiPrimoLivello;
 	private PreparedStatement	stmtIstituto;
 	ResultSet									rs, rsad;
@@ -68,6 +69,7 @@ public class InventariElettronici
 			stmtInventari = conn.prepareStatement(invProp.getProperty("q.inventari"));
 			stmtDatiInventarialiPrimoLivello = conn.prepareStatement(invProp.getProperty("q.dati.inventariali.pl"));
 			stmtDComparcUA = conn.prepareStatement(invProp.getProperty("q.dati.inventariali.dcomparc.ua"));
+			stmtDComparcUD = conn.prepareStatement(invProp.getProperty("q.dati.inventariali.dcomparc.ud"));
 			fkFonte = config.getProperty("sogc.fk_fonte");
 			log = Logger.getLogger("COMPARC");
 		}
@@ -178,7 +180,7 @@ public class InventariElettronici
 							entw = createEntityDComparcUA(idDatoInventariale, tipo, codiProvenienza, numCorda);
 							break;
 						case 13:
-//							entw = createEntityDComparcUD(idDatoInventariale, tipo, codiProvenienza, numCorda);
+							entw = createEntityDComparcUD(idDatoInventariale, tipo, codiProvenienza, numCorda);
 							break;
 						case 17:
 //							entw = createEntityDComparcUDSPXCartografie(idDatoInventariale, tipo, codiProvenienza, numCorda);
@@ -218,10 +220,57 @@ public class InventariElettronici
 		return null;
 	}
 
-	private EntityWrapper createEntityDComparcUD(long idInventario, int tipo, String codiProvenienza, long numCorda)
+	private EntityWrapper createEntityDComparcUD(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda) throws IllegalArgumentException, DatatypeConfigurationException
 	{
-		// TODO Auto-generated method stub
-		return null;
+		EntityWrapper entw = new EntityWrapper();
+		DComparcUDWrapper	udw = new DComparcUDWrapper();
+		try
+		{
+			stmtDComparcUD.setLong(1, idDatoInventariale);
+			stmtDComparcUD.execute();
+			rs = stmtDComparcUD.getResultSet();
+			if(rs.next())
+			{
+				log.info("Istituto " + siglaIstituto + ", elaborazione unità documentale " + idDatoInventariale + " (" + numInventario++ + ")");
+				udw.setFkVocTipoComparc(tipo);
+				udw.setCodiProvenienza(codiProvenienza);
+				udw.setTextNumCorda((int) numCorda);
+				udw.setTextDenUniformata(rs.getString("text_den_uniformata"));
+				udw.setTextDenCritica(rs.getString("text_den_uniformata"));
+				udw.setFkVocTipoLinguaContenuto(rs.getLong("lingua"));
+				udw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
+				udw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
+				udw.setFkFonte(rs.getString("fk_fonte"));
+				/* qui andrebbe gestito "CoseNotevoli"... */
+				udw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+				udw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
+				udw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
+				udw.setTextNote(rs.getString("text_note_1"));
+				udw.addTextNote(rs.getString("text_note_2"));
+				udw.addTextNote(rs.getString("text_note_3"));
+				udw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
+				udw.setTextCriteriOrdinamento(rs.getString("text_criteri_ordinamento"));
+				udw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
+				udw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
+				udw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
+				/* gestire "nume_consistenza" */
+				/* gestire "consistenza" */
+				udw.setFkVocStatoConservazione(rs.getLong("fk_voc_stato_conservazione"));
+				udw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
+				udw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
+			}
+		}
+		catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
+		catch(SiasSasException e)
+		{
+			e.printStackTrace();
+		}
+		entw.setCodiProvenienza(codiProvenienza);
+		entw.getContent().add(udw.getDComparc());
+		return entw;
 	}
 
 	private EntityWrapper createEntityDComparcUA(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda) throws IllegalArgumentException, DatatypeConfigurationException
