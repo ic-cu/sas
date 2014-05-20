@@ -1,7 +1,6 @@
 package it.mibac.sias.sas.util;
 
 import it.beniculturali.sas.catalogo.comparc.FkFonte;
-import it.beniculturali.sas.catalogo.envelope_catsas.Envelope.RecordList.Record.RecordBody.Entity;
 import it.beniculturali.sas.catalogo.fonti.ProfGroup;
 
 import java.io.FileNotFoundException;
@@ -22,28 +21,26 @@ import org.apache.log4j.Logger;
 
 public class InventariElettronici
 {
-	private Properties				config;
-	private Properties				invProp;
-	private Properties				fontiMap;
-	private PreparedStatement	stmtInventari;
-	private PreparedStatement	stmtDComparcUA;
-	private PreparedStatement	stmtDComparcUD;
-	private PreparedStatement	stmtDatiInventarialiPrimoLivello;
-	private PreparedStatement	stmtIstituto;
-	ResultSet									rs, rsad;
-	FkFonte										fkf;
-	String										fkFonte	= null;
-	ProfGroup									pg;
-	private static Logger			log;
+	private Properties config;
+	private Properties invProp;
+	private Properties fontiMap;
+	private PreparedStatement stmtInventari;
+	private PreparedStatement stmtDComparcUA;
+	private PreparedStatement stmtDComparcUD;
+	private PreparedStatement stmtDatiInventarialiPrimoLivello;
+	private PreparedStatement stmtIstituto;
+	ResultSet rs, rsad;
+	FkFonte fkf;
+	String fkFonte = null;
+	ProfGroup pg;
+	private static Logger log;
 
 /*
  * Questi campi sono usati da diversi metodi per evitare un complesso e inutile passaggio di
  * informazioni sostanzialmente condivise. Altri dati invece restano parametri dei singoli metodi
  */
-	private String						siglaIstituto;
-	private int								numInventario;
-	private it.beniculturali.sas.catalogo.comparc.ObjectFactory 		comparcObjF;
-	private it.beniculturali.sas.catalogo.envelope_catsas.ObjectFactory envelopeObjF;
+	private String siglaIstituto;
+	private int numInventario;
 
 	/*
 	 * Questo costruttore richiede solo una connessione (che non tocca a lui chiudere, attenzione) che
@@ -85,8 +82,8 @@ public class InventariElettronici
 		{
 			e.printStackTrace();
 		}
-		comparcObjF = new it.beniculturali.sas.catalogo.comparc.ObjectFactory();
-		envelopeObjF = new it.beniculturali.sas.catalogo.envelope_catsas.ObjectFactory();
+		new it.beniculturali.sas.catalogo.comparc.ObjectFactory();
+		new it.beniculturali.sas.catalogo.envelope_catsas.ObjectFactory();
 	}
 
 	private Iterator<BigInteger> getInventari(int idIstituto)
@@ -113,8 +110,10 @@ public class InventariElettronici
 	}
 
 /*
- * Questo metodo fornisce un iterator di Entity legate ad un istituto. Sarà cura del chiamante
- * gestire questa lista. Il contenuto delle Entity può variare molto.
+ * Questo metodo fornisce un iterator di EntityWrapper legate ad un istituto. Sarà cura del
+ * chiamante gestire questa lista. Il contenuto delle EntityWrapper può variare molto. Anzi, è
+ * proprio per questo che non basta un iterator di Entity, perché le Entity possibili sono quattro e
+ * incompatibili fra loro
  */
 	public Iterator<EntityWrapper> createEntity(int idIstituto)
 	{
@@ -182,11 +181,11 @@ public class InventariElettronici
 						case 13:
 							entw = createEntityDComparcUD(idDatoInventariale, tipo, codiProvenienza, numCorda);
 							break;
-						case 17:
-//							entw = createEntityDComparcUDSPXCartografie(idDatoInventariale, tipo, codiProvenienza, numCorda);
+						case 1700:
+							entw = createEntityDComparcUDSPXCartografie(idDatoInventariale, tipo, codiProvenienza, numCorda);
 							break;
 						default:
-//							entw = createEntityDComparc(idDatoInventariale, tipo, codiProvenienza, numCorda);
+							entw = createEntityDComparc(idDatoInventariale, tipo, codiProvenienza, numCorda);
 							break;
 					}
 				}
@@ -203,8 +202,7 @@ public class InventariElettronici
 			{
 				log.warn("Istituto " + siglaIstituto + " (" + idIstituto + "), configurazione dati errata: " + e.getMessage());
 			}
-			if(entw != null)
-			ewl.add(entw);
+			if(entw != null) ewl.add(entw);
 		}
 
 /*
@@ -214,16 +212,23 @@ public class InventariElettronici
 		return ewl.iterator();
 	}
 
-	private EntityWrapper createEntityDComparcUDSPXCartografie(long idInventario, int tipo, String codiProvenienza, long numCorda)
+	private EntityWrapper createEntityDComparcUDSPXCartografie(long idInventario, int tipo, String codiProvenienza,
+			long numCorda)
 	{
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	private EntityWrapper createEntityDComparcUD(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda) throws IllegalArgumentException, DatatypeConfigurationException
+/*
+ * Metodo per produrre una EntityWrapper contenente un DComparcUD. Sarebbe opportuno indagare sul
+ * fatto che è impossibile distinguere questo codice da quello che finisce in UA, ovviamente perché
+ * anche le query sono indistinguibili.
+ */
+	private EntityWrapper createEntityDComparcUD(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda)
+			throws IllegalArgumentException, DatatypeConfigurationException
 	{
 		EntityWrapper entw = new EntityWrapper();
-		DComparcUDWrapper	udw = new DComparcUDWrapper();
+		DComparcUDWrapper dudw = new DComparcUDWrapper();
 		try
 		{
 			stmtDComparcUD.setLong(1, idDatoInventariale);
@@ -231,33 +236,34 @@ public class InventariElettronici
 			rs = stmtDComparcUD.getResultSet();
 			if(rs.next())
 			{
-				log.info("Istituto " + siglaIstituto + ", elaborazione unità documentale " + idDatoInventariale + " (" + numInventario++ + ")");
-				udw.setFkVocTipoComparc(tipo);
-				udw.setCodiProvenienza(codiProvenienza);
-				udw.setTextNumCorda((int) numCorda);
-				udw.setTextDenUniformata(rs.getString("text_den_uniformata"));
-				udw.setTextDenCritica(rs.getString("text_den_uniformata"));
-				udw.setFkVocTipoLinguaContenuto(rs.getLong("lingua"));
-				udw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
-				udw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
-				udw.setFkFonte(rs.getString("fk_fonte"));
+				log.info("Istituto " + siglaIstituto + ", elaborazione unità documentale " + idDatoInventariale + " ("
+						+ numInventario++ + ")");
+				dudw.setFkVocTipoComparc(tipo);
+				dudw.setCodiProvenienza(codiProvenienza);
+				dudw.setTextNumCorda((int) numCorda);
+				dudw.setTextDenUniformata(rs.getString("text_den_uniformata"));
+				dudw.setTextDenCritica(rs.getString("text_den_uniformata"));
+				dudw.setFkVocTipoLinguaContenuto(rs.getLong("lingua"));
+				dudw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
+				dudw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
+				dudw.setFkFonte(rs.getString("fk_fonte"));
 				/* qui andrebbe gestito "CoseNotevoli"... */
-				udw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
-				udw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
-				udw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
-				udw.setTextNote(rs.getString("text_note_1"));
-				udw.addTextNote(rs.getString("text_note_2"));
-				udw.addTextNote(rs.getString("text_note_3"));
-				udw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
-				udw.setTextCriteriOrdinamento(rs.getString("text_criteri_ordinamento"));
-				udw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
-				udw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
-				udw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
+				dudw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+				dudw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
+				dudw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
+				dudw.setTextNote(rs.getString("text_note_1"));
+				dudw.addTextNote(rs.getString("text_note_2"));
+				dudw.addTextNote(rs.getString("text_note_3"));
+				dudw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
+				dudw.setTextCriteriOrdinamento(rs.getString("text_criteri_ordinamento"));
+				dudw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
+				dudw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
+				dudw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
 				/* gestire "nume_consistenza" */
 				/* gestire "consistenza" */
-				udw.setFkVocStatoConservazione(rs.getLong("fk_voc_stato_conservazione"));
-				udw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
-				udw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
+				dudw.setFkVocStatoConservazione(rs.getLong("fk_voc_stato_conservazione"));
+				dudw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
+				dudw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
 			}
 		}
 		catch(SQLException e)
@@ -269,14 +275,15 @@ public class InventariElettronici
 			e.printStackTrace();
 		}
 		entw.setCodiProvenienza(codiProvenienza);
-		entw.getContent().add(udw.getDComparc());
+		entw.getContent().add(dudw.getDComparc());
 		return entw;
 	}
 
-	private EntityWrapper createEntityDComparcUA(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda) throws IllegalArgumentException, DatatypeConfigurationException
+	private EntityWrapper createEntityDComparcUA(long idDatoInventariale, int tipo, String codiProvenienza, long numCorda)
+			throws IllegalArgumentException, DatatypeConfigurationException
 	{
 		EntityWrapper entw = new EntityWrapper();
-		DComparcUAWrapper	uaw = new DComparcUAWrapper();
+		DComparcUAWrapper duaw = new DComparcUAWrapper();
 		try
 		{
 			stmtDComparcUA.setLong(1, idDatoInventariale);
@@ -284,33 +291,34 @@ public class InventariElettronici
 			rs = stmtDComparcUA.getResultSet();
 			if(rs.next())
 			{
-				log.info("Istituto " + siglaIstituto + ", elaborazione unità archivistica " + idDatoInventariale + " (" + numInventario++ + ")");
-				uaw.setFkVocTipoComparc(tipo);
-				uaw.setCodiProvenienza(codiProvenienza);
-				uaw.setTextNumCorda((int) numCorda);
-				uaw.setTextDenUniformata(rs.getString("text_den_uniformata"));
-				uaw.setTextDenCritica(rs.getString("text_den_uniformata"));
-				uaw.setFkVocTipoLinguaContenuto(rs.getLong("lingua"));
-				uaw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
-				uaw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
-				uaw.setFkFonte(rs.getString("fk_fonte"));
+				log.info("Istituto " + siglaIstituto + ", elaborazione unità archivistica " + idDatoInventariale + " ("
+						+ numInventario++ + ")");
+				duaw.setFkVocTipoComparc(tipo);
+				duaw.setCodiProvenienza(codiProvenienza);
+				duaw.setTextNumCorda((int) numCorda);
+				duaw.setTextDenUniformata(rs.getString("text_den_uniformata"));
+				duaw.setTextDenCritica(rs.getString("text_den_uniformata"));
+				duaw.setFkVocTipoLinguaContenuto(rs.getLong("lingua"));
+				duaw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
+				duaw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
+				duaw.setFkFonte(rs.getString("fk_fonte"));
 				/* qui andrebbe gestito "CoseNotevoli"... */
-				uaw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
-				uaw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
-				uaw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
-				uaw.setTextNote(rs.getString("text_note_1"));
-				uaw.addTextNote(rs.getString("text_note_2"));
-				uaw.addTextNote(rs.getString("text_note_3"));
-				uaw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
-				uaw.setTextCriteriOrdinamento(rs.getString("text_criteri_ordinamento"));
-				uaw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
-				uaw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
-				uaw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
+				duaw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+				duaw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
+				duaw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
+				duaw.setTextNote(rs.getString("text_note_1"));
+				duaw.addTextNote(rs.getString("text_note_2"));
+				duaw.addTextNote(rs.getString("text_note_3"));
+				duaw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
+				duaw.setTextCriteriOrdinamento(rs.getString("text_criteri_ordinamento"));
+				duaw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
+				duaw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
+				duaw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
 				/* gestire "nume_consistenza" */
 				/* gestire "consistenza" */
-				uaw.setFkVocStatoConservazione(rs.getLong("fk_voc_stato_conservazione"));
-				uaw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
-				uaw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
+				duaw.setFkVocStatoConservazione(rs.getLong("fk_voc_stato_conservazione"));
+				duaw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
+				duaw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
 			}
 		}
 		catch(SQLException e)
@@ -322,7 +330,7 @@ public class InventariElettronici
 			e.printStackTrace();
 		}
 		entw.setCodiProvenienza(codiProvenienza);
-		entw.getContent().add(uaw.getDComparc());
+		entw.getContent().add(duaw.getDComparc());
 		return entw;
 	}
 
