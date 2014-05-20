@@ -129,10 +129,10 @@ q.dati.inventariali.dcomparc.ud = \
 		di.DescrizioneEstremi as text_estr_crono_testuali, \
 		di.datainizio as date_estremo_remoto, \
 		di.DataFine as date_estremo_recente, \
-		coalesce (di.DescrizioneTestuale, '') as text_note, \
+		coalesce (di.DescrizioneTestuale, '') as text_note_1, \
 		case \
 			when di.Note not like '%antica segnatura%' then coalesce ('Note gestionali: ' + di.Note, '') \
-		end as text_note, \
+		end as text_note_2, \
 		di.Acquisizione as text_storia_archivistica, \
 		di.CriteriOrdinamento as text_criteri_ordinamento, \
 		case \
@@ -140,7 +140,7 @@ q.dati.inventariali.dcomparc.ud = \
 		end as flag_consultabile_conservatore_tf, \
 		di.Accesso as text_limiti_consultazione, \
 		di.Riproduzione as text_modo_riproduzione, \
-		di.Descrizione as text_note, \
+		di.Descrizione as text_note_3, \
 		di.Numero as nume_consistenza, \
 		di.Classificazione as consistenza, \
 		case \
@@ -165,4 +165,4 @@ q.dati.inventariali.dcomparc.ud = \
 	where \
 		inv.ID_Istituto = i.ID_Istituto \
 		and inv.ID_Inventario = di.ID_Inventario \
-		and di.ID_DatoInventariale = ? \
+		and di.ID_DatoInventariale = ?
