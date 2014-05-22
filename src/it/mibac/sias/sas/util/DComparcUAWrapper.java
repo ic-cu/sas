@@ -147,12 +147,12 @@ public class DComparcUAWrapper
 
 	public void setTextDenUniformata(String s)
 	{
-		dcomparc_ua.setTextDenUniformata(s);
+		dcomparc_ua.setTextDenUniformata(s.trim());
 	}
 
 	public void setTextDenCritica(String s)
 	{
-		dcomparc_ua.setTextDenCritica(s);
+		dcomparc_ua.setTextDenCritica(s.trim());
 	}
 
 	public void setFkVocTipoLinguaContenuto(long l)
@@ -169,11 +169,11 @@ public class DComparcUAWrapper
 	
 	public void setFkFonte(String s) throws SiasSasException
 	{
-		if(s != null && s.trim() != null)
+		if(s != null && s.trim() != "")
 		{
 			FkFonte fkf = dcomparcObf.createFkFonte();
 			ProfGroup pg = fontiObf.createProfGroup();
-			pg.setGroupName(s);
+			pg.setGroupName(s.trim());
 			fkf.setProfGroup(pg);
 			dcomparc_ua.setFkFonte(fkf);
 		}
@@ -183,12 +183,12 @@ public class DComparcUAWrapper
 
 	public void setTextEstrCronoTestuali(String s)
 	{
-		dcomparc_ua.setTextEstrCronoTestuali(s);
+		dcomparc_ua.setTextEstrCronoTestuali(s.trim());
 	}
 
 	public void setTextNoteData(String s)
 	{
-		dcomparc_ua.setTextNoteData(s);
+		dcomparc_ua.setTextNoteData(s.trim());
 	}
 
 	public XMLGregorianCalendar stringToXGC(String s)
@@ -337,16 +337,16 @@ public class DComparcUAWrapper
 
 	public void setTextStoriaArchivistica(String s)
 	{
-		dcomparc_ua.setTextStoriaArchivistica(s);
+		dcomparc_ua.setTextStoriaArchivistica(s.trim());
 	}
 
 	public void setTextUrl(String s)
 	{
-		if(s != null && s.trim() != null)
+		if(s != null && s.trim() != "")
 		{
 			DUrl du;
 			du = comObf.createDUrl();
-			du.setTextUrl(s);
+			du.setTextUrl(s.trim());
 			dcomparc_ua.getDUrl().add(du);
 		}
 	}
@@ -370,8 +370,8 @@ public class DComparcUAWrapper
 	{
 		DComparcAltreden da;
 		da = dcomparcObf.createDComparcAltreden();
-		da.setTextAltreden(s);
-		da.setTextEstrCronoTestuali(t);
+		da.setTextAltreden(s.trim());
+		da.setTextEstrCronoTestuali(t.trim());
 		dcomparc_ua.getDComparcAltreden().add(da);
 	}
 
@@ -388,7 +388,7 @@ public class DComparcUAWrapper
 
 	public void setFlagComparcProprietaStatale(String s)
 	{
-		dcomparc_ua.setFlagComparcProprietaStataleTf(s);
+		dcomparc_ua.setFlagComparcProprietaStataleTf(s.trim());
 	}
 
 /*
@@ -398,24 +398,24 @@ public class DComparcUAWrapper
  */
 	public void setTextNote(String s)
 	{
-		if(s != null && s.trim() != null && s.length() != 0)
+		if(s != null && s.trim() != "")
 		{
-			dcomparc_ua.setTextNote(s);
+			dcomparc_ua.setTextNote(s.trim());
 		}
 	}
 
 	public void addTextNote(String s)
 	{
-		if(s != null && s.trim() != null && s.length() != 0)
+		if(s != null && s.trim() != "")
 		{
 			String tmp = dcomparc_ua.getTextNote();
 			if(tmp != null)
 			{
-				tmp += s;
+				tmp += " " + s.trim();
 			}
 			else
 			{
-				tmp = s;
+				tmp = s.trim();
 			}
 			dcomparc_ua.setTextNote(tmp);
 		}
@@ -458,7 +458,7 @@ public class DComparcUAWrapper
 		DComparcCondAccesso ca;
 		ca = dcomparcObf.createDComparcCondAccesso();
 		JAXBElement<String> je;
-		je = dcomparcObf.createDComparcCondAccessoTextLimitiConsultazione(s);
+		je = dcomparcObf.createDComparcCondAccessoTextLimitiConsultazione(s.trim());
 		ca.setTextLimitiConsultazione(je);
 		dcomparc_ua.getDComparcCondAccesso().add(ca);
 	}
@@ -468,7 +468,7 @@ public class DComparcUAWrapper
 		DComparcCondAccesso ca;
 		ca = dcomparcObf.createDComparcCondAccesso();
 		JAXBElement<String> je;
-		je = dcomparcObf.createDComparcCondAccessoTextModoRiproduzione(s);
+		je = dcomparcObf.createDComparcCondAccessoTextModoRiproduzione(s.trim());
 		ca.setTextModoRiproduzione(je);
 		dcomparc_ua.getDComparcCondAccesso().add(ca);
 	}
@@ -488,7 +488,7 @@ public class DComparcUAWrapper
 	{
 		DAnticheSegnature as;
 		as = dcomparcObf.createDAnticheSegnature();
-		as.setTextAnticaSegnatura(s);
+		as.setTextAnticaSegnatura(s.trim());
 		dcomparc_ua.getDAnticheSegnature().add(as);
 	}
 }
