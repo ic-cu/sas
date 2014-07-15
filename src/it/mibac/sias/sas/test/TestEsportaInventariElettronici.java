@@ -93,7 +93,7 @@ public class TestEsportaInventariElettronici
 			e1.printStackTrace();
 		}
 		ResultSet rs;
-		int maxIstituti = 15;
+		int maxIstituti = 1;
 		EsportaInventariElettronici eie = new EsportaInventariElettronici();
 		try
 		{
@@ -109,7 +109,7 @@ public class TestEsportaInventariElettronici
 // idIstituto = 180900000; fonte = "ITASBL";
 // idIstituto = 450180000; fonte = "ITASIM";
 // idIstituto = 940220003; fonte = "ITSASVARAL";
-// idIstituto = 110040000; fonte = "ITASAG";
+ idIstituto = 110040000; fonte = "ITASAG";
 				Iterator<EnvelopeWrapper> ewi = eie.creaMultiEnvelope(idIstituto);
 				EnvelopeWrapper ew = null;
 				int i = 0;
