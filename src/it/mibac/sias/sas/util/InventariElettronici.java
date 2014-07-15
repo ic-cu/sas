@@ -123,7 +123,7 @@ public class InventariElettronici
 		long idInventario, numCorda;
 		int tipo;
 		long idDatoInventariale;
-		String codiProvenienza;
+		String codiProvenienza = null;
 		EntityWrapper entw = null;
 
 /*
@@ -165,6 +165,7 @@ public class InventariElettronici
 				e1.printStackTrace();
 			}
 
+			entw = null;
 			try
 			{
 				while(rs.next())
@@ -172,6 +173,7 @@ public class InventariElettronici
 					idDatoInventariale = rs.getLong("ID_datoinventariale");
 					tipo = rs.getInt("fk_voc_tipo_comparc");
 					codiProvenienza = rs.getString("codi_provenienza");
+					log.info("codi_provenienza: " + codiProvenienza);
 					numCorda = rs.getLong("text_num_corda");
 					switch(tipo)
 					{
@@ -202,7 +204,15 @@ public class InventariElettronici
 			{
 				log.warn("Istituto " + siglaIstituto + " (" + idIstituto + "), configurazione dati errata: " + e.getMessage());
 			}
-			if(entw != null) ewl.add(entw);
+			if(codiProvenienza == null || codiProvenienza.trim() == "")
+			{
+				log.warn("Istituto " + siglaIstituto + " (" + idIstituto + "), codi_provenienza nullo");
+			}
+			if(entw != null)
+			{
+				ewl.add(entw);
+				log.info("codi_provenienza: " + entw.getCodiProvenienza());
+			}
 		}
 
 /*
@@ -298,7 +308,16 @@ public class InventariElettronici
 				duaw.setTextNumCorda((int) numCorda);
 				duaw.setTextDenUniformata(rs.getString("text_den_uniformata"));
 				duaw.setTextDenCritica(rs.getString("text_den_uniformata"));
-				duaw.setFkVocTipoLinguaContenuto(rs.getLong("lingua"));
+				try
+				{
+					duaw.setFkVocTipoLinguaContenuto(rs.getLong("lingua"));
+				}
+				catch(IllegalArgumentException e)
+				{
+					log.warn("Istituto " + siglaIstituto + ", lingua non ammessa: " + e.getMessage() + ", sostituita con 8778");
+					duaw.setFkVocTipoLinguaContenuto(1000);
+				}
+
 				duaw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
 				duaw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
 				duaw.setFkFonte(rs.getString("fk_fonte"));
@@ -327,7 +346,7 @@ public class InventariElettronici
 		}
 		catch(SiasSasException e)
 		{
-			e.printStackTrace();
+			log.warn("Istituto " + siglaIstituto + ", configurazione dati errata: " + e.getMessage());
 		}
 		entw.setCodiProvenienza(codiProvenienza);
 		entw.getContent().add(duaw.getDComparc());
