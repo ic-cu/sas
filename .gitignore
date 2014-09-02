@@ -1,0 +1,16 @@
+*.class
+*/.svn
+
+# Package Files #
+*.war
+*.ear
+/db.prop
+/tmp
+/xsd
+/bin
+/log
+/log2
+/tinylog.properties
+/validate.log
+/tutto.jar
+/inventari.jar
