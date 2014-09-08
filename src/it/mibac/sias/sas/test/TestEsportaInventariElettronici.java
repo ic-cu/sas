@@ -2,7 +2,6 @@ package it.mibac.sias.sas.test;
 
 import it.mibac.sias.sas.util.DB;
 import it.mibac.sias.sas.util.EnvelopeWrapper;
-import it.mibac.sias.sas.util.EsportaComplessiArchivistici;
 import it.mibac.sias.sas.util.EsportaInventariElettronici;
 
 import java.io.BufferedInputStream;
@@ -93,7 +92,7 @@ public class TestEsportaInventariElettronici
 			e1.printStackTrace();
 		}
 		ResultSet rs;
-		int maxIstituti = 1;
+		int maxIstituti = 2;
 		EsportaInventariElettronici eie = new EsportaInventariElettronici();
 		try
 		{
@@ -107,9 +106,12 @@ public class TestEsportaInventariElettronici
 // idIstituto = 794000000; fonte = "ITASRM";
 // idIstituto = 228200000; fonte = "ITASBO";
 // idIstituto = 180900000; fonte = "ITASBL";
-// idIstituto = 450180000; fonte = "ITASIM";
+				idIstituto = 480800000;
+				fonte = "ITASAQ";
+//				idIstituto = 450180000;
+//				fonte = "ITASIM";
 // idIstituto = 940220003; fonte = "ITSASVARAL";
- idIstituto = 110040000; fonte = "ITASAG";
+// idIstituto = 110040000; fonte = "ITASAG";
 				Iterator<EnvelopeWrapper> ewi = eie.creaMultiEnvelope(idIstituto);
 				EnvelopeWrapper ew = null;
 				int i = 0;
