@@ -1,4 +1,23 @@
+<<<<<<< HEAD
 /bin/
 /tmp/
 /xsd/
 /db.prop
+=======
+*.class
+*/.svn
+
+# Package Files #
+*.war
+*.ear
+/db.prop
+/tmp
+/xsd
+/bin
+/log
+/log2
+/tinylog.properties
+/validate.log
+/tutto.jar
+/inventari.jar
+>>>>>>> refs/remotes/origin/noit

@@ -2,6 +2,7 @@ package it.mibac.sias.sas.util;
 
 import it.beniculturali.sas.catalogo.commons.DUrl;
 import it.beniculturali.sas.catalogo.comparc.DAnticheSegnature;
+import it.beniculturali.sas.catalogo.comparc.DComparcAltrecron;
 import it.beniculturali.sas.catalogo.comparc.DComparcAltreden;
 import it.beniculturali.sas.catalogo.comparc.DComparcCondAccesso;
 import it.beniculturali.sas.catalogo.comparc.DComparcUa;
@@ -15,6 +16,7 @@ import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocStatoConservazione;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocStatoDescrizione;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocTipoComparc;
 import it.beniculturali.sas.catalogo.vocabolari_trasv.DVocTipoLingua;
+import it.beniculturali.sas.catalogo.vocabolari_trasv.ObjectFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,38 +41,38 @@ import org.apache.log4j.Logger;
  * DComparc, ma questo non è possibile se si usano le factory.
  */
 
-public class DComparcUAWrapper
+public class DComparcUDWrapper
 {
 /*
  * Serviranno spesso alcune object factory, istanziate nel costruttore
  */
-	private it.beniculturali.sas.catalogo.comparc.ObjectFactory dcomparcObf;
-	private it.beniculturali.sas.catalogo.commons.ObjectFactory comObf;
-	private it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory vocComparcObf;
-	private it.beniculturali.sas.catalogo.vocabolari_trasv.ObjectFactory vocTrasvObf;
-	private it.beniculturali.sas.catalogo.fonti.ObjectFactory fontiObf;
+	private it.beniculturali.sas.catalogo.comparc.ObjectFactory							dcomparcObf;
+	private it.beniculturali.sas.catalogo.commons.ObjectFactory							comObf;
+	private it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory	vocComparcObf;
+	private it.beniculturali.sas.catalogo.vocabolari_trasv.ObjectFactory		vocTrasvObf;
+	private it.beniculturali.sas.catalogo.fonti.ObjectFactory								fontiObf;
 
 /*
  * Il logger è configurato altrove, e qui viene solo richiamato (vedi costruttore). Non è certo che
  * debbe essere per forza static, altrove non lo è.
  */
 
-	private static Logger log;
+	private static Logger																										log;
 
 /*
  * Il member più importante è un DComparc: tutto quello che fa questa classe impatta su di esso.
  */
 
-	private it.beniculturali.sas.catalogo.comparc.DComparcUa dcomparc_ua;
+	private it.beniculturali.sas.catalogo.comparc.DComparcUa									dcomparc_ua;
 
 /*
  * Queste mappe permettono di convertire le sigle automobilistiche e i nomi dei comuni nei
  * corrispondenti codici istat.
  */
-	private Properties comuIstat;
-	private Properties provIstat;
+	private Properties																											comuIstat;
+	private Properties																											provIstat;
 
-	public DComparcUAWrapper()
+	public DComparcUDWrapper()
 	{
 		dcomparc_ua = new DComparcUa();
 		dcomparcObf = new it.beniculturali.sas.catalogo.comparc.ObjectFactory();
@@ -145,39 +147,33 @@ public class DComparcUAWrapper
 
 	public void setTextDenUniformata(String s)
 	{
-		dcomparc_ua.setTextDenUniformata(s.trim());
+		dcomparc_ua.setTextDenUniformata(s);
 	}
 
 	public void setTextDenCritica(String s)
 	{
-		dcomparc_ua.setTextDenCritica(s.trim());
+		dcomparc_ua.setTextDenCritica(s);
 	}
 
-	public void setFkVocTipoLinguaContenuto(long l) throws SiasSasException
+	public void setFkVocTipoLinguaContenuto(long l)
 	{
-		if(l == 0)
-		{
-			SiasSasException ee;
-			ee = new SiasSasException("codice lingua " + l + ", sostituito con 8778");
-			l = 8778;
-			throw ee;
-		}
 		DVocTipoLingua dVoc;
 		dVoc = vocTrasvObf.createDVocTipoLingua();
 		dVoc.setSequVocTipoLingua(l);
 		FkVocTipoLinguaContenuto fkVoc;
 		fkVoc = dcomparcObf.createFkVocTipoLinguaContenuto();
 		fkVoc.setDVocTipoLingua(dVoc);
+		
 		dcomparc_ua.setFkVocTipoLinguaContenuto(fkVoc);
 	}
-
+	
 	public void setFkFonte(String s) throws SiasSasException
 	{
-		if(s != null && s.trim() != "")
+		if(s != null && s.trim() != null)
 		{
 			FkFonte fkf = dcomparcObf.createFkFonte();
 			ProfGroup pg = fontiObf.createProfGroup();
-			pg.setGroupName(s.trim());
+			pg.setGroupName(s);
 			fkf.setProfGroup(pg);
 			dcomparc_ua.setFkFonte(fkf);
 		}
@@ -187,12 +183,12 @@ public class DComparcUAWrapper
 
 	public void setTextEstrCronoTestuali(String s)
 	{
-		dcomparc_ua.setTextEstrCronoTestuali(s.trim());
+		dcomparc_ua.setTextEstrCronoTestuali(s);
 	}
 
 	public void setTextNoteData(String s)
 	{
-		dcomparc_ua.setTextNoteData(s.trim());
+		dcomparc_ua.setTextNoteData(s);
 	}
 
 	public XMLGregorianCalendar stringToXGC(String s)
@@ -341,16 +337,16 @@ public class DComparcUAWrapper
 
 	public void setTextStoriaArchivistica(String s)
 	{
-		if(s != null && s.trim() != "") dcomparc_ua.setTextStoriaArchivistica(s.trim());
+		dcomparc_ua.setTextStoriaArchivistica(s);
 	}
 
 	public void setTextUrl(String s)
 	{
-		if(s != null && s.trim() != "")
+		if(s != null && s.trim() != null)
 		{
 			DUrl du;
 			du = comObf.createDUrl();
-			du.setTextUrl(s.trim());
+			du.setTextUrl(s);
 			dcomparc_ua.getDUrl().add(du);
 		}
 	}
@@ -374,8 +370,8 @@ public class DComparcUAWrapper
 	{
 		DComparcAltreden da;
 		da = dcomparcObf.createDComparcAltreden();
-		if(s != null && s.trim() != "") da.setTextAltreden(s.trim());
-		if(t != null && t.trim() != "") da.setTextEstrCronoTestuali(t.trim());
+		da.setTextAltreden(s);
+		da.setTextEstrCronoTestuali(t);
 		dcomparc_ua.getDComparcAltreden().add(da);
 	}
 
@@ -392,7 +388,7 @@ public class DComparcUAWrapper
 
 	public void setFlagComparcProprietaStatale(String s)
 	{
-		if(s != null && s.trim() != "") dcomparc_ua.setFlagComparcProprietaStataleTf(s.trim());
+		dcomparc_ua.setFlagComparcProprietaStataleTf(s);
 	}
 
 /*
@@ -402,24 +398,24 @@ public class DComparcUAWrapper
  */
 	public void setTextNote(String s)
 	{
-		if(s != null && s.trim() != "")
+		if(s != null && s.trim() != null && s.length() != 0)
 		{
-			dcomparc_ua.setTextNote(s.trim());
+			dcomparc_ua.setTextNote(s);
 		}
 	}
 
 	public void addTextNote(String s)
 	{
-		if(s != null && s.trim() != "")
+		if(s != null && s.trim() != null && s.length() != 0)
 		{
 			String tmp = dcomparc_ua.getTextNote();
 			if(tmp != null)
 			{
-				tmp += " " + s.trim();
+				tmp += s;
 			}
 			else
 			{
-				tmp = s.trim();
+				tmp = s;
 			}
 			dcomparc_ua.setTextNote(tmp);
 		}
@@ -444,48 +440,39 @@ public class DComparcUAWrapper
 
 	public void setTextTitolareDiritti(String s)
 	{
-		if(s != null && s.trim() != "")
-		{
-			DComparcCondAccesso ca;
-			ca = dcomparcObf.createDComparcCondAccesso();
-			JAXBElement<String> je;
-			je = dcomparcObf.createDComparcCondAccessoTextTitolareDiritti(s);
-			ca.setTextTitolareDiritti(je);
-			dcomparc_ua.getDComparcCondAccesso().add(ca);
-		}
+		DComparcCondAccesso ca;
+		ca = dcomparcObf.createDComparcCondAccesso();
+		JAXBElement<String> je;
+		je = dcomparcObf.createDComparcCondAccessoTextTitolareDiritti(s);
+		ca.setTextTitolareDiritti(je);
+		dcomparc_ua.getDComparcCondAccesso().add(ca);
 	}
 
 	public void setTextCriteriOrdinamento(String s)
 	{
-		if(s != null && s.trim() != "") dcomparc_ua.setTextCriteriOrdinamento(s);
+		dcomparc_ua.setTextCriteriOrdinamento(s);
 	}
 
 	public void setTextLimitiConsultazione(String s)
 	{
-		if(s != null && s.trim() != "")
-		{
-			DComparcCondAccesso ca;
-			ca = dcomparcObf.createDComparcCondAccesso();
-			JAXBElement<String> je;
-			je = dcomparcObf.createDComparcCondAccessoTextLimitiConsultazione(s.trim());
-			ca.setTextLimitiConsultazione(je);
-			dcomparc_ua.getDComparcCondAccesso().add(ca);
-		}
+		DComparcCondAccesso ca;
+		ca = dcomparcObf.createDComparcCondAccesso();
+		JAXBElement<String> je;
+		je = dcomparcObf.createDComparcCondAccessoTextLimitiConsultazione(s);
+		ca.setTextLimitiConsultazione(je);
+		dcomparc_ua.getDComparcCondAccesso().add(ca);
 	}
 
 	public void setTextModoRiproduzione(String s)
 	{
-		if(s != null && s.trim() != "")
-		{
-			DComparcCondAccesso ca;
-			ca = dcomparcObf.createDComparcCondAccesso();
-			JAXBElement<String> je;
-			je = dcomparcObf.createDComparcCondAccessoTextModoRiproduzione(s.trim());
-			ca.setTextModoRiproduzione(je);
-			dcomparc_ua.getDComparcCondAccesso().add(ca);
-		}
+		DComparcCondAccesso ca;
+		ca = dcomparcObf.createDComparcCondAccesso();
+		JAXBElement<String> je;
+		je = dcomparcObf.createDComparcCondAccessoTextModoRiproduzione(s);
+		ca.setTextModoRiproduzione(je);
+		dcomparc_ua.getDComparcCondAccesso().add(ca);
 	}
-
+	
 	public void setFkVocStatoConservazione(long l)
 	{
 		DVocStatoConservazione dVoc;
@@ -499,12 +486,9 @@ public class DComparcUAWrapper
 
 	public void setTextAnticaSegnatura(String s)
 	{
-		if(s != null && s.trim() != "")
-		{
-			DAnticheSegnature as;
-			as = dcomparcObf.createDAnticheSegnature();
-			as.setTextAnticaSegnatura(s.trim());
-			dcomparc_ua.getDAnticheSegnature().add(as);
-		}
+		DAnticheSegnature as;
+		as = dcomparcObf.createDAnticheSegnature();
+		as.setTextAnticaSegnatura(s);
+		dcomparc_ua.getDAnticheSegnature().add(as);
 	}
 }
