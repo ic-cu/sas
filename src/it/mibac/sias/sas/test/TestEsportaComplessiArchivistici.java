@@ -3,6 +3,7 @@ package it.mibac.sias.sas.test;
 import it.mibac.sias.sas.util.DB;
 import it.mibac.sias.sas.util.EnvelopeWrapper;
 import it.mibac.sias.sas.util.EsportaComplessiArchivistici;
+import it.mibac.sias.sas.util.Spedizione;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -122,9 +123,10 @@ public class TestEsportaComplessiArchivistici
 
 				String zipFileName = tmpDir + "/ca/zip/" + today + "/SIAS-" + fonte + "-"
 						+ sdf.format(new Date()) + ".zip";
-				fos = new FileOutputStream(zipFileName);
-				zos = new ZipOutputStream(fos);
-				byte[] data = new byte[2048];
+				String percorsoXML = tmpDir + "/ca/xml/" + today;
+//				fos = new FileOutputStream(zipFileName);
+//				zos = new ZipOutputStream(fos);
+//				byte[] data = new byte[2048];
 				while(ewi.hasNext())
 				{
 					ew = ewi.next();
@@ -135,34 +137,42 @@ public class TestEsportaComplessiArchivistici
 					fileName += sdf.format(new Date()) + "-";
 					fileName += df.format(++i);
 					fileName += ".xml";
+
+// col marshall viene effettivamente creato un file XML (a meno di flush)					
+					
 					log.info("Istituto " + fonte + ", envelope numero " + i);
-					pw = new PrintWriter(new File(tmpDir + "/ca/xml/" + today + "/" + fileName));
+					pw = new PrintWriter(new File(percorsoXML + "/" + fileName));
 					ew.marshall(pw);
-					ze = new ZipEntry(fileName);
-					fis = new FileInputStream(tmpDir + "/ca/xml/" + today + "/" + fileName);
-					bis = new BufferedInputStream(fis, 2048);
-					zos.putNextEntry(ze);
-					int count;
-					while((count = bis.read(data, 0, 2048)) != -1)
-					{
-						zos.write(data, 0, count);
-						zos.flush();
-					}
-					zos.closeEntry();
+					
+// i vari oggetti legati alla compressione per ora vengono disattivati					
+					
+//					ze = new ZipEntry(fileName);
+//					fis = new FileInputStream(tmpDir + "/ca/xml/" + today + "/" + fileName);
+//					bis = new BufferedInputStream(fis, 2048);
+//					zos.putNextEntry(ze);
+//					int count;
+//					while((count = bis.read(data, 0, 2048)) != -1)
+//					{
+//						zos.write(data, 0, count);
+//						zos.flush();
+//					}
+//					zos.closeEntry();
 				}
-				try
-				{
-					bis.close();
-					zos.flush();
-					zos.close();
-					fos.close();
-				}
-				catch(ZipException e)
-				{
-					log.warn("Istituto " + idIstituto + "(" + fonte
-							+ "), nessun complesso valido, ZIP non creato");
-					// e.printStackTrace();
-				}
+				Spedizione sped=new Spedizione(percorsoXML, zipFileName);
+				sped.comprimi();
+//				try
+//				{
+//					bis.close();
+//					zos.flush();
+//					zos.close();
+//					fos.close();
+//				}
+//				catch(ZipException e)
+//				{
+//					log.warn("Istituto " + idIstituto + "(" + fonte
+//							+ "), nessun complesso valido, ZIP non creato");
+//					// e.printStackTrace();
+//				}
 			}
 		}
 		catch(SQLException e)
