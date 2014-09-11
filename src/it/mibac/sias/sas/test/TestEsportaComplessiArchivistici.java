@@ -5,11 +5,8 @@ import it.mibac.sias.sas.util.EnvelopeWrapper;
 import it.mibac.sias.sas.util.EsportaComplessiArchivistici;
 import it.mibac.sias.sas.util.Spedizione;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,17 +19,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.log4j.Logger;
 
 /*
- * Classe per provare l'esportazione dei complessi archivistici. Si limita a
- * qualche inizializzazione e a invocare poi il metodo opportuno. Inoltre
- * gestisce la creazione degli envelope limitando il numero di record per
- * ciascuno.
+ * Classe per provare l'esportazione dei complessi archivistici. Si limita a qualche
+ * inizializzazione e a invocare poi il metodo opportuno. Inoltre gestisce la creazione degli
+ * envelope limitando il numero di record per ciascuno.
  */
 
 public class TestEsportaComplessiArchivistici
@@ -62,11 +55,6 @@ public class TestEsportaComplessiArchivistici
 		DB db = new DB();
 		Connection connection = db.getConnection();
 		PreparedStatement stmtIstituti = null;
-		FileOutputStream fos;
-		ZipOutputStream zos;
-		ZipEntry ze;
-		FileInputStream fis;
-		BufferedInputStream bis = null;
 		PrintWriter pw = null;
 		File tDir = null;
 
@@ -86,9 +74,8 @@ public class TestEsportaComplessiArchivistici
 
 		try
 		{
-			stmtIstituti = connection.prepareStatement(config
-					.getProperty("query.istituti"), ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
+			stmtIstituti = connection.prepareStatement(config.getProperty("query.istituti"),
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		}
 		catch(SQLException e1)
 		{
@@ -106,13 +93,13 @@ public class TestEsportaComplessiArchivistici
 			{
 				idIstituto = rs.getInt("ID_Istituto");
 				fonte = rs.getString("fk_fonte");
-//				idIstituto = 794000000; fonte = "ITASRM";
-//				idIstituto = 228200000; fonte = "ITASBO";
-//				idIstituto = 180900000; fonte = "ITASBL";
-//				idIstituto = 450180000; fonte = "ITASIM";
-//				idIstituto = 940220003; fonte = "ITSASVARAL";
-//				idIstituto = 480800000;
-//				fonte = "ITASAQ";
+// idIstituto = 794000000; fonte = "ITASRM";
+// idIstituto = 228200000; fonte = "ITASBO";
+// idIstituto = 180900000; fonte = "ITASBL";
+// idIstituto = 450180000; fonte = "ITASIM";
+// idIstituto = 940220003; fonte = "ITSASVARAL";
+// idIstituto = 480800000;
+// fonte = "ITASAQ";
 				idIstituto = 450180000;
 				fonte = "ITASIM";
 				Iterator<EnvelopeWrapper> ewi = eca.creaMultiEnvelope(idIstituto);
@@ -121,8 +108,7 @@ public class TestEsportaComplessiArchivistici
 
 				// si crea il necessario alla gestione del file ZIP
 
-				String zipFileName = tmpDir + "/ca/zip/" + today + "/SIAS-" + fonte + "-"
-						+ sdf.format(new Date()) + ".zip";
+				String zipFileName = tmpDir + "/ca/zip/" + today + "/SIAS-" + fonte + "-" + sdf.format(new Date()) + ".zip";
 				String percorsoXML = tmpDir + "/ca/xml/" + today;
 				while(ewi.hasNext())
 				{
@@ -130,46 +116,22 @@ public class TestEsportaComplessiArchivistici
 					// fileName = "SIAS-ITASVT-";
 					fileName = ew.getSource() + "-";
 					fileName += fonte + "-";
-//					fileName += ew.getFonte() + "-";
+// fileName += ew.getFonte() + "-";
 					fileName += sdf.format(new Date()) + "-";
 					fileName += df.format(++i);
 					fileName += ".xml";
 
-// col marshall viene effettivamente creato un file XML (a meno di flush)					
-					
+// col marshall viene effettivamente creato un file XML (a meno di flush)
+
 					log.info("Istituto " + fonte + ", envelope numero " + i);
 					pw = new PrintWriter(new File(percorsoXML + "/" + fileName));
 					ew.marshall(pw);
-					
-// i vari oggetti legati alla compressione per ora vengono disattivati					
-					
-//					ze = new ZipEntry(fileName);
-//					fis = new FileInputStream(tmpDir + "/ca/xml/" + today + "/" + fileName);
-//					bis = new BufferedInputStream(fis, 2048);
-//					zos.putNextEntry(ze);
-//					int count;
-//					while((count = bis.read(data, 0, 2048)) != -1)
-//					{
-//						zos.write(data, 0, count);
-//						zos.flush();
-//					}
-//					zos.closeEntry();
 				}
-				Spedizione sped=new Spedizione(percorsoXML, zipFileName);
+				
+// si comprimono tutti gli envelope in un unico file zip
+				
+				Spedizione sped = new Spedizione(percorsoXML, zipFileName);
 				sped.comprimi();
-//				try
-//				{
-//					bis.close();
-//					zos.flush();
-//					zos.close();
-//					fos.close();
-//				}
-//				catch(ZipException e)
-//				{
-//					log.warn("Istituto " + idIstituto + "(" + fonte
-//							+ "), nessun complesso valido, ZIP non creato");
-//					// e.printStackTrace();
-//				}
 			}
 		}
 		catch(SQLException e)
@@ -177,10 +139,6 @@ public class TestEsportaComplessiArchivistici
 			e.printStackTrace();
 		}
 		catch(FileNotFoundException e)
-		{
-			e.printStackTrace();
-		}
-		catch(IOException e)
 		{
 			e.printStackTrace();
 		}
