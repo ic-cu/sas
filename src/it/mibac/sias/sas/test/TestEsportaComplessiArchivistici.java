@@ -124,9 +124,6 @@ public class TestEsportaComplessiArchivistici
 				String zipFileName = tmpDir + "/ca/zip/" + today + "/SIAS-" + fonte + "-"
 						+ sdf.format(new Date()) + ".zip";
 				String percorsoXML = tmpDir + "/ca/xml/" + today;
-//				fos = new FileOutputStream(zipFileName);
-//				zos = new ZipOutputStream(fos);
-//				byte[] data = new byte[2048];
 				while(ewi.hasNext())
 				{
 					ew = ewi.next();
