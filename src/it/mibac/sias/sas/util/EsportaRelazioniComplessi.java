@@ -34,6 +34,7 @@ public class EsportaRelazioniComplessi
 	private static String	logLayout	= "%05r %p %C{1}.%M - %m%n";
 	String								fkFonte		= null;
 	private int						maxRecords;
+	private Properties fontiMap = null;
 
 	/*
 	 * Questo costruttore prepara la connessione, impostando qualche parametro. Sarebbe opportuno
@@ -69,6 +70,10 @@ public class EsportaRelazioniComplessi
 		prop.close();
 		maxRecords = Integer.parseInt(config.getProperty("xml.output.maxrecords"));
 		fkFonte = config.getProperty("sogc.fk_fonte");
+		fontiMap = new Properties();
+		prop = new FileReader("fonti.map");
+		fontiMap.load(prop);
+		prop.close();
 	}
 
 	// inizializza il logger
@@ -164,11 +169,11 @@ public class EsportaRelazioniComplessi
 
 			if(fkFonte != null)
 			{
-				ew.setFonte(fkFonte);
+				ew.setFonte(fontiMap.getProperty(fkFonte));
 			}
 			else
 			{
-				ew.setFonte(codiProvenienza);
+				ew.setFonte(fontiMap.getProperty(codiProvenienza));
 			}
 
 /*
@@ -180,7 +185,7 @@ public class EsportaRelazioniComplessi
 //			ent.getContent().add(rel);
 			rw = new RecordWrapper();
 			rw.setDIRECTIVE("UPSERT");
-			rw.setRecordIdentifier("CA-" + codiProvenienza + "-" + df.format(++i));
+			rw.setRecordIdentifier("CA-" + codiProvenienza + "-" + df.format(i));
 			rw.setRecordDatestamp();
 			rw.setRelazioni(rel);
 			rl.getRecord().add(rw.getRecord());
