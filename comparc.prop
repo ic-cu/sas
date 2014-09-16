@@ -140,7 +140,7 @@ query.comparc.pl = \
 		order by c.Ordinamento, c.Denominazione
 	
 query.comparc.pl.full = \
-	select c.ID_ComplessoDoc, \
+	select c.ID_ComplessoDoc idComplesso, \
 		COALESCE( \
 			c.ISAD_Nazione \
 			+ '-' \

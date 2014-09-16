@@ -1,8 +1,12 @@
 package it.mibac.sias.sas.util;
 
-import it.beniculturali.sas.catalogo.comparc.DComparc;
 import it.beniculturali.sas.catalogo.comparc.FkFonte;
 import it.beniculturali.sas.catalogo.fonti.ProfGroup;
+import it.beniculturali.sas.catalogo.relazioni.CodiProvenienza;
+import it.beniculturali.sas.catalogo.relazioni.DRelComparcComparc;
+import it.beniculturali.sas.catalogo.relazioni.DRelComparcSogc;
+import it.beniculturali.sas.catalogo.relazioni.Relazioni;
+import it.beniculturali.sas.catalogo.relazioni.Relazioni.Dominante;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -15,36 +19,24 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-
 import org.apache.log4j.Logger;
-
-import com.microsoft.sqlserver.jdbc.SQLServerException;
 
 public class RelazioniComplessi
 {
 	private Properties config;
 	private Properties comparcProp;
 	private Properties fontiMap;
-	private PreparedStatement stmtDComparc;
-	private PreparedStatement stmtDComparcFusioneDI;
 	private PreparedStatement stmtDComparcPrimoLivello;
 	private PreparedStatement stmtDComparcSottoLivelli;
-	private PreparedStatement stmtDComparcAltreden;
 	private PreparedStatement stmtIstituto;
 	ResultSet rs, rsad;
 	FkFonte fkf;
 	String fkFonte = null;
 	ProfGroup pg;
 	private static Logger log;
-
-/*
- * Questi campi sono usati da diversi metodi per evitare un complesso e inutile passaggio di
- * informazioni sostanzialmente condivise. Altri dati invece restano parametri dei singoli metodi
- */
-	private DComparcWrapper dw;
+	private Relazioni rel = null;
 	private String siglaIstituto;
-	private int numComplesso;
+	private it.beniculturali.sas.catalogo.relazioni.ObjectFactory relObjF;
 
 	/*
 	 * Questo costruttore richiede solo una connessione (che non tocca a lui chiudere, attenzione) che
@@ -67,17 +59,19 @@ public class RelazioniComplessi
 			comparcProp.load(prop);
 			prop.close();
 			new it.beniculturali.sas.catalogo.commons.ObjectFactory();
-			stmtDComparc = conn.prepareStatement(comparcProp.getProperty("query.comparc"));
-			stmtDComparcFusioneDI = conn.prepareStatement(comparcProp.getProperty("query.comparc.di"));
-			stmtDComparcPrimoLivello = conn.prepareStatement(comparcProp.getProperty("query.comparc.pl"));
-			stmtDComparcSottoLivelli = conn.prepareStatement(comparcProp.getProperty("query.comparc.sl"),
+			conn.prepareStatement(comparcProp.getProperty("query.comparc"));
+			conn.prepareStatement(comparcProp.getProperty("query.comparc.di"));
+			stmtDComparcPrimoLivello = conn.prepareStatement(comparcProp.getProperty("query.comparc.pl.full"));
+			stmtDComparcSottoLivelli = conn.prepareStatement(comparcProp.getProperty("query.comparc.sl.full"),
 					ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.HOLD_CURSORS_OVER_COMMIT);
-			stmtDComparcAltreden = conn.prepareStatement(comparcProp.getProperty("query.comparc.altreden"));
+			conn.prepareStatement(comparcProp.getProperty("query.comparc.altreden"));
 			stmtIstituto = conn.prepareStatement(config.getProperty("query.istituto"), ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 
 			fkFonte = config.getProperty("sogc.fk_fonte");
+			relObjF = new it.beniculturali.sas.catalogo.relazioni.ObjectFactory();
 			log = Logger.getLogger("COMPARC");
+			new ArrayList<Relazioni>();
 		}
 		catch(FileNotFoundException e)
 		{
@@ -93,176 +87,51 @@ public class RelazioniComplessi
 		}
 	}
 
-	private void popolaDComparc(long idComplesso, long numCorda)
-			throws SQLException, IllegalArgumentException, DatatypeConfigurationException
-	{
-		String temp;
-
 /*
- * Prelevato l'id di un complesso e il suo numero di corda, passiamo a popolare tutti gli altri dati
- * di questo complesso entrando col suo id nella query apposita. Ma subito viene impostato il numero
- * di corda
- */
-		stmtDComparc.setLong(1, idComplesso);
-		stmtDComparc.execute();
-		rs = stmtDComparc.getResultSet();
-		log.info("Istituto " + siglaIstituto + ", elaborazione complesso " + idComplesso + " (" + numComplesso++ + ")");
-
-/*
- * È opportuno controllare che il resultset abbia delle righe e segnalare il caso contrario. Ma
- * anche in caso positivo va considerato subito il caso di codi_provenienza nullo, nel qual caso si
- * rimedia usando la siglaIstituto per costruire un codi_provenienza plausibile, ovviamente
- * segnalando la cosa
- */
-
-		if(rs.next())
-		{
-			dw.setTextNumCorda((int) numCorda);
-			temp = rs.getString("codi_provenienza");
-			if(temp.length() == 0 || temp == null)
-			{
-				temp = siglaIstituto + "-F" + idComplesso;
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso
-						+ ", codi_provenienza nullo o vuoto, sarà impostato a " + temp);
-			}
-			dw.setCodiProvenienza(temp);
-			try
-			{
-				dw.setFkVocTipoComparc(rs.getLong("fk_voc_tipo_comparc"));
-			}
-			catch(SiasSasException e)
-			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
-			}
-			dw.setTextDenUniformata(rs.getString("text_den_uniformata"));
-			dw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
-			dw.setFlagComparcProprietaStatale(rs.getString("flag_comparc_proprieta_statale_tf"));
-
-/*
- * Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli XSD, si
- * usa una fonte fittizia sicuramente valida, presa dal file di configurazione, e solo se questa è
- * valorizzata
- */
-
-			try
-			{
-				if(fkFonte != null)
-				{
-					dw.setFkFonte(fkFonte);
-				}
-				else
-				{
-					dw.setFkFonte(fontiMap.getProperty(rs.getString("fk_fonte")));
-				}
-			}
-			catch(SiasSasException e)
-			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
-			}
-
-			dw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
-			dw.setTextNoteData(rs.getString("text_note_data"));
-			dw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
-			dw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
-			dw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
-			dw.setTextNote(rs.getString("text_note_1"));
-			dw.addTextNote(" " + rs.getString("text_note_2"));
-			dw.setTextUrl(rs.getString("text_url"));
-			dw.setNumeMtLineariComplessivi(rs.getBigDecimal("nume_mt_lineari_complessivi"));
-			dw.setNumeRipartoMtLineariSottolvl(rs.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
-			dw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
-			dw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
-
-			log.info("Istituto " + siglaIstituto + ", complesso " + rs.getString("ID_ComplessoDoc"));
-		}
-		else
-		{
-			log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", la query non ha prodotto risultati");
-		}
-
-	}
-
-/*
- * Questo metodo si occupa di reperire un eventuale sottolivello inventario che può essere usato per
- * integrare i dati di questo comparc. Si assume che la query riporti al più una riga. I metodi del
- * wrapper invocati andranno in sovrascrittura di eventuali dati già creati da popolaDComparc.
- */
-
-	private void popolaDatiInventariali(long idComplesso)
-			throws SQLException, IllegalArgumentException, DatatypeConfigurationException
-	{
-		stmtDComparcFusioneDI.setLong(1, idComplesso);
-		stmtDComparcFusioneDI.execute();
-		ResultSet rs;
-		rs = stmtDComparcFusioneDI.getResultSet();
-		if(rs.next())
-		{
-			try
-			{
-				dw.setFkVocTipoComparc(rs.getInt("fk_voc_tipo_comparc"));
-			}
-			catch(SiasSasException e)
-			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
-			}
-			dw.setAltreCronTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
-			dw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
-			dw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
-			dw.setTextNote(rs.getString("text_note_1"));
-			dw.addTextNote(" " + rs.getString("text_note_2"));
-			dw.addTextNote(" " + rs.getString("text_note_3"));
-			dw.addTextNote(" " + rs.getString("text_note_4"));
-			dw.setTextCriteriOrdinamento(rs.getString("text_criteri_ordinamento"));
-			dw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
-			dw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
-			dw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
-			dw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
-			log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborati dati inventariali");
-		}
-	}
-
-	private void popolaAltreDen(long idComplesso) throws SQLException
-	{
-		stmtDComparcAltreden.setLong(1, idComplesso);
-		stmtDComparcAltreden.execute();
-		ResultSet rs;
-		rs = stmtDComparcAltreden.getResultSet();
-		while(rs.next())
-		{
-			dw.addAltraDen(rs.getString("text_altreden"), rs.getString("text_estr_crono_testuali"));
-			log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata altra denominazione "
-					+ rs.getString("text_altreden"));
-		}
-
-	}
-
-/*
- * Questo metodo estrae un iteratore di coppie (idComparc, numCorda). Esso comincia dal primo
+ * Questo metodo estrae un iteratore di coppie (idComparc, codiProvenienza). Esso comincia dal primo
  * livello che è quello immediatamente legato ad un istituto il cui id è il parametro; poi invoca un
  * metodo ricorsivo che, per ogni complesso, estrae i suoi figli fino ad arrivare alle foglie,
- * sempre creando coppie (idComparc, numCorda) che saranno accodate all'iteratore.
+ * sempre creando coppie (idComparc, codiProvenienza) che saranno accodate all'iteratore.
  */
 
-	public Iterator<long[]> getComparcIterator(int idIstituto)
+	public Iterator<String[]> getComparcIterator(int idIstituto, String codiProvenienzaPadre)
 	{
 		ResultSet rs = null;
-		ArrayList<long[]> al;
-		al = new ArrayList<long[]>();
-		long idComplesso, numCorda, numFigli;
+		ArrayList<String[]> al;
+		al = new ArrayList<String[]>();
+		String idComplesso;
+		String codiProvenienza;
+		String numFigli;
+		rel = relObjF.createRelazioni();
+		Dominante dom = relObjF.createRelazioniDominante();
+		CodiProvenienza cp = relObjF.createCodiProvenienza();
+		cp.setValue(codiProvenienzaPadre);
+		dom.setCodiProvenienza(cp);
+		rel.setDominante(dom);
+
 		try
 		{
 			stmtDComparcPrimoLivello.setInt(1, idIstituto);
 			rs = stmtDComparcPrimoLivello.executeQuery();
 			while(rs.next())
 			{
-				idComplesso = rs.getLong("idComplesso");
-				numCorda = rs.getLong("text_num_corda");
-				numFigli = rs.getLong("figli");
-				al.add(new long[] { idComplesso, numCorda, numFigli });
-				log.info("Complesso " + idComplesso + ", numero corda " + numCorda + ", figli " + numFigli);
-				if(numFigli > 0)
+				idComplesso = rs.getString("idComplesso");
+				codiProvenienza = rs.getString("codi_provenienza");
+				numFigli = rs.getString("figli");
+				al.add(new String[] { idComplesso, codiProvenienza, numFigli });
+				log.info("Complesso " + idComplesso + ", codice provenienza " + codiProvenienza + ", figli " + numFigli);
+
+// Arrivati a questo punto, abbiamo quello che serve per creare una relazione di un soggetto con
+// tutti i suoi complessi di primo livello
+
+				DRelComparcSogc drcs = relObjF.createDRelComparcSogc();
+				drcs.setCodiProvenienzaSogc(codiProvenienzaPadre);
+				drcs.setCodiProvenienzaComparc(codiProvenienza);
+				rel.getDRelComparcSogc().add(drcs);
+
+				if(Integer.parseInt(numFigli) > 0)
 				{
-					al.addAll(getSubComparcList(idComplesso));
+					al.addAll(getSubComparcList(idComplesso, codiProvenienzaPadre));
 				}
 			}
 		}
@@ -273,19 +142,19 @@ public class RelazioniComplessi
 		return al.iterator();
 	}
 
-	public ArrayList<long[]> getSubComparcList(long idComplesso)
+	public ArrayList<String[]> getSubComparcList(String idComplesso, String codiProvenienzaPadre)
 	{
-		ArrayList<long[]> al;
-		ArrayList<long[]> pl;
-		Iterator<long[]> pli;
-		al = new ArrayList<long[]>();
-		pl = new ArrayList<long[]>();
-		long[] la;
-		long idFiglio, numCorda, numFigli;
+		ArrayList<String[]> al;
+		ArrayList<String[]> pl;
+		Iterator<String[]> pli;
+		al = new ArrayList<String[]>();
+		pl = new ArrayList<String[]>();
+		String[] la;
+		String idFiglio, codiProvenienzaFiglio, numFigli;
 		try
 		{
 			ResultSet rs = null;
-			stmtDComparcSottoLivelli.setLong(1, idComplesso);
+			stmtDComparcSottoLivelli.setLong(1, Integer.parseInt(idComplesso));
 			rs = stmtDComparcSottoLivelli.executeQuery();
 			log.info("Figli del complesso " + idComplesso);
 
@@ -293,17 +162,17 @@ public class RelazioniComplessi
 
 			while(rs.next())
 			{
-				idFiglio = rs.getLong("idFiglio");
-				numCorda = rs.getLong("text_num_corda");
-				numFigli = rs.getLong("figli");
+				idFiglio = rs.getString("idFiglio");
+				codiProvenienzaFiglio = rs.getString("codi_provenienza");
+				numFigli = rs.getString("figli");
 
 /*
  * Aggiunge alla lista globale dei complessi questo figlio, ma se esso stesso ha dei figli, lo
  * aggiunge ad una lista locale di padri che sarà scandita dopo la fine del result set
  */
-				log.info("Complesso " + idFiglio + ", numero corda " + numCorda + ", figli " + numFigli);
-				al.add(new long[] { idFiglio, numCorda, numFigli });
-				if(numFigli > 0) pl.add(new long[] { idFiglio, numFigli });
+				log.info("Complesso " + idFiglio + ", codice provenienza " + codiProvenienzaFiglio + ", figli " + numFigli);
+				al.add(new String[] { idFiglio, codiProvenienzaPadre, codiProvenienzaFiglio, numFigli });
+				if(Integer.parseInt(numFigli) > 0) pl.add(new String[] { idFiglio, codiProvenienzaFiglio, numFigli });
 			}
 
 /*
@@ -317,8 +186,9 @@ public class RelazioniComplessi
 			{
 				la = pli.next();
 				idFiglio = la[0];
-				numFigli = la[1];
-				al.addAll(getSubComparcList(idFiglio));
+				codiProvenienzaFiglio = la[1];
+				numFigli = la[2];
+				al.addAll(getSubComparcList(idFiglio, codiProvenienzaFiglio));
 			}
 		}
 		catch(Exception e)
@@ -332,16 +202,29 @@ public class RelazioniComplessi
 	 * Questo metodo fornisce un iterator di DComparc legati ad un istituto. Sarà cura del chiamante
 	 * gestire questa lista.
 	 */
-	public Iterator<DComparc> createEntity(int idIstituto)
+	public Iterator<Relazioni> createEntity(int idIstituto)
 	{
-		ArrayList<DComparc> dwl = null;
-		Iterator<long[]> idComplessi;
-		dwl = new ArrayList<DComparc>();
-		long idComplesso, numCorda;
-		long[] coppia;
+		ArrayList<Relazioni> rl = null;
+		Relazioni rel = null;
+		Dominante dominante = null;
+		CodiProvenienza codiProvenienzaDominante = null;
+		DRelComparcSogc drcs = null;
+		Iterator<String[]> idComplessi;
+		String[] tripla;
+		String codiProvenienzaSogc = null, codiProvenienzaComparc;
+
+// si istanzia una lista di Relazioni in senso SAS. Nella lista ci sarà un oggetto Relazioni
+// contenente una lista di oggetti DRelComparcSogc, e poi tanti oggetti Relazioni, solo con liste di
+// oggetti DRelComparcComparc, per ciascun Comparc figlio di questo istituto. Si istanziano anche le
+// liste di relazioni ComparcSogc e ComparcComparc
+
+		rl = new ArrayList<Relazioni>();
+		new ArrayList<DRelComparcSogc>();
+		new ArrayList<DRelComparcComparc>();
 
 /*
- * Una prima query serve a reperire informazioni minimali circa un istituto
+ * Una prima query serve a reperire informazioni minimali circa un istituto, fra cui il
+ * codi_provenienza necessario a costruire correttamente le relazioni
  */
 
 		try
@@ -351,6 +234,7 @@ public class RelazioniComplessi
 			rs = stmtIstituto.getResultSet();
 			rs.next();
 			siglaIstituto = rs.getString("fk_fonte");
+			codiProvenienzaSogc = fontiMap.getProperty(siglaIstituto);
 		}
 		catch(SQLException e)
 		{
@@ -358,58 +242,37 @@ public class RelazioniComplessi
 		}
 		log.info("Istituto " + siglaIstituto + ", inizio elaborazione");
 
-/*
- * Si ricava l'iteratore sull'elenco di tutti gli id dei complessi legati a questo istituto,
- * ciascuno con un "numero di corda" da usare per l'ordinamento, poi si cicla sull'iteratore
- */
-
-		idComplessi = getComparcIterator(idIstituto);
+// Le prime relazioni da considerare sono comparc_sogc, in cui il dominante è il comparc, non il
+// sogc come si potrebbe pensare. E siccome ogni comparc ha un solo sogc padre, per ogni comparc di
+// primo livello andrà creata una relazione con una lista opportuna contenente un unico elemento.
+// Si ricava quindi l'iteratore sull'elenco di tutti gli id dei complessi legati a questo istituto,
+// ciascuno con un "codiProvenienza", poi si cicla sull'iteratore
+		
+		idComplessi = getComparcIterator(idIstituto, codiProvenienzaSogc);
 		while(idComplessi.hasNext())
 		{
-			coppia = idComplessi.next();
-			idComplesso = coppia[0];
-			numCorda = coppia[1];
-			dw = new DComparcWrapper();
-
-/*
- * Si popola prima la gran parte degli elementi del d_comparc, poi le altre denominazioni.
- */
-
-			try
-			{
-				popolaDComparc(idComplesso, numCorda);
-				popolaAltreDen(idComplesso);
-				popolaDatiInventariali(idComplesso);
-			}
-			catch(IllegalArgumentException e)
-			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
-				continue;
-			}
-			catch(DatatypeConfigurationException e)
-			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
-				continue;
-			}
-			catch(SQLServerException e)
-			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
-			}
-			catch(SQLException e)
-			{
-				e.printStackTrace();
-			}
-
-/*
- * Si può aggiungere il complesso attuale alla relatia lista e ricominciare col prossimo
- */
-			dwl.add(dw.getDComparc());
+			tripla = idComplessi.next();
+			codiProvenienzaComparc = tripla[1];
+			log.info("Istituto " + siglaIstituto + ", collego complesso " + codiProvenienzaComparc);
+			rel = relObjF.createRelazioni();
+			drcs = relObjF.createDRelComparcSogc();
+			drcs.setCodiProvenienzaComparc(codiProvenienzaComparc);
+			drcs.setCodiProvenienzaSogc(codiProvenienzaSogc);
+			dominante = relObjF.createRelazioniDominante();
+			codiProvenienzaDominante = relObjF.createCodiProvenienza();
+			codiProvenienzaDominante.setValue(codiProvenienzaComparc);
+			codiProvenienzaDominante.setTipologia("d_comparc");
+			dominante.setCodiProvenienza(codiProvenienzaDominante);
+			rel.getDRelComparcSogc().add(drcs);
+			rel.setDominante(dominante);
+			rel.setRelazione("d_rel_comparc_sogc");
+			rl.add(rel);
 		}
 
 /*
  * Finiti i complessi, si riporta al chiamante l'iteratore alla lista dei complessi
  */
 		log.info("Istituto " + siglaIstituto + ", fine elaborazione");
-		return dwl.iterator();
+		return rl.iterator();
 	}
 }
