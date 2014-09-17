@@ -194,7 +194,7 @@ query.comparc.sl = \
 
 query.comparc.sl.full = \
 	select \
-		figlio.ID_ComplessoDoc, \
+		figlio.ID_ComplessoDoc idFiglio, \
 		COALESCE( \
 			figlio.ISAD_Nazione \
 			+ '-' \
@@ -207,7 +207,7 @@ query.comparc.sl.full = \
 			when figlio.ordinamento is not null then figlio.ordinamento \
 			else (ROW_NUMBER() OVER(ORDER BY figlio.denominazione)) \
 		end as text_num_corda, \
-		figlio.QuantitaFigli \
+		figlio.QuantitaFigli figli \
 	from \
 		complessidoc cd, \
 		Elementi cdelem, \

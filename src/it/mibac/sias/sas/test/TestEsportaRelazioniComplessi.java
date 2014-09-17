@@ -98,10 +98,8 @@ public class TestEsportaRelazioniComplessi
 // idIstituto = 180900000; fonte = "ITASBL";
 // idIstituto = 450180000; fonte = "ITASIM";
 // idIstituto = 940220003; fonte = "ITSASVARAL";
-// idIstituto = 480800000;
-// fonte = "ITASAQ";
-				idIstituto = 450180000;
-				fonte = "ITASIM";
+ idIstituto = 480800000; fonte = "ITASAQ";
+//				idIstituto = 450180000;	fonte = "ITASIM";
 				Iterator<EnvelopeWrapper> ewi = erc.creaMultiEnvelope(idIstituto, fonte);
 				EnvelopeWrapper ew = null;
 				int i = 0;
