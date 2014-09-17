@@ -169,11 +169,13 @@ public class EsportaRelazioniComplessi
 
 			if(fkFonte != null)
 			{
-				ew.setFonte(fontiMap.getProperty(fkFonte));
+//				ew.setFonte(fontiMap.getProperty(fkFonte));
+				ew.setFonte(fkFonte);
 			}
 			else
 			{
-				ew.setFonte(fontiMap.getProperty(codiProvenienza));
+				ew.setFonte(codiProvenienza);
+//				ew.setFonte(fontiMap.getProperty(codiProvenienza));
 			}
 
 /*

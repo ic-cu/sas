@@ -130,10 +130,10 @@ public class RelazioniComplessi
 				drcs.setCodiProvenienzaComparc(codiProvenienza);
 				rel.getDRelComparcSogc().add(drcs);
 
-//				if(Integer.parseInt(numFigli) > 0)
-//				{
-//					al.addAll(getSubComparcList(idComplesso, codiProvenienzaPadre));
-//				}
+// if(Integer.parseInt(numFigli) > 0)
+// {
+// al.addAll(getSubComparcList(idComplesso, codiProvenienzaPadre));
+// }
 			}
 		}
 		catch(SQLException e)
@@ -216,22 +216,20 @@ public class RelazioniComplessi
 		String numFigli, idComplesso;
 		String codiProvenienzaSogc = null, codiProvenienzaComparc, codiProvenienzaComparcSup;
 
-		// si istanzia una lista di Relazioni in senso SAS. Nella lista ci sarà
-		// un oggetto Relazioni
-		// contenente una lista di oggetti DRelComparcSogc, e poi tanti oggetti
-		// Relazioni, solo con liste di
-		// oggetti DRelComparcComparc, per ciascun Comparc figlio di questo
-		// istituto. Si istanziano anche le
-		// liste di relazioni ComparcSogc e ComparcComparc
-
+/*
+ * si istanzia una lista di Relazioni in senso SAS. Nella lista ci sarà un oggetto Relazioni
+ * contenente una lista di oggetti DRelComparcSogc, e poi tanti oggetti Relazioni, solo con liste di
+ * oggetti DRelComparcComparc, per ciascun Comparc figlio di questo istituto. Si istanziano anche le
+ * liste di relazioni ComparcSogc e ComparcComparc
+ */
 		rl = new ArrayList<Relazioni>();
 		new ArrayList<DRelComparcSogc>();
 		new ArrayList<DRelComparcComparc>();
 
-		/*
-		 * Una prima query serve a reperire informazioni minimali circa un istituto, fra cui il
-		 * codi_provenienza necessario a costruire correttamente le relazioni
-		 */
+/*
+ * Una prima query serve a reperire informazioni minimali circa un istituto, fra cui il
+ * codi_provenienza necessario a costruire correttamente le relazioni
+ */
 
 		try
 		{
@@ -248,16 +246,13 @@ public class RelazioniComplessi
 		}
 		log.info("Istituto " + siglaIstituto + ", inizio elaborazione");
 
-		// Le prime relazioni da considerare sono comparc_sogc, in cui il
-		// dominante è il comparc, non il
-		// sogc come si potrebbe pensare. E siccome ogni comparc ha un solo sogc
-		// padre, per ogni comparc di
-		// primo livello andrà creata una relazione con una lista opportuna
-		// contenente un unico elemento.
-		// Si ricava quindi l'iteratore sull'elenco di tutti gli id dei
-		// complessi legati a questo istituto,
-		// ciascuno con un "codiProvenienza", poi si cicla sull'iteratore
-
+/*
+ * Le prime relazioni da considerare sono comparc_sogc, in cui il dominante è il comparc, non il
+ * sogc come si potrebbe pensare. E siccome ogni comparc ha un solo sogc padre, per ogni comparc di
+ * primo livello andrà creata una relazione con una lista opportuna contenente un unico elemento. Si
+ * ricava quindi l'iteratore sull'elenco di tutti gli id dei complessi legati a questo istituto,
+ * ciascuno con un "codiProvenienza", poi si cicla sull'iteratore
+ */
 		idComplessi = getComparcIterator(idIstituto, codiProvenienzaSogc);
 		while(idComplessi.hasNext())
 		{
@@ -265,7 +260,8 @@ public class RelazioniComplessi
 			idComplesso = tripla[0];
 			codiProvenienzaComparc = tripla[1].replace(siglaIstituto.replace("IT", "IT-"), codiProvenienzaSogc);
 			numFigli = tripla[2];
-			log.info("Istituto " + siglaIstituto + ", collego complesso " + codiProvenienzaComparc + " (figli = " + numFigli + ")");
+			log.info("Istituto " + siglaIstituto + " (" + codiProvenienzaSogc + "), collego complesso "
+					+ codiProvenienzaComparc + " (figli = " + numFigli + ")");
 			rel = relObjF.createRelazioni();
 			drcs = relObjF.createDRelComparcSogc();
 			drcs.setCodiProvenienzaComparc(codiProvenienzaComparc);
@@ -280,11 +276,12 @@ public class RelazioniComplessi
 			rel.setRelazione("d_rel_comparc_sogc");
 			rl.add(rel);
 
-// A questo punto si possono estrarre tutti i discendenti del complesso
-// attuale: il risultato è una lista di quadruple che, fra l'altro, contengono
-// coppie (padre, figlio), cominciando da questo complesso come padre. Per ogni
-// coppia si crea l'opportuna relazione e si aggiunge alla lista di relazioni.
-
+/*
+ * A questo punto si possono estrarre tutti i discendenti del complesso attuale: il risultato è una
+ * lista di quadruple che, fra l'altro, contengono coppie (padre, figlio), cominciando da questo
+ * complesso come padre. Per ogni coppia si crea l'opportuna relazione e si aggiunge alla lista di
+ * relazioni.
+ */
 			if(Integer.parseInt(numFigli) > 0)
 			{
 				idSubComplessi = getSubComparcList(idComplesso, codiProvenienzaComparc).iterator();
@@ -299,7 +296,14 @@ public class RelazioniComplessi
 				while(idSubComplessi.hasNext())
 				{
 					quadrupla = idSubComplessi.next();
-					codiProvenienzaComparcSup = quadrupla[1].replace(siglaIstituto.replace("IT", "IT-"), codiProvenienzaSogc);
+
+/*
+ * Mentre il codiProvenienzaComparc contenuto al terzo item della quadrupla attuale è da manipolare
+ * perché abbia la forma IT-XXXX.N-FXXXXXXXXX, il codice del superiore è già stato passato a
+ * getSubComparcList ed è già nella forma giusta e non va manipolato come l'altro
+ */
+
+					codiProvenienzaComparcSup = quadrupla[1];
 					codiProvenienzaComparc = quadrupla[2].replace(siglaIstituto.replace("IT", "IT-"), codiProvenienzaSogc);
 					log.info("Istituto " + siglaIstituto + ", relazione fra complessi " + codiProvenienzaComparcSup + " e "
 							+ codiProvenienzaComparc);

@@ -35,10 +35,13 @@ public class TestEsportaRelazioniComplessi
 	public static void main(String[] args)
 	{
 		Properties config = new Properties();
+		Properties fontiMap = new Properties();
+		String sep = "_";
 		log = Logger.getLogger("COMPARC");
 		try
 		{
 			config.load(new FileReader(new File("query.prop")));
+			fontiMap.load(new FileReader(new File("fonti.map")));
 		}
 		catch(FileNotFoundException e1)
 		{
@@ -82,7 +85,7 @@ public class TestEsportaRelazioniComplessi
 			e1.printStackTrace();
 		}
 		ResultSet rs;
-		int maxIstituti = 1;
+		int maxIstituti = 1000;
 		EsportaRelazioniComplessi erc = new EsportaRelazioniComplessi();
 		try
 		{
@@ -92,30 +95,36 @@ public class TestEsportaRelazioniComplessi
 			while(rs.next() && (maxIstituti-- > 0))
 			{
 				idIstituto = rs.getInt("ID_Istituto");
-				fonte = rs.getString("fk_fonte");
+
+// La fonte è ricavata dalla query, ma tramite una mappa che funziona solo per fonti senza "-".
+// Altrove è invece estratta con il "-" e questo comportamento andrebbe uniformato.
+				
+				fonte = fontiMap.getProperty(rs.getString("fk_fonte"));
 // idIstituto = 794000000; fonte = "ITASRM";
 // idIstituto = 228200000; fonte = "ITASBO";
 // idIstituto = 180900000; fonte = "ITASBL";
 // idIstituto = 450180000; fonte = "ITASIM";
 // idIstituto = 940220003; fonte = "ITSASVARAL";
- idIstituto = 480800000; fonte = "ITASAQ";
-//				idIstituto = 450180000;	fonte = "ITASIM";
+//				idIstituto = 480800000;
+//				fonte = fontiMap.getProperty("ITASAQ");
+// idIstituto = 450180000; fonte = "ITASIM";
+				
 				Iterator<EnvelopeWrapper> ewi = erc.creaMultiEnvelope(idIstituto, fonte);
 				EnvelopeWrapper ew = null;
 				int i = 0;
 
-				// si crea il necessario alla gestione del file ZIP
+// si crea il necessario alla gestione del file ZIP
 
-				String zipFileName = tmpDir + "/rc/zip/" + today + "/SIAS-" + fonte + "-" + sdf.format(new Date()) + ".zip";
+				String zipFileName = tmpDir + "/rc/zip/" + today + "/SIAS" + sep + fonte + sep + sdf.format(new Date()) + ".zip";
 				String percorsoXML = tmpDir + "/rc/xml/" + today;
 				while(ewi.hasNext())
 				{
 					ew = ewi.next();
 					// fileName = "SIAS-ITASVT-";
-					fileName = ew.getSource() + "-";
-					fileName += fonte + "-";
-// fileName += ew.getFonte() + "-";
-					fileName += sdf.format(new Date()) + "-";
+					fileName = ew.getSource() + sep;
+					fileName += fonte + sep;
+// fileName += ew.getFonte() + sep;
+					fileName += sdf.format(new Date()) + sep;
 					fileName += df.format(++i);
 					fileName += ".xml";
 
@@ -125,9 +134,9 @@ public class TestEsportaRelazioniComplessi
 					pw = new PrintWriter(new File(percorsoXML + "/" + fileName));
 					ew.marshall(pw);
 				}
-				
+
 // si comprimono tutti gli envelope in un unico file zip
-				
+
 				Spedizione sped = new Spedizione(percorsoXML, zipFileName);
 				sped.comprimi();
 			}
