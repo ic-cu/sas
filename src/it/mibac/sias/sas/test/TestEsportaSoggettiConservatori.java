@@ -2,6 +2,7 @@ package it.mibac.sias.sas.test;
 
 import it.mibac.sias.sas.util.EnvelopeWrapper;
 import it.mibac.sias.sas.util.EsportaSoggettiConservatori;
+import it.mibac.sias.sas.util.Spedizione;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -25,7 +26,7 @@ import org.apache.log4j.Logger;
  * Classe per provare l'esportazione dei soggetti conservatori. Si limita a
  * qualche inizializzazione e a invocare poi il metodo opportuno
  */
-
+/* DEVO LAVORARE QUI */
 public class TestEsportaSoggettiConservatori
 {
 	private static Logger log;
@@ -48,11 +49,11 @@ public class TestEsportaSoggettiConservatori
 		}
 
 		EsportaSoggettiConservatori esc = new EsportaSoggettiConservatori();
-		FileOutputStream fos;
-		ZipOutputStream zos;
-		ZipEntry ze;
-		FileInputStream fis;
-		BufferedInputStream bis = null;
+		//FileOutputStream fos;
+		//ZipOutputStream zos;
+		//ZipEntry ze;
+		//FileInputStream fis;
+		//BufferedInputStream bis = null;
 		PrintWriter pw = null;
 		File tDir = null;
 
@@ -75,12 +76,9 @@ public class TestEsportaSoggettiConservatori
 		int i = 0;
 		try
 		{
-			String zipFileName = tmpDir; 
-			zipFileName += "/sc/zip/SIAS" + sep;
-			zipFileName += "ITASVT" + sep;
-			zipFileName += sdf.format(new Date()) + ".zip";
-			fos = new FileOutputStream(zipFileName);
-			zos = new ZipOutputStream(fos);
+			
+			//fos = new FileOutputStream(zipFileName);
+			//zos = new ZipOutputStream(fos);
 			byte[] data = new byte[2048];
 			while(ewi.hasNext())
 			{
@@ -92,22 +90,30 @@ public class TestEsportaSoggettiConservatori
 				fileName += ".xml";
 				pw = new PrintWriter(new File(tmpDir + "/sc/xml/" + fileName));
 				ew.marshall(pw);
-				ze = new ZipEntry(fileName);
-				fis = new FileInputStream(tmpDir + "/sc/xml/" + fileName);
-				bis = new BufferedInputStream(fis, 2048);
-				zos.putNextEntry(ze);
-				int count;
-				while((count = bis.read(data, 0, 2048)) != -1)
-				{
-					zos.write(data, 0, count);
-					zos.flush();
-				}
-				zos.closeEntry();
+				//ze = new ZipEntry(fileName);
+				//fis = new FileInputStream(tmpDir + "/sc/xml/" + fileName);
+				//bis = new BufferedInputStream(fis, 2048);
+				// zos.putNextEntry(ze);
+				//int count;
+				//while((count = bis.read(data, 0, 2048)) != -1)
+				//{
+				//	zos.write(data, 0, count);
+				//	zos.flush();
+				//}
+				//zos.closeEntry();
+				String zipFileName = tmpDir; 
+				zipFileName += "/sc/zip/SIAS" + sep;
+				zipFileName += ew.getFonte() + sep;
+				zipFileName += sdf.format(new Date())+sep+df.format(i) + ".zip";
+				Spedizione sped=new Spedizione(fileName, zipFileName);
+				sped.comprimiFile();
+				// vorrei distruggere sped=nothing
 			}
-			bis.close();
-			zos.flush();
-			zos.close();
-			fos.close();
+			
+			//bis.close();
+			//zos.flush();
+			//zos.close();
+			//fos.close();
 		}
 		catch(IOException e)
 		{

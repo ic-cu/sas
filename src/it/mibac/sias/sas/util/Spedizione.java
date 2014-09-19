@@ -36,8 +36,8 @@ public class Spedizione
 
   public Spedizione(String percorso, String fileZip)
   {
-    super();
-    setPercorso(percorso);
+    super(); // questo dovrebbe essere il costruttore
+    setPercorso(percorso); 
     setFileZip(fileZip);
   }
 
@@ -45,11 +45,11 @@ public class Spedizione
   {
     try
     {
-      FileOutputStream fos = new FileOutputStream(getFileZip());
+      FileOutputStream fos = new FileOutputStream(getFileZip());	//file prodotto dalla classe
       ZipOutputStream zos = new ZipOutputStream(fos);
       ZipEntry ze;
 
-      File dir = new File(getPercorso());
+      File dir = new File(getPercorso()); 
       if(dir.isDirectory())
       {
         File[] lista = dir.listFiles();
@@ -84,4 +84,49 @@ public class Spedizione
       e.printStackTrace();
     }
   }
+  public void comprimiFile() 
+  {
+    try
+    {
+      FileOutputStream fos = new FileOutputStream(getFileZip());
+      ZipOutputStream zos = new ZipOutputStream(fos);
+      ZipEntry ze;
+
+      //File dir = new File(getPercorso());
+      //if(dir.isFile())
+      //{
+        //File[] lista = dir.listFiles();
+        //for(int i = 0; i < lista.length; i++)
+        //{
+          //File entry = lista[i];
+          //ze = new ZipEntry(entry.getName());
+    	  ze = new ZipEntry(getPercorso()); //nome del file xml
+          FileInputStream fis; // dichiarazione
+          fis = new FileInputStream(getFileZip()); // istanziazione
+          byte[] buffer = new byte[2048];
+          BufferedInputStream bis = new BufferedInputStream(fis, 2048);
+          zos.putNextEntry(ze);
+          int count;
+          while((count = bis.read(buffer, 0, 2048)) != -1)
+          {
+            zos.write(buffer, 0, count);
+          }
+          bis.close();
+          zos.flush();
+          zos.closeEntry();
+        //}
+        zos.flush();
+        zos.close();
+      //}
+    }
+    catch(FileNotFoundException e)
+    {
+      e.printStackTrace();
+    }
+    catch(IOException e)
+    {
+      e.printStackTrace();
+    }
+  }
 }
+
