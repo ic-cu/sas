@@ -43,7 +43,8 @@ query.istituti = \
 	from \
 		istituti \
 	where \
-		(tipologia = '01' or tipologia = '02')
+		(tipologia = '01' or tipologia = '02') \
+	order by fk_fonte
 
 ## query identica alla precedente, ma parametrizzata per selezionare alcune
 ## informazioni relative ad un istituto specifico
@@ -156,7 +157,7 @@ query.depositi.localizzazioni = \
 		and deposito.Tipologia = '04' \
 		and i.ID_Istituto = ? \
 	order by deposito.ID_Istituto
-
+4
 ## query per l'eventuale relazione col soggetto superiore
 
 query.sezioni = \
