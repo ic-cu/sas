@@ -1,0 +1,34 @@
+xsd.baseurl = http://san.beniculturali.it/sas/catalogo
+xsd.list = envelope-catsas \
+	vocabolari-trasv \
+	vocabolario-categorie \
+	biblio \
+	vocabolari-gestionale \
+	sogp \
+	vocabolari-comparc \
+	vocabolari-sogc \
+	vocabolario-ruolo_toponimo \
+	depositi \
+	commons \
+	vocabolario-titolo_antroponimo \
+	vocabolario-qualifica_antroponimo \
+	luoghi \
+	vocabolario-qualifica_toponimo \
+	strumenti \
+	sala_studio \
+	comparc \
+	envelope-catsas \
+	vocabolario-voci_indice \
+	vocabolari-strumenti \
+	enti_coinvolti \
+	vocabolario-area_tematica \
+	master \
+	vocabolario-ruolo_antroponimo \
+	vocabolari-dgt \
+	elmctx \
+	fonti \
+	vocabolari-elmctx \
+	sogc \
+	relazioni \
+	gestionale \
+	vocabolari-sogp
