@@ -22,7 +22,7 @@ public class XSD
 
 	public XSD()
 	{
-		Properties config = new Properties();
+		config = new Properties();
 		try
 		{
 			config.load(new FileReader(new File("xsd.prop")));
@@ -96,7 +96,7 @@ public class XSD
 		while(is.hasNext())
 		{
 			String fileName = is.next();
-			downloadXSD(baseUrl + "/" + fileName, "xsd/new-" + fileName);
+			downloadXSD(baseUrl + "/" + fileName, "xsd/" + fileName);
 		}		
 	}
 	

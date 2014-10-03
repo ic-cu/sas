@@ -107,7 +107,7 @@ public class TestEsportaRelazioniComplessi
  * Si comincia a iterare su tutti gli istituti. C'è un valore di taglio a solo scopo di debugging.
  */
 
-			int maxIstituti = 1000;
+			int maxIstituti = 1;
 			while(rs.next() && (maxIstituti-- > 0))
 			{
 				idIstituto = rs.getInt("ID_Istituto");
@@ -119,12 +119,13 @@ public class TestEsportaRelazioniComplessi
 
 // idIstituto = 794000000; fonte = "ITASRM";
 // idIstituto = 228200000; fonte = "ITASBO";
-// idIstituto = 180900000; fonte = "ITASBL";
+ idIstituto = 180900000; fonte = "IT-ASBL.1";
 // idIstituto = 450180000; fonte = "ITASIM";
 // idIstituto = 940220003; fonte = "ITSASVARAL";
 //				idIstituto = 480800000;
 //				fonte = fontiMap.getProperty("ITASAQ");
 // idIstituto = 450180000; fonte = "ITASIM";
+ idIstituto = 960660000; fonte = "IT-ASVV.1";
 
 /*
  * Si ricava l'iteratore sulle relazioni di questo istituto con i suoi complessi e fra i complessi

@@ -52,6 +52,7 @@ public class TestEsportaComplessiArchivistici
 		int idIstituto;
 		String fonte;
 		String tmpDir = config.getProperty("xml.output.directory");
+		String sep = config.getProperty("xml.output.separator");
 		DB db = new DB();
 		Connection connection = db.getConnection();
 		PreparedStatement stmtIstituti = null;
@@ -95,29 +96,31 @@ public class TestEsportaComplessiArchivistici
 				fonte = rs.getString("fk_fonte");
 // idIstituto = 794000000; fonte = "ITASRM";
 // idIstituto = 228200000; fonte = "ITASBO";
-// idIstituto = 180900000; fonte = "ITASBL";
+ idIstituto = 180900000; fonte = "IT-ASBL.1";
 // idIstituto = 450180000; fonte = "ITASIM";
 // idIstituto = 940220003; fonte = "ITSASVARAL";
 // idIstituto = 480800000;
-// fonte = "ITASAQ";
-				idIstituto = 450180000;
-				fonte = "ITASIM";
+// fonte = "ITASAQ"; idIstituto = 450180000;
+//				idIstituto = 107000000;	fonte = "ITACS";
+ idIstituto = 960660000; fonte = "IT-ASVV.1";
+ idIstituto = 120170000; fonte = "IT-ASAL.1";
 				Iterator<EnvelopeWrapper> ewi = eca.creaMultiEnvelope(idIstituto);
 				EnvelopeWrapper ew = null;
 				int i = 0;
 
 				// si crea il necessario alla gestione del file ZIP
 
-				String zipFileName = tmpDir + "/ca/zip/" + today + "/SIAS-" + fonte + "-" + sdf.format(new Date()) + ".zip";
-				String percorsoXML = tmpDir + "/ca/xml/" + today;
+				String zipFileName = tmpDir + "/ca/zip/" + today + "/SIAS" + sep + fonte + sep + sdf.format(new Date()) + ".zip";
+				String percorsoXML = tmpDir + "/ca/xml/" + today + "/" + fonte;
+				new File(percorsoXML).mkdirs();
 				while(ewi.hasNext())
 				{
 					ew = ewi.next();
 					// fileName = "SIAS-ITASVT-";
-					fileName = ew.getSource() + "-";
-					fileName += fonte + "-";
-// fileName += ew.getFonte() + "-";
-					fileName += sdf.format(new Date()) + "-";
+					fileName = ew.getSource() + sep;
+					fileName += fonte + sep;
+// fileName += ew.getFonte() + sep;
+					fileName += sdf.format(new Date()) + sep;
 					fileName += df.format(++i);
 					fileName += ".xml";
 
