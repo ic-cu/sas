@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
@@ -61,6 +62,7 @@ public class TestEsportaRelazioniComplessi
 		int idIstituto;
 		String fonte;
 		String tmpDir = config.getProperty("xml.output.directory");
+		String dateOffset = config.getProperty("xml.date.offset");
 		DB db = new DB();
 		Connection connection = db.getConnection();
 		PreparedStatement stmtIstituti = null;
@@ -69,10 +71,14 @@ public class TestEsportaRelazioniComplessi
 
 /*
  * Si ricava la data di oggi nel formato giusto. Questo formato andrebbe esternalizzato in un file
- * di Properties.
+ * di Properties. È possibile specificare un offset in modo da facilitare i test, visto che le
+ * spedizioni non possono avere lo stesso nome
  */
 
-		String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DAY_OF_YEAR, Integer.parseInt(dateOffset));
+		Date todayDate = cal.getTime();
+		String today = new SimpleDateFormat("yyyyMMdd").format(todayDate);
 
 		// si creano le directory temporanee, caso mai non esistessero
 
@@ -119,13 +125,17 @@ public class TestEsportaRelazioniComplessi
 
 // idIstituto = 794000000; fonte = "ITASRM";
 // idIstituto = 228200000; fonte = "ITASBO";
- idIstituto = 180900000; fonte = "IT-ASBL.1";
+				idIstituto = 180900000;
+				fonte = "IT-ASBL.1";
 // idIstituto = 450180000; fonte = "ITASIM";
 // idIstituto = 940220003; fonte = "ITSASVARAL";
-//				idIstituto = 480800000;
-//				fonte = fontiMap.getProperty("ITASAQ");
+// idIstituto = 480800000;
+// fonte = fontiMap.getProperty("ITASAQ");
 // idIstituto = 450180000; fonte = "ITASIM";
- idIstituto = 960660000; fonte = "IT-ASVV.1";
+//				idIstituto = 960660000;
+//				fonte = "IT-ASVV.1";
+ 				if(args.length > 0) idIstituto = Integer.parseInt(args[0]);
+ 				if(args.length > 1) fonte = args[1];
 
 /*
  * Si ricava l'iteratore sulle relazioni di questo istituto con i suoi complessi e fra i complessi

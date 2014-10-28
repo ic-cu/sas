@@ -239,6 +239,8 @@ public class RelazioniComplessi
 			rs.next();
 			siglaIstituto = rs.getString("fk_fonte");
 			codiProvenienzaSogc = fontiMap.getProperty(siglaIstituto);
+			codiProvenienzaSogc = siglaIstituto;
+			codiProvenienzaSogc = rs.getString("codi_provenienza");
 		}
 		catch(SQLException e)
 		{
@@ -258,7 +260,9 @@ public class RelazioniComplessi
 		{
 			tripla = idComplessi.next();
 			idComplesso = tripla[0];
+			log.info("Istituto " + siglaIstituto + " (" + codiProvenienzaSogc + "), " + tripla[1]);
 			codiProvenienzaComparc = tripla[1].replace(siglaIstituto.replace("IT", "IT-"), codiProvenienzaSogc);
+			codiProvenienzaComparc = tripla[1];
 			numFigli = tripla[2];
 			log.info("Istituto " + siglaIstituto + " (" + codiProvenienzaSogc + "), collego complesso "
 					+ codiProvenienzaComparc + " (figli = " + numFigli + ")");

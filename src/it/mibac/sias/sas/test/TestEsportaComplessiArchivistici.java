@@ -96,14 +96,17 @@ public class TestEsportaComplessiArchivistici
 				fonte = rs.getString("fk_fonte");
 // idIstituto = 794000000; fonte = "ITASRM";
 // idIstituto = 228200000; fonte = "ITASBO";
- idIstituto = 180900000; fonte = "IT-ASBL.1";
+// idIstituto = 180900000; fonte = "IT-ASBL.1";
 // idIstituto = 450180000; fonte = "ITASIM";
 // idIstituto = 940220003; fonte = "ITSASVARAL";
 // idIstituto = 480800000;
 // fonte = "ITASAQ"; idIstituto = 450180000;
 //				idIstituto = 107000000;	fonte = "ITACS";
- idIstituto = 960660000; fonte = "IT-ASVV.1";
- idIstituto = 120170000; fonte = "IT-ASAL.1";
+// idIstituto = 960660000; fonte = "IT-ASVV.1";
+// idIstituto = 120170000; fonte = "IT-ASAL.1";
+ 
+ 				if(args.length > 0) idIstituto = Integer.parseInt(args[0]);
+ 				if(args.length > 1) fonte = args[1];
 				Iterator<EnvelopeWrapper> ewi = eca.creaMultiEnvelope(idIstituto);
 				EnvelopeWrapper ew = null;
 				int i = 0;
