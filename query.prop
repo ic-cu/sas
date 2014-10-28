@@ -441,7 +441,7 @@ xml.output.filename = d_sogc.xml
 xml.output.directory = tmp
 xml.output.separator = _
 xml.output.maxrecords = 1
-xml.date.offset = -1
+xml.date.offset = -2
 
 ## validazione oppure no
 

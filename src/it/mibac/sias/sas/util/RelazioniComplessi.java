@@ -272,8 +272,10 @@ public class RelazioniComplessi
 			drcs.setCodiProvenienzaSogc(codiProvenienzaSogc);
 			dominante = relObjF.createRelazioniDominante();
 			codiProvenienzaDominante = relObjF.createCodiProvenienza();
-			codiProvenienzaDominante.setValue(codiProvenienzaComparc);
-			codiProvenienzaDominante.setTipologia("d_comparc");
+//			codiProvenienzaDominante.setValue(codiProvenienzaComparc);
+//			codiProvenienzaDominante.setTipologia("d_comparc");
+			codiProvenienzaDominante.setValue(codiProvenienzaSogc);
+			codiProvenienzaDominante.setTipologia("d_sogc");
 			dominante.setCodiProvenienza(codiProvenienzaDominante);
 			rel.getDRelComparcSogc().add(drcs);
 			rel.setDominante(dominante);
@@ -317,7 +319,9 @@ public class RelazioniComplessi
 					drcc.setCodiProvenienzaComparc(codiProvenienzaComparc);
 					dominante = relObjF.createRelazioniDominante();
 					codiProvenienzaDominante = relObjF.createCodiProvenienza();
-					codiProvenienzaDominante.setValue(codiProvenienzaComparc);
+//					codiProvenienzaDominante.setValue(codiProvenienzaComparc);
+//					codiProvenienzaDominante.setTipologia("d_comparc");
+					codiProvenienzaDominante.setValue(codiProvenienzaComparcSup);
 					codiProvenienzaDominante.setTipologia("d_comparc");
 					dominante.setCodiProvenienza(codiProvenienzaDominante);
 					rel.getDRelComparcComparc().add(drcc);
