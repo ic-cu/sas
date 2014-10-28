@@ -76,6 +76,7 @@ public class TestEsportaRelazioniComplessi
  */
 
 		Calendar cal = Calendar.getInstance();
+		if(args.length > 2) dateOffset = args[2];
 		cal.add(Calendar.DAY_OF_YEAR, Integer.parseInt(dateOffset));
 		Date todayDate = cal.getTime();
 		String today = new SimpleDateFormat("yyyyMMdd").format(todayDate);
@@ -135,6 +136,7 @@ public class TestEsportaRelazioniComplessi
 //				idIstituto = 960660000;
 //				fonte = "IT-ASVV.1";
  				if(args.length > 0) idIstituto = Integer.parseInt(args[0]);
+ 				if(args.length > 1) fonte = args[1];
  				if(args.length > 1) fonte = args[1];
 
 /*
