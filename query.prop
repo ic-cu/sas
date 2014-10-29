@@ -6,7 +6,7 @@
 
 query.sogc = \
 	select \
-		COALESCE(i.ISAD_Nazione + i.ISAD_Codice + i.ISAD_Sigla, '') as codi_provenienza, \
+		COALESCE(i.ISAD_Nazione + '-' + i.ISAD_Codice + i.ISAD_Sigla, '') as codi_provenienza, \
 		rtrim(i.DenomCompleta) as text_denominazione, \
 		case \
 			when i.tipologia= '01' then 1 \

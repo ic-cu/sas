@@ -49,71 +49,47 @@ public class TestEsportaSoggettiConservatori
 		}
 
 		EsportaSoggettiConservatori esc = new EsportaSoggettiConservatori();
-		//FileOutputStream fos;
-		//ZipOutputStream zos;
-		//ZipEntry ze;
-		//FileInputStream fis;
-		//BufferedInputStream bis = null;
 		PrintWriter pw = null;
 		File tDir = null;
 
 		// si creano le directory temporanee, caso mai non esistessero
 
+		SimpleDateFormat sdf;
+		sdf = new SimpleDateFormat("yyyyMMdd");
+		String today = sdf.format(new Date());
 		String tmpDir = config.getProperty("xml.output.directory");
 		String sep = config.getProperty("xml.output.separator");
-		tDir = new File(tmpDir + "/sc/xml");
+		tDir = new File(tmpDir + "/sc/xml/" + today);
 		tDir.mkdirs();
-		tDir = new File(tmpDir + "/sc/zip");
+		tDir = new File(tmpDir + "/sc/zip/" + today);
 		tDir.mkdirs();
 
 		Iterator<EnvelopeWrapper> ewi = esc.creaMultiEnvelope();
 		EnvelopeWrapper ew;
-		SimpleDateFormat sdf;
-		sdf = new SimpleDateFormat("yyyyMMdd");
 		String fileName;
 		DecimalFormat df;
 		df = new DecimalFormat("000");
 		int i = 0;
 		try
 		{
-			
-			//fos = new FileOutputStream(zipFileName);
-			//zos = new ZipOutputStream(fos);
-			byte[] data = new byte[2048];
 			while(ewi.hasNext())
 			{
 				ew = ewi.next();
 				fileName = "SIAS" + sep;
 				fileName += ew.getFonte() + sep;
-				fileName += sdf.format(new Date()) + sep;
+				fileName += today + sep;
 				fileName += df.format(++i);
 				fileName += ".xml";
-				pw = new PrintWriter(new File(tmpDir + "/sc/xml/" + fileName));
+				pw = new PrintWriter(new File(tmpDir + "/sc/xml/" + today + "/" + fileName));
 				ew.marshall(pw);
-				//ze = new ZipEntry(fileName);
-				//fis = new FileInputStream(tmpDir + "/sc/xml/" + fileName);
-				//bis = new BufferedInputStream(fis, 2048);
-				// zos.putNextEntry(ze);
-				//int count;
-				//while((count = bis.read(data, 0, 2048)) != -1)
-				//{
-				//	zos.write(data, 0, count);
-				//	zos.flush();
-				//}
-				//zos.closeEntry();
 				String zipFileName = tmpDir; 
-				zipFileName += "/sc/zip/SIAS" + sep;
+				zipFileName += "/sc/zip/" + today + "/SIAS" + sep;
 				zipFileName += ew.getFonte() + sep;
-				zipFileName += sdf.format(new Date())+sep+df.format(i) + ".zip";
+				zipFileName += today + sep + df.format(i) + ".zip";
 				Spedizione sped=new Spedizione(fileName, zipFileName);
 				sped.comprimiFile();
 				// vorrei distruggere sped=nothing
 			}
-			
-			//bis.close();
-			//zos.flush();
-			//zos.close();
-			//fos.close();
 		}
 		catch(IOException e)
 		{
