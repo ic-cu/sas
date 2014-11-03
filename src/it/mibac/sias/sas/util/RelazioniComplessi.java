@@ -324,6 +324,26 @@ public class RelazioniComplessi
 					rel.setDominante(dominante);
 					rel.setRelazione("d_rel_comparc_comparc");
 					rl.add(rel);
+
+/*
+ * Ogni complesso di secondo livello deve essere comunque collegato al soggetto conservatore. Quindi
+ * va ripetuta l'operazine già fatta per i complessi di primo livello. I dati necessari, cioè i
+ * codiProvenienza del complesso e del soggetto conservatore, sono già disponibili, e il tipo di
+ * relazione, il dominante etc... sono esattamente come nel caso dei complessi di primo livello.
+ */
+					rel = relObjF.createRelazioni();
+					drcs = relObjF.createDRelComparcSogc();
+					drcs.setCodiProvenienzaComparc(codiProvenienzaComparc);
+					drcs.setCodiProvenienzaSogc(codiProvenienzaSogc);
+					dominante = relObjF.createRelazioniDominante();
+					codiProvenienzaDominante = relObjF.createCodiProvenienza();
+					codiProvenienzaDominante.setValue(codiProvenienzaComparc);
+					codiProvenienzaDominante.setTipologia("d_comparc");
+					dominante.setCodiProvenienza(codiProvenienzaDominante);
+					rel.getDRelComparcSogc().add(drcs);
+					rel.setDominante(dominante);
+					rel.setRelazione("d_rel_comparc_sogc");
+					rl.add(rel);
 				}
 			}
 		}

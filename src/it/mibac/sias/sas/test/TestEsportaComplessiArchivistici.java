@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
@@ -52,6 +53,7 @@ public class TestEsportaComplessiArchivistici
 		int idIstituto;
 		String fonte;
 		String tmpDir = config.getProperty("xml.output.directory");
+		String dateOffset = config.getProperty("xml.date.offset");
 		String sep = config.getProperty("xml.output.separator");
 		DB db = new DB();
 		Connection connection = db.getConnection();
@@ -61,7 +63,12 @@ public class TestEsportaComplessiArchivistici
 
 		SimpleDateFormat sdf;
 		sdf = new SimpleDateFormat("yyyyMMdd");
-		String today = sdf.format(new Date());
+		Calendar cal = Calendar.getInstance();
+		if(args.length > 2) dateOffset = args[2];
+		cal.add(Calendar.DAY_OF_YEAR, Integer.parseInt(dateOffset));
+		Date todayDate = cal.getTime();
+//		String today = sdf.format(new Date());
+		String today = new SimpleDateFormat("yyyyMMdd").format(todayDate);
 		String fileName;
 		DecimalFormat df;
 		df = new DecimalFormat("000");
