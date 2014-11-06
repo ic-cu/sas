@@ -399,6 +399,7 @@ public class DComparcWrapper
 	{
 		DComparcAltreden da;
 		da = dcomparcObf.createDComparcAltreden();
+		da.setFlgTipoDenominazione("ADN");
 		da.setTextAltreden(s);
 		da.setTextEstrCronoTestuali(t);
 		dcomparc.getDComparcAltreden().add(da);
