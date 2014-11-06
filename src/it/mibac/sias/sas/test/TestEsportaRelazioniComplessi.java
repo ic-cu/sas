@@ -133,11 +133,10 @@ public class TestEsportaRelazioniComplessi
 // idIstituto = 480800000;
 // fonte = fontiMap.getProperty("ITASAQ");
 // idIstituto = 450180000; fonte = "ITASIM";
-//				idIstituto = 960660000;
-//				fonte = "IT-ASVV.1";
- 				if(args.length > 0) idIstituto = Integer.parseInt(args[0]);
- 				if(args.length > 1) fonte = args[1];
- 				if(args.length > 1) fonte = args[1];
+// idIstituto = 960660000;
+// fonte = "IT-ASVV.1";
+				if(args.length > 0) idIstituto = Integer.parseInt(args[0]);
+				if(args.length > 1) fonte = args[1];
 
 /*
  * Si ricava l'iteratore sulle relazioni di questo istituto con i suoi complessi e fra i complessi
@@ -149,7 +148,17 @@ public class TestEsportaRelazioniComplessi
 					log.info("Istituto " + idIstituto + "(" + fonte + "), preparazione degli envelope relazioni complessi");
 					Iterator<EnvelopeWrapper> ewi = erc.creaMultiEnvelope(idIstituto, fonte);
 					EnvelopeWrapper ew = null;
-					int i = 0;
+
+/*
+ * Un primo tentativo di gestire una sola spedizione con complessi e relazioni: si può passare un
+ * quarto argomento che sarà usato come primo valore del contatore degli envelope e quindi si
+ * possono aggiungere degli envelope a quelli eventualmente già creati per i complessi, sapendo qual
+ * è l'ultimo di questi
+ */
+
+					int iStart = 0;
+					if(args.length > 3) iStart = Integer.parseInt(args[3]);
+					int i = iStart;
 
 /*
  * Si crea il necessario alla gestione del file ZIP. Tutti i file ZIP di oggi vanno nella stessa
