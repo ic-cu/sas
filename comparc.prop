@@ -36,8 +36,8 @@ query.comparc = \
 		c.datainizio as date_estremo_remoto, \
 		c.datafine as date_estremo_recente, \
 		c.NoteStoriche as text_storia_archivistica, \
-		coalesce ('Note gestionali: ' + c.Note, '') as text_note_1, \
-		coalesce ('Note Direzione: ' + c.NoteDirezione , '') as text_note_2, \
+		coalesce (c.Note, '') as text_note_1, \
+		coalesce (c.NoteDirezione , '') as text_note_2, \
 		c.UrlLink as text_url, \
 		c.MetriLineari as nume_mt_lineari_complessivi, \
 		c.MetriLineariFigli as nume_riparto_mt_lineari_sottolvl, \

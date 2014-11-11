@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Properties;
 
 import javax.xml.bind.JAXBElement;
@@ -41,30 +42,30 @@ public class DComparcWrapper
 /*
  * Serviranno spesso alcune object factory, istanziate nel costruttore
  */
-	private it.beniculturali.sas.catalogo.comparc.ObjectFactory							dcomparcObf;
-	private it.beniculturali.sas.catalogo.commons.ObjectFactory							comObf;
-	private it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory	vocComparcObf;
-	private it.beniculturali.sas.catalogo.fonti.ObjectFactory								fontiObf;
+	private it.beniculturali.sas.catalogo.comparc.ObjectFactory dcomparcObf;
+	private it.beniculturali.sas.catalogo.commons.ObjectFactory comObf;
+	private it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory vocComparcObf;
+	private it.beniculturali.sas.catalogo.fonti.ObjectFactory fontiObf;
 
 /*
  * Il logger è configurato altrove, e qui viene solo richiamato (vedi costruttore). Non è certo che
  * debbe essere per forza static, altrove non lo è.
  */
 
-	private static Logger																										log;
+	private static Logger log;
 
 /*
  * Il member più importante è un DComparc: tutto quello che fa questa classe impatta su di esso.
  */
 
-	private it.beniculturali.sas.catalogo.comparc.DComparc									dcomparc;
+	private it.beniculturali.sas.catalogo.comparc.DComparc dcomparc;
 
 /*
  * Queste mappe permettono di convertire le sigle automobilistiche e i nomi dei comuni nei
  * corrispondenti codici istat.
  */
-	private Properties																											comuIstat;
-	private Properties																											provIstat;
+	private Properties comuIstat;
+	private Properties provIstat;
 
 	public DComparcWrapper()
 	{
@@ -430,7 +431,7 @@ public class DComparcWrapper
 	{
 		if(s != null && s.trim() != null && s.length() != 0)
 		{
-			dcomparc.setTextNote(s);
+			dcomparc.setTextNote("Note gestionali: " + s);
 		}
 	}
 
@@ -441,7 +442,7 @@ public class DComparcWrapper
 			String tmp = dcomparc.getTextNote();
 			if(tmp != null)
 			{
-				tmp += s;
+				tmp += " Note direzione: " + s;
 			}
 			else
 			{
@@ -453,8 +454,18 @@ public class DComparcWrapper
 
 	public void setFlagConsultabileConservatore(int i)
 	{
+		List<DComparcCondAccesso> cal;
+		cal = dcomparc.getDComparcCondAccesso();
 		DComparcCondAccesso ca;
-		ca = dcomparcObf.createDComparcCondAccesso();
+		if(cal.isEmpty())
+		{
+			ca = dcomparcObf.createDComparcCondAccesso();
+		}
+		else
+		{
+			ca = cal.get(0);
+			cal.clear();
+		}
 		JAXBElement<Boolean> je;
 		if(i == 1)
 		{
@@ -465,17 +476,27 @@ public class DComparcWrapper
 			je = dcomparcObf.createDComparcCondAccessoFlagConsultabileConservatoreTf(false);
 		}
 		ca.setFlagConsultabileConservatoreTf(je);
-		dcomparc.getDComparcCondAccesso().add(ca);
+		cal.add(ca);
 	}
 
 	public void setTextTitolareDiritti(String s)
 	{
+		List<DComparcCondAccesso> cal;
+		cal = dcomparc.getDComparcCondAccesso();
 		DComparcCondAccesso ca;
-		ca = dcomparcObf.createDComparcCondAccesso();
+		if(cal.isEmpty())
+		{
+			ca = dcomparcObf.createDComparcCondAccesso();
+		}
+		else
+		{
+			ca = cal.get(0);
+			cal.clear();
+		}
 		JAXBElement<String> je;
 		je = dcomparcObf.createDComparcCondAccessoTextTitolareDiritti(s);
 		ca.setTextTitolareDiritti(je);
-		dcomparc.getDComparcCondAccesso().add(ca);
+		cal.add(ca);
 	}
 
 	public void setAltreCronTextEstrCronoTestuali(String s)
@@ -515,22 +536,42 @@ public class DComparcWrapper
 
 	public void setTextLimitiConsultazione(String s)
 	{
+		List<DComparcCondAccesso> cal;
+		cal = dcomparc.getDComparcCondAccesso();
 		DComparcCondAccesso ca;
-		ca = dcomparcObf.createDComparcCondAccesso();
+		if(cal.isEmpty())
+		{
+			ca = dcomparcObf.createDComparcCondAccesso();
+		}
+		else
+		{
+			ca = cal.get(0);
+			cal.clear();
+		}
 		JAXBElement<String> je;
 		je = dcomparcObf.createDComparcCondAccessoTextLimitiConsultazione(s);
 		ca.setTextLimitiConsultazione(je);
-		dcomparc.getDComparcCondAccesso().add(ca);
+		cal.add(ca);
 	}
 
 	public void setTextModoRiproduzione(String s)
 	{
+		List<DComparcCondAccesso> cal;
+		cal = dcomparc.getDComparcCondAccesso();
 		DComparcCondAccesso ca;
-		ca = dcomparcObf.createDComparcCondAccesso();
+		if(cal.isEmpty())
+		{
+			ca = dcomparcObf.createDComparcCondAccesso();
+		}
+		else
+		{
+			ca = cal.get(0);
+			cal.clear();
+		}
 		JAXBElement<String> je;
 		je = dcomparcObf.createDComparcCondAccessoTextModoRiproduzione(s);
 		ca.setTextModoRiproduzione(je);
-		dcomparc.getDComparcCondAccesso().add(ca);
+		cal.add(ca);
 	}
 
 	public void setTextAnticaSegnatura(String s)

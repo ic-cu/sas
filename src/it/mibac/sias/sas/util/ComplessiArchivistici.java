@@ -166,7 +166,7 @@ public class ComplessiArchivistici
 			dw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
 			dw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
 			dw.setTextNote(rs.getString("text_note_1"));
-			dw.addTextNote(" " + rs.getString("text_note_2"));
+			dw.addTextNote(rs.getString("text_note_2"));
 			dw.setTextUrl(rs.getString("text_url"));
 			dw.setNumeMtLineariComplessivi(rs.getBigDecimal("nume_mt_lineari_complessivi"));
 			dw.setNumeRipartoMtLineariSottolvl(rs.getBigDecimal("nume_riparto_mt_lineari_sottolvl"));
