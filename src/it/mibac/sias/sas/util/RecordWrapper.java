@@ -70,6 +70,11 @@ public class RecordWrapper
 		rh.setDIRECTIVE(s);
 	}
 
+	public void setCASCADE(boolean b)
+	{
+		rh.setCASCADE(b);
+	}
+
 	public void setEntity(Entity e)
 	{
 		rb.setEntity(e);

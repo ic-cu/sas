@@ -178,6 +178,7 @@ public class EsportaComplessiArchivistici
 			ent.getContent().add(dcomparc);
 			rw = new RecordWrapper();
 			rw.setDIRECTIVE("UPSERT");
+			rw.setCASCADE(true);
 			rw.setRecordIdentifier("CA-" + dcomparc.getCodiProvenienza());
 			rw.setRecordDatestamp();
 			rw.setEntity(ent);
