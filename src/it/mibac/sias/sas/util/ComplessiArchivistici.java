@@ -30,6 +30,7 @@ public class ComplessiArchivistici
 	private PreparedStatement stmtDComparcFusioneDI;
 	private PreparedStatement stmtDComparcPrimoLivello;
 	private PreparedStatement stmtDComparcSottoLivelli;
+	private PreparedStatement stmtDComparcConsistenza;
 	private PreparedStatement stmtDComparcAltreden;
 	private PreparedStatement stmtIstituto;
 	ResultSet rs, rsad;
@@ -73,6 +74,7 @@ public class ComplessiArchivistici
 			stmtDComparcSottoLivelli = conn.prepareStatement(comparcProp.getProperty("query.comparc.sl"),
 					ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE, ResultSet.HOLD_CURSORS_OVER_COMMIT);
 			stmtDComparcAltreden = conn.prepareStatement(comparcProp.getProperty("query.comparc.altreden"));
+			stmtDComparcConsistenza = conn.prepareStatement(comparcProp.getProperty("query.comparc.dati_consistenza"));
 			stmtIstituto = conn.prepareStatement(config.getProperty("query.istituto"), ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 
@@ -221,6 +223,20 @@ public class ComplessiArchivistici
 		}
 	}
 
+	private void popolaConsistenza(long idComplesso) throws SQLException
+	{
+		stmtDComparcConsistenza.setLong(1, idComplesso);
+		stmtDComparcConsistenza.execute();
+		ResultSet rs;
+		rs = stmtDComparcConsistenza.getResultSet();
+		while(rs.next())
+		{
+			dw.addDatiConsistenza(rs.getBigDecimal("nume_consistenza"), rs.getLong("tipi_oggetti_cons"), rs.getString("text_note"));
+			log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata consistenza "
+					+ rs.getBigDecimal("nume_consistenza"));
+		}
+
+	}
 	private void popolaAltreDen(long idComplesso) throws SQLException
 	{
 		stmtDComparcAltreden.setLong(1, idComplesso);
@@ -378,6 +394,7 @@ public class ComplessiArchivistici
 			try
 			{
 				popolaDComparc(idComplesso, numCorda);
+				popolaConsistenza(idComplesso);
 				popolaAltreDen(idComplesso);
 				popolaDatiInventariali(idComplesso);
 			}

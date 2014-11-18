@@ -243,9 +243,9 @@ query.comparc.altreden = \
 
 query.comparc.dati_consistenza = \
 	select \
-		consistenza.nume_consistenza, \
-		consistenza.tipi_oggetti_consistenza, \
-		consistenza.note \
+		consistenza.nume_consistenza nume_consistenza, \
+		consistenza.tipi_oggetti_consistenza tipi_oggetti_cons, \
+		consistenza.note text_note \
 	from \
 		m_complessi_consistenza consistenza \
 	where fk_comparc = ?
