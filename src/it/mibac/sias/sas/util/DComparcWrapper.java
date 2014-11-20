@@ -6,12 +6,15 @@ import it.beniculturali.sas.catalogo.comparc.DComparc;
 import it.beniculturali.sas.catalogo.comparc.DComparcAltrecron;
 import it.beniculturali.sas.catalogo.comparc.DComparcAltreden;
 import it.beniculturali.sas.catalogo.comparc.DComparcCondAccesso;
+import it.beniculturali.sas.catalogo.comparc.DComparcDatiConsistenza;
+import it.beniculturali.sas.catalogo.comparc.DComparcDatiConsistenza.FkVocTipoOggettiCons;
 import it.beniculturali.sas.catalogo.comparc.FkFonte;
 import it.beniculturali.sas.catalogo.comparc.FkVocStatoDescrizione;
 import it.beniculturali.sas.catalogo.comparc.FkVocTipoComparc;
 import it.beniculturali.sas.catalogo.fonti.ProfGroup;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocStatoDescrizione;
 import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocTipoComparc;
+import it.beniculturali.sas.catalogo.vocabolari_comparc.DVocTipoOggettiCons;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -394,6 +397,24 @@ public class DComparcWrapper
 	public void setNumeRipartoMtLineariSottolvl(BigDecimal bd)
 	{
 		dcomparc.setNumeRipartoMtLineariSottolvl(bd);
+	}
+
+	public void addDatiConsistenza(BigDecimal nume, long tipi, String note)
+	{
+		DComparcDatiConsistenza dc;
+		dc = dcomparcObf.createDComparcDatiConsistenza();
+		dc.setNumeConsistenza(nume);
+		DVocTipoOggettiCons dVoc;
+		dVoc = vocComparcObf.createDVocTipoOggettiCons();
+		dVoc.setSequVocTipoOggettiCons(tipi);
+		FkVocTipoOggettiCons fkVoc;
+		fkVoc = dcomparcObf.createDComparcDatiConsistenzaFkVocTipoOggettiCons();
+		fkVoc.setDVocTipoOggettiCons(dVoc);
+		dc.setFkVocTipoOggettiCons(fkVoc);
+		JAXBElement<String> je;
+		je = dcomparcObf.createDComparcDatiConsistenzaTextNote(note);
+		dc.setTextNote(je);
+		dcomparc.getDComparcDatiConsistenza().add(dc);
 	}
 
 	public void addAltraDen(String s, String t)
