@@ -4,7 +4,7 @@
 
 ## query per i soggetti conservatori
 
-query.sogc = \
+query.sogc.old = \
 	select \
 		COALESCE(i.ISAD_Nazione + '-' + i.ISAD_Codice + i.ISAD_Sigla, '') as codi_provenienza, \
 		rtrim(i.DenomCompleta) as text_denominazione, \
@@ -21,6 +21,39 @@ query.sogc = \
 		COALESCE(i.ISAD_Nazione + i.ISAD_Codice + i.ISAD_Sigla, '') as text_acronimo, \
 		1 as fk_natura_giuridica, \
 		'non disponibile' as text_anagrafica, \
+		datazioni.data_testuale as text_estr_crono_testuali, \
+		datazioni.estremo_remoto as data_inizio, \
+		datazioni.estremo_recente as data_fine \
+	from \
+		elementi e, \
+		istituti i \
+		left outer join m_date_istituti as datazioni \
+		on datazioni.fk_istituto = i.ID_Istituto \
+	where \
+		i.ID_Elemento = e.ID_Elemento \
+		and i.ID_Istituto = ? \
+		and e.Pubblicato = 'S'
+
+query.sogc = \
+	select \
+		COALESCE(i.ISAD_Nazione + '-' + i.ISAD_Codice + i.ISAD_Sigla, '') as codi_provenienza, \
+		rtrim(i.DenomCompleta) as text_denominazione, \
+		case \
+			when i.tipologia= '01' then 1 \
+			when i.tipologia= '02' then 2 \
+			else '' \
+		end as tipologia, \
+		'false' as amm_attiva, \
+		COALESCE(i.ISAD_Nazione + i.ISAD_Codice + i.ISAD_Sigla, '') as fk_fonte, \
+		i.ISAD_Nazione as text_nazione_isad, \
+		i.ISAD_Codice as text_codice_isad, \
+		i.ISAD_Sigla as text_sigla_isad, \
+		COALESCE(i.ISAD_Nazione + i.ISAD_Codice + i.ISAD_Sigla, '') as text_acronimo, \
+		1 as fk_natura_giuridica, \
+		case \
+			when i.Responsabile is not null then i.Responsabile \
+			else 'non disponibile' \
+		end as text_anagrafica, \
 		datazioni.data_testuale as text_estr_crono_testuali, \
 		datazioni.estremo_remoto as data_inizio, \
 		datazioni.estremo_recente as data_fine \
