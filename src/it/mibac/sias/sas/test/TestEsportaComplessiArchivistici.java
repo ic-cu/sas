@@ -130,7 +130,7 @@ public class TestEsportaComplessiArchivistici
 					fileName = ew.getSource() + sep;
 					fileName += fonte + sep;
 // fileName += ew.getFonte() + sep;
-					fileName += sdf.format(new Date()) + sep;
+					fileName += today + sep;
 					fileName += df.format(++i);
 					fileName += ".xml";
 

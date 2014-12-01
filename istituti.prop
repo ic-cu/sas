@@ -1,0 +1,40 @@
+## IMPORTANTE!!!
+## Fare sempre molta attenzione a spazi finali, che non si vedono ma fanno 
+## parte dei valori, e nelle righe "logiche" creano altri strani problemi
+
+
+## query per estrarre gli ID degli istituti e nient'altro
+
+query.istituti = \
+	select \
+		ID_Istituto, \
+		COALESCE(ISAD_Nazione + ISAD_Codice+ ISAD_Sigla, '') as fk_fonte \
+	from \
+		istituti \
+	where \
+		(tipologia = '01' or tipologia = '02') \
+	order by fk_fonte
+
+## query identica alla precedente, ma parametrizzata per selezionare alcune
+## informazioni relative ad un istituto specifico
+
+query.istituto = \
+	select \
+		ID_Istituto, \
+		COALESCE(ISAD_Nazione+ISAD_Codice+ ISAD_Sigla, '') as fk_fonte, \
+		COALESCE( \
+			ISAD_Nazione \
+			+ '-' \
+			+ ISAD_Codice \
+			+ ISAD_Sigla, '') \
+		as codi_provenienza \
+	from \
+		istituti \
+	where \
+		(tipologia = '01' or tipologia = '02') \
+		and ID_Istituto = ?
+
+## file di log
+log.file = log
+log.level = info
+log.layout = %05r %p %C{1}.%M - %m%n
