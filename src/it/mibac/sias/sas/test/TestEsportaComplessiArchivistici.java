@@ -61,8 +61,6 @@ public class TestEsportaComplessiArchivistici
 		PrintWriter pw = null;
 		File tDir = null;
 
-		SimpleDateFormat sdf;
-		sdf = new SimpleDateFormat("yyyyMMdd");
 		Calendar cal = Calendar.getInstance();
 		if(args.length > 2) dateOffset = args[2];
 		cal.add(Calendar.DAY_OF_YEAR, Integer.parseInt(dateOffset));
@@ -120,7 +118,7 @@ public class TestEsportaComplessiArchivistici
 
 				// si crea il necessario alla gestione del file ZIP
 
-				String zipFileName = tmpDir + "/ca/zip/" + today + "/SIAS" + sep + fonte + sep + sdf.format(new Date()) + ".zip";
+				String zipFileName = tmpDir + "/ca/zip/" + today + "/SIAS" + sep + fonte + sep + today + ".zip";
 				String percorsoXML = tmpDir + "/ca/xml/" + today + "/" + fonte;
 				new File(percorsoXML).mkdirs();
 				while(ewi.hasNext())
@@ -130,7 +128,7 @@ public class TestEsportaComplessiArchivistici
 					fileName = ew.getSource() + sep;
 					fileName += fonte + sep;
 // fileName += ew.getFonte() + sep;
-					fileName += sdf.format(new Date()) + sep;
+					fileName += today + sep;
 					fileName += df.format(++i);
 					fileName += ".xml";
 
