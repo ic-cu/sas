@@ -1,6 +1,8 @@
 package it.mibac.sias.sas.util;
 
 import java.awt.Button;
+import java.awt.Checkbox;
+import java.awt.CheckboxGroup;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridLayout;
@@ -21,6 +23,7 @@ public class Seleziona
 	private Panel controlPanel;
 	private Button showButton;
 	private List list;
+	private CheckboxGroup cbg;
 
 	public Seleziona(Iterator<String> items)
 	{
@@ -48,7 +51,7 @@ public class Seleziona
 	private void prepareGUI()
 	{
 		mainFrame = new Frame("Esportazione SIAS-SAS");
-		mainFrame.setSize(200, 600);
+		mainFrame.setSize(300, 600);
 		mainFrame.setLayout(new GridLayout(3, 1));
 		mainFrame.addWindowListener(new WindowAdapter()
 		{
@@ -61,11 +64,11 @@ public class Seleziona
 		headerLabel.setAlignment(Label.CENTER);
 		statusLabel = new Label();
 		statusLabel.setAlignment(Label.CENTER);
-		statusLabel.setSize(100, 100);
+		statusLabel.setSize(300, 100);
 
 		controlPanel = new Panel();
-		controlPanel.setLayout(new FlowLayout());
-		controlPanel.setSize(100, 400);
+		controlPanel.setLayout(new GridLayout(5, 1));
+		controlPanel.setSize(300, 400);
 
 		mainFrame.add(headerLabel);
 		mainFrame.add(controlPanel);
@@ -73,6 +76,11 @@ public class Seleziona
 		mainFrame.setVisible(true);
 		showButton = new Button("Show");
 		controlPanel.add(list);
+		
+		cbg = new CheckboxGroup();
+		controlPanel.add(new Checkbox("conservatori", cbg, false));
+		controlPanel.add(new Checkbox("complessi", cbg, false));
+		controlPanel.add(new Checkbox("produttori", cbg, true));
 		controlPanel.add(showButton);
 	}
 
