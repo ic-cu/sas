@@ -78,9 +78,9 @@ public class Seleziona
 		controlPanel.add(list);
 		
 		cbg = new CheckboxGroup();
-		controlPanel.add(new Checkbox("conservatori", cbg, false));
-		controlPanel.add(new Checkbox("complessi", cbg, false));
-		controlPanel.add(new Checkbox("produttori", cbg, true));
+		controlPanel.add(new Checkbox("soggetti conservatori", cbg, true));
+		controlPanel.add(new Checkbox("soggetti produttori", cbg, false));
+		controlPanel.add(new Checkbox("complessi archivistici", cbg, false));
 		controlPanel.add(showButton);
 	}
 
@@ -105,5 +105,10 @@ public class Seleziona
 	public String getSelectedItem()
 	{
 		return list.getItem(list.getSelectedIndex());
+	}
+
+	public String getSelectedAction()
+	{
+		return cbg.getSelectedCheckbox().getLabel();
 	}
 }

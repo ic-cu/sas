@@ -1,4 +1,4 @@
-package it.mibac.sias.sas.test;
+package it.mibac.sias.sas.cmd;
 
 import it.mibac.sias.sas.util.DB;
 import it.mibac.sias.sas.util.EnvelopeWrapper;
@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
  * envelope limitando il numero di record per ciascuno.
  */
 
-public class TestEsportaProduttori
+public class Esporta
 {
 	private static Logger log;
 	private static Properties config;
@@ -56,8 +56,8 @@ public class TestEsportaProduttori
 		String action = sel.getSelectedAction();
 		System.err.println("Hai selezionato l'istituto " + idIstituto);
 		String fonte = istituti.get(index).getFonte();
-// String fonte = istitutiFontiMap.get(String.valueOf(idIstituto));
-		String tmpDir = config.getProperty("xml.output.directory");
+		String tmpTopDir = config.getProperty("xml.output.directory");
+		String tmpDir = null;
 		String dateOffset = config.getProperty("xml.date.offset");
 		String sep = config.getProperty("xml.output.separator");
 		PrintWriter pw = null;
@@ -76,12 +76,15 @@ public class TestEsportaProduttori
 			{
 				case "complessi archivistici":
 					ewi = new EsportaComplessiArchivistici().creaMultiEnvelope(idIstituto);
+					tmpDir = "ca";
 					break;
 				case "soggetti conservatori":
 					ewi = new EsportaSoggettiConservatori().creaMultiEnvelope();
+					tmpDir = "sc";
 					break;
 				case "soggetti produttori":
 					ewi = new EsportaSoggettiConservatori().creaMultiEnvelope();
+					tmpDir = "sp";
 					break;
 				default:
 					break;
@@ -89,7 +92,7 @@ public class TestEsportaProduttori
 			EnvelopeWrapper ew = null;
 			int i = 0;
 
-			String percorsoXML = tmpDir + "/sp/" + today + "/" + fonte;
+			String percorsoXML = tmpTopDir + "/" + tmpDir + "/" + today + "/" + fonte;
 			new File(percorsoXML).mkdirs();
 			while(ewi.hasNext())
 			{
