@@ -1,0 +1,169 @@
+## IMPORTANTE!!!
+## Fare sempre molta attenzione a spazi finali, che non si vedono ma fanno 
+## parte dei valori, e nelle righe "logiche" creano altri strani problemi
+
+## query per i soggetti conservatori
+
+query.sogp.enti = \
+	select \
+		distinct COALESCE(\
+			EN.ISAD_Nazione \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla, \
+		'') as fk_fonte, \
+		SOG.id_soggetto, \
+		SOG.TipoSoggetto, \
+		1 as fk_voc_tipo_sogp, \
+		SOG.denominazione as text_denominazione, \
+		en.dataInizio as date_estremo_remoto, \
+		en.datafine as date_estremo_recente, \
+		en.descrizioneestremi as text_estr_crono_testuali, \
+		en.storia as text_storia, \
+		coalesce(\
+			SOG.UrlLink, \
+			'non disponibile' \
+		) as text_url, \
+		en.note as text_note, \
+		COALESCE(\
+			EN.ISAD_Nazione \
+			+ '-' \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla \
+			+ '-CC' \
+			+ convert(varchar(10),SOG.Id_soggetto), \
+		'') as codi_provenienza, \
+		En.Areageografica as text_denominazione_coeva_ambito_territoriale, \
+		1 as fk_voc_tipo_luogo_ambito_territoriale, \
+		En.Sede as text_denominazione_coeva_sede, \
+		2 as fk_voc_tipo_luogo_sede, \
+		EN.Naturagiuridica as EN_Naturagiuridica, \
+		case \
+		  when EN.Profilo = '01' then 1012 \
+  		when EN.Profilo = '02' then 1016 \
+  		when EN.Profilo = '03' then 1018 \
+  		when EN.Profilo = '04' then 1017 \
+  		when EN.Profilo = '05' then 1011 \
+  		when EN.Profilo = '06' then 8 \
+  		when EN.Profilo = '07' then 25 \
+  		when EN.Profilo = '08' then 7 \
+  		when EN.Profilo = '09' then 1020 \
+  		when EN.Profilo = '10' then 1021 \
+  		when EN.Profilo = '11' then 2 \
+  		when EN.Profilo = '12' then 14 \
+  		when EN.Profilo = '13' then 14 \
+  		when EN.Profilo = '14' then 4 \
+  		when EN.Profilo = '15' then 20 \
+  		when EN.Profilo = '16' then 1022 \
+  		when EN.Profilo = '17' then 18 \
+		end as fk_voc_tipofunz_sogp, \
+		case \
+			when EN.Profilo = '01' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari' \
+			when EN.Profilo = '02' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari di antico regime'when  EN.Profilo = '03' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari del periodo napoleonico' \
+			when EN.Profilo = '04' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari della restaurazione' \
+			when EN.Profilo = '05' then 'Uffici centrali e periferici dello Stato italiano' \
+			when EN.Profilo = '06' then 'Comuni' \
+			when EN.Profilo = '07' then 'Province' \
+			when EN.Profilo = '08' then 'Comitati di Liberazione Nazionale , corpi militari della Resistenza' \
+			when EN.Profilo = '09' then 'Partiti politici, organizzazioni sindacali' \
+			when EN.Profilo = '10' then 'Istituti e associazioni culturali, accademie, deputazioni storiche, università' \
+			when EN.Profilo = '11' then 'Arti, collegi, ordini professionali, associazioni di categoria' \
+			when EN.Profilo = '12' then 'Camere di commercio' \
+			when EN.Profilo = '13' then 'Industrie e imprese' \
+			when EN.Profilo = '14' then 'Enti di credito, assicurativi, previdenziali' \
+			when EN.Profilo = '15' then 'Opere pie, istituzioni di assistenza e beneficenza, ospedali' \
+			when EN.Profilo = '16' then 'Enti e associazioni di culto' \
+			when EN.Profilo = '17' then 'Notai' \
+		end as EN_Profilo_descr_SIAS, \
+		EN.ISAD_Sigla as EN_ISAD_Sigla, \
+		EN.NoteDirezione \
+	from Elementi AS ELEM \
+	join ComplessiDoc AS CD ON ELEM.ID_Elemento = CD.ID_Elemento \
+	JOIN ComplessiDocSoggetti AS CDS ON CDS.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+	join Soggetti AS SOG ON CDS.ID_Soggetto = SOG.ID_Soggetto \
+	JOIN ENTI EN ON  EN.ID_Soggetto = SOG.ID_Soggetto \
+	Where \
+		elem.pubblicato='S' \
+		and CD.ID_Istituto = ? \
+		and sog.pubblicato='S'
+
+query.sogp.enti.full = \
+	select \
+		distinct COALESCE(\
+			EN.ISAD_Nazione \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla, \
+		'') as fk_fonte, \
+		SOG.id_soggetto, \
+		SOG.TipoSoggetto, \
+		1 as fk_voc_tipo_sogp, \
+		SOG.denominazione as text_denominazione, \
+		en.dataInizio as date_estremo_remoto, \
+		en.datafine as date_estremo_recente, \
+		en.descrizioneestremi as text_estr_crono_testuali, \
+		en.storia as text_storia, \
+		coalesce(\
+			SOG.UrlLink, \
+			'non disponibile' \
+		) as text_url, \
+		en.note as text_note, \
+		COALESCE(\
+			EN.ISAD_Nazione \
+			+ '-' \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla \
+			+ '-CC' \
+			+ convert(varchar(10),SOG.Id_soggetto), \
+		'') as EN_CodiceISAD, \
+		En.Areageografica as text_denominazione_coeva_ambito_territoriale, \
+		1 as fk_voc_tipo_luogo_ambito_territoriale, \
+		En.Sede as text_denominazione_coeva_sede, \
+		2 as fk_voc_tipo_luogo_sede, \
+		EN.Naturagiuridica as EN_Naturagiuridica, \
+		case \
+		  when EN.Profilo = '01' then 1012 -- Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari \
+  		when EN.Profilo = '02' then 1016 -- Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari di antico regime \
+  		when EN.Profilo = '03' then 1018 -- Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari del periodo napoleonico \
+  		when EN.Profilo = '04' then 1017 -- Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari della restaurazione \
+  		when EN.Profilo = '05' then 1011 -- Uffici centrali e periferici dello Stato italiano \
+  		when EN.Profilo = '06' then 8 -- Comuni \
+  		when EN.Profilo = '07' then 25 -- Province \
+  		when EN.Profilo = '08' then 7 -- Comitati di Liberazione Nazionale , corpi militari della Resistenza \
+  		when EN.Profilo = '09' then 1020 -- Partiti politici, organizzazioni sindacali \
+  		when EN.Profilo = '10' then 1021 -- Istituti e associazioni culturali, accademie, deputazioni storiche, università \
+  		when EN.Profilo = '11' then 2 -- Arti, collegi, ordini professionali, associazioni di categoria \
+  		when EN.Profilo = '12' then 14 -- Camere di commercio \
+  		when EN.Profilo = '13' then 14 -- Industrie e imprese \
+  		when EN.Profilo = '14' then 4 -- Enti di credito, assicurativi, previdenziali \
+  		when EN.Profilo = '15' then 20 /* Opere pie, istituzioni di assistenza e beneficenza, ospedali*/ \
+  		when EN.Profilo = '16' then 1022 -- Enti e associazioni di culto \
+  		when EN.Profilo = '17' then 18 -- Notai \
+		end as fk_voc_tipofunz_sogp, --EN_Profilo_codice_sas \
+		case \
+			when EN.Profilo = '01' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari' \
+			when EN.Profilo = '02' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari di antico regime'when  EN.Profilo = '03' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari del periodo napoleonico' \
+			when EN.Profilo = '04' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari della restaurazione' \
+			when EN.Profilo = '05' then 'Uffici centrali e periferici dello Stato italiano' \
+			when EN.Profilo = '06' then 'Comuni' \
+			when EN.Profilo = '07' then 'Province' \
+			when EN.Profilo = '08' then 'Comitati di Liberazione Nazionale , corpi militari della Resistenza' \
+			when EN.Profilo = '09' then 'Partiti politici, organizzazioni sindacali' \
+			when EN.Profilo = '10' then 'Istituti e associazioni culturali, accademie, deputazioni storiche, università' \
+			when EN.Profilo = '11' then 'Arti, collegi, ordini professionali, associazioni di categoria' \
+			when EN.Profilo = '12' then 'Camere di commercio' \
+			when EN.Profilo = '13' then 'Industrie e imprese' \
+			when EN.Profilo = '14' then 'Enti di credito, assicurativi, previdenziali' \
+			when EN.Profilo = '15' then 'Opere pie, istituzioni di assistenza e beneficenza, ospedali' \
+			when EN.Profilo = '16' then 'Enti e associazioni di culto' \
+			when EN.Profilo = '17' then 'Notai' \
+		end as EN_Profilo_descr_SIAS, --non lo usiamo per l’xml ma magari fa comodo tenerlo per controllare i dati \
+		EN.ISAD_Sigla as EN_ISAD_Sigla, \
+		EN.NoteDirezione \
+	from Elementi AS ELEM \
+	join ComplessiDoc AS CD ON ELEM.ID_Elemento = CD.ID_Elemento \
+	JOIN ComplessiDocSoggetti AS CDS ON CDS.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+	join Soggetti AS SOG ON CDS.ID_Soggetto = SOG.ID_Soggetto \
+	JOIN ENTI EN ON  EN.ID_Soggetto = SOG.ID_Soggetto \
+	Where \
+		elem.pubblicato='S' --è ridondante ma lo lasciamo \
+		and CD.ID_Istituto = ? \
+		and sog.pubblicato='S'

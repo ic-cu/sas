@@ -22,15 +22,15 @@ public class TestQuery
 		Properties config = new Properties();
 		try
 		{
-			config.load(new FileReader(new File("query.prop")));
+			config.load(new FileReader(new File("sogp.prop")));
 			DB db = new DB();
 			Connection conn = db.getConnection();
-			String query = config.getProperty("query.sogc");
+			String query = config.getProperty("query.sogp.enti");
 			System.out.println(query);
 			PreparedStatement stmt;
 			stmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
-			stmt.setInt(1, 450180000);
+			stmt.setInt(1, 794000000);
 			stmt.execute();
 			ResultSet rs = stmt.getResultSet();
 			int cols = rs.getMetaData().getColumnCount();
@@ -40,7 +40,7 @@ public class TestQuery
 				rows++;
 				for(int i = 1; i <= cols; i++)
 				{
-					System.out.println(rows + " ==> " + rs.getString(i));
+					System.out.println("[" + rows + "] " + rs.getMetaData().getColumnLabel(i) + " ==> " + rs.getString(i));
 				}
 			}
 		}
