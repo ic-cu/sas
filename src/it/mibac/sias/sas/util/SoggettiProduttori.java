@@ -15,27 +15,32 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+
 import org.apache.log4j.Logger;
+
+import com.microsoft.sqlserver.jdbc.SQLServerException;
 
 public class SoggettiProduttori
 {
 	Properties queryProp;
 	Properties fontiMap;
 	PreparedStatement stmtDSogPEnti;
+	PreparedStatement stmtDSogPEntiAltreDen;
 	PreparedStatement stmtDSogPPersone;
 	PreparedStatement stmtDSogPFamiglie;
-	ResultSet rs;
+	ResultSet rs, rsad;
 	FkFonte fkf;
 	String fkFonte = null;
 	ProfGroup pg;
 	private static Logger log;
 
-	/*
-	 * Questo costruttore richiede solo una connessione (che non tocca a lui chiudere, attenzione) che
-	 * usa solo per creare la preparedStatement, così è pronta per essere eseguita da altri metodi.
-	 * Molti parametri sono ricavati da file di configurazione. Inoltre è caricata la mappatura fra
-	 * fonti SIAS e fonti SAS.
-	 */
+/*
+ * Questo costruttore richiede solo una connessione (che non tocca a lui chiudere, attenzione) che
+ * usa solo per creare la preparedStatement, così è pronta per essere eseguita da altri metodi.
+ * Molti parametri sono ricavati da file di configurazione. Inoltre è caricata la mappatura fra
+ * fonti SIAS e fonti SAS.
+ */
 	public SoggettiProduttori(Connection conn)
 	{
 		queryProp = new Properties();
@@ -48,8 +53,8 @@ public class SoggettiProduttori
 			stmtDSogPEnti = conn.prepareStatement(queryProp.getProperty("query.sogp.enti"));
 			stmtDSogPPersone = conn.prepareStatement(queryProp.getProperty("query.sogp.persone"));
 			stmtDSogPFamiglie = conn.prepareStatement(queryProp.getProperty("query.sogp.famiglie"));
-// fkFonte = queryProp.getProperty("sogc.fk_fonte");
-			log = Logger.getLogger("SOGP");
+			stmtDSogPEntiAltreDen = conn.prepareStatement(queryProp.getProperty("query.sogp.enti.altreden"));
+			log = Logger.getLogger("LOG");
 		}
 		catch(FileNotFoundException e)
 		{
@@ -74,14 +79,17 @@ public class SoggettiProduttori
 	public Iterator<DSogp> createEntityEnte(int idIstituto)
 	{
 		DSogpWrapper dsogpw = null;
-		log.info("Istituto " + idIstituto + ", inizio elaborazione");
+		log.info("Istituto " + idIstituto + ", inizio elaborazione soggetti produttori");
 		String codiProvenienza = null;
 		ArrayList<DSogp> dwl = new ArrayList<DSogp>();
+		int idProduttore = 0;
+		String fkFonte = null;
+		int count = 0;
 		try
 		{
-			/*
-			 * A questo punto la connessione è stabilita. Si prepara una query e si esegue con id_istituto
-			 */
+/*
+ * A questo punto la connessione è stabilita. Si prepara una query e si esegue con id_istituto
+ */
 			stmtDSogPEnti.setInt(1, idIstituto);
 			stmtDSogPEnti.execute();
 
@@ -92,29 +100,49 @@ public class SoggettiProduttori
 			rs = stmtDSogPEnti.getResultSet();
 			while(rs.next())
 			{
-
-				dsogpw = new DSogpWrapper();
-				codiProvenienza = rs.getString("codi_provenienza");
-				dsogpw.setCodiProvenienza(codiProvenienza);
-				dsogpw.setFkFonte(fontiMap.getProperty(rs.getString("fk_fonte")));
-
-// dsogpw.setTextCodiceIsad(rs.getString("text_codice_isad"));
-// dsogpw.setTextSiglaIsad(rs.getString("text_sigla_isad"));
-// dsogpw.setTextAcronimo(rs.getString("text_acronimo"));
-// dsogpw.setFkVocTipoSogc(rs.getLong("tipologia"));
-// dsogpw.setFkVocNaturagiuridica(rs.getLong("fk_natura_giuridica"));
-// dsogpw.setDContattiTextAnagrafica(rs.getString("text_anagrafica"));
-// dsogpw.setFkVocTipoContatto(1);
-// dsogpw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
-				log.info("Istituto " + idIstituto + ", elaborata anagrafica");
+				try
+				{
+					dsogpw = new DSogpWrapper();
+					idProduttore = rs.getInt("id_soggetto");
+					codiProvenienza = rs.getString("codi_provenienza");
+					log.info("Soggetto " + codiProvenienza + "(" + ++count + ")");
+					dsogpw.setCodiProvenienza(codiProvenienza);
+					fkFonte = rs.getString("fk_fonte");
+					dsogpw.setFkFonte(fontiMap.getProperty(fkFonte));
+					dsogpw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
+					dsogpw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
+					dsogpw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+					dsogpw.setTextDenominazione(rs.getString("text_denominazione"));
+					dsogpw.setTextDenominazioneCoeva(rs.getString("text_denominazione_coeva_sede"));
+					dsogpw.setTextEnteStoria(rs.getString("text_storia"));
+					dsogpw.setTextUrl(rs.getString("text_url"));
+					stmtDSogPEntiAltreDen.setInt(1, idProduttore);
+					stmtDSogPEntiAltreDen.execute();
+					rsad = stmtDSogPEntiAltreDen.getResultSet();
+					while(rsad.next())
+					{
+						dsogpw.addAltreDen(rsad.getString(1));
+					}
+					log.info("Soggetto " + idProduttore + " elaborato");
+					dwl.add(dsogpw.getWrappedObject());
+				}
+				catch(IllegalArgumentException e)
+				{
+					log.warn("Soggetto " + idProduttore + " scartato: " + e.getMessage());
+					continue;
+				}
+				catch(DatatypeConfigurationException e)
+				{
+					log.warn("Istituto " + fkFonte + ", soggetto " + idProduttore + " scartato: " + e.getMessage());
+					continue;
+				}
 			}
 		}
 		catch(SQLException e)
 		{
-			log.warn("Istituto " + codiProvenienza + " (" + idIstituto + "): " + e.getMessage() + ", istituto scartato");
+			log.warn("Soggetto " + codiProvenienza + " (" + idIstituto + "): " + e.getMessage() + ", istituto scartato");
 			return null;
 		}
-
 		log.info("Istituto " + idIstituto + ", fine elaborazione");
 		return dwl.iterator();
 	}

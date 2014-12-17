@@ -86,6 +86,136 @@ query.sogp.enti = \
 		and CD.ID_Istituto = ? \
 		and sog.pubblicato='S'
 
+# estrazione di eventuali altre denominazioni di un produttore ente
+
+query.sogp.enti.altreden = \
+	select \
+		ed.AltraDenominazione \
+	from \
+		EntiDenominazioni ed, \
+		enti e \
+	where \
+		ed.ID_Ente = e.ID_Ente \
+	and e.ID_Soggetto = ?
+
+# query per le relazioni fra complessi e produttori, di qualsiasi tipo
+
+query.sogp.comparc = \
+	select \
+		'd_comparc' as dominante_codi_provenienza_tipologia, \
+		COALESCE(\
+			CD.ISAD_Nazione \
+			+ '-' \
+			+ CD.ISAD_Codice \
+			+ CD.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), CD.ID_ComplessoDoc) ,''\
+		) as dominante_codi_provenienza, \
+		'd_rel_sogp_comparc_datazione' as attributo_relazione, \
+		COALESCE(\
+			CD.ISAD_Nazione \
+			+ '-' \
+			+ CD.ISAD_Codice \
+			+ CD.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), CD.ID_ComplessoDoc) ,''\
+		) as codi_provenienza_comparc, \
+		COALESCE(\
+			FMG.ISAD_Nazione \
+			+ '-' \
+			+ FMG.ISAD_Codice \
+			+ FMG.ISAD_Sigla \
+			+ '-CF' \
+			+ convert(varchar(10), SOG.Id_soggetto),''\
+		) as codi_provenienza_sogp \
+	from \
+		Elementi AS ELEM \
+		inner join ComplessiDoc AS CD ON ELEM.ID_Elemento = CD.ID_Elemento \
+		join ComplessiDocSoggetti AS CDS ON CDS.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+		join Soggetti AS SOG ON CDS.ID_Soggetto = SOG.ID_Soggetto \
+		join FAMIGLIE FMG ON  FMG.ID_Soggetto = SOG.ID_Soggetto \
+	where \
+		elem.pubblicato='S' \
+		and CD.ID_Istituto = ? \
+		and sog.pubblicato='S' \
+	union	\
+	select \
+		'd_comparc' as dominante_codi_provenienza_tipologia, \
+		COALESCE(\
+			CD.ISAD_Nazione \
+			+ '-' \
+			+ CD.ISAD_Codice \
+			+ CD.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), CD.ID_ComplessoDoc) ,'' \
+		) as dominante_codi_provenienza, \
+		'd_rel_sogp_comparc_datazione' as attributo_relazione, \
+		COALESCE(\
+			CD.ISAD_Nazione \
+			+ '-' \
+			+ CD.ISAD_Codice \
+			+ CD.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), CD.ID_ComplessoDoc) ,''\
+		) as codi_provenienza_comparc, \
+		COALESCE(\
+			EN.ISAD_Nazione \
+			+ '-' \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla \
+			+ '-CC' \
+			+ convert(varchar(10),SOG.Id_soggetto),'') as codi_provenienza_sogp \
+	from \
+		Elementi AS ELEM \
+		inner join ComplessiDoc AS CD ON ELEM.ID_Elemento = CD.ID_Elemento \
+		join ComplessiDocSoggetti AS CDS ON CDS.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+		join Soggetti AS SOG ON CDS.ID_Soggetto = SOG.ID_Soggetto \
+		join ENTI EN ON  EN.ID_Soggetto = SOG.ID_Soggetto \
+	where \
+		elem.pubblicato='S' \
+		and CD.ID_Istituto = ? \
+		and sog.pubblicato='S' \
+	union \
+	select \
+		'd_comparc' as dominante_codi_provenienza_tipologia, \
+		COALESCE(\
+			CD.ISAD_Nazione \
+			+ '-' \
+			+ CD.ISAD_Codice \
+			+ CD.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), CD.ID_ComplessoDoc) ,''\
+		) as dominante_codi_provenienza, \
+		'd_rel_sogp_comparc_datazione' as attributo_relazione, \
+		COALESCE(\
+			CD.ISAD_Nazione \
+			+ '-' \
+			+ CD.ISAD_Codice \
+			+ CD.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), CD.ID_ComplessoDoc) ,''\
+		) as codi_provenienza_comparc, \
+		COALESCE(\
+			PRS.ISAD_Nazione \
+			+ '-' \
+			+ PRS.ISAD_Codice \
+			+ PRS.ISAD_Sigla \
+			+ '-CP' \
+			+ convert(varchar(10), SOG.Id_soggetto),''\
+		) as codi_provenienza_sogp \
+	from \
+		Elementi AS ELEM \
+		inner join ComplessiDoc AS CD ON ELEM.ID_Elemento = CD.ID_Elemento \
+		join ComplessiDocSoggetti AS CDS ON CDS.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+		join Soggetti AS SOG ON CDS.ID_Soggetto = SOG.ID_Soggetto \
+		join PERSONE PRS ON PRS.ID_Soggetto = SOG.ID_Soggetto	\
+	where \
+		elem.pubblicato='S' \
+		and CD.ID_Istituto = ? \
+		and sog.pubblicato='S'
+		
+# query completa come da progettazione per i produttori ente
+
 query.sogp.enti.full = \
 	select \
 		distinct COALESCE(\
@@ -165,5 +295,174 @@ query.sogp.enti.full = \
 	JOIN ENTI EN ON  EN.ID_Soggetto = SOG.ID_Soggetto \
 	Where \
 		elem.pubblicato='S' --è ridondante ma lo lasciamo \
+		and CD.ID_Istituto = ? \
+		and sog.pubblicato='S'
+
+## query per le persone, per ora è solo una copia di quella per gli enti
+
+query.sogp.persone = \
+	select \
+		distinct COALESCE(\
+			EN.ISAD_Nazione \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla, \
+		'') as fk_fonte, \
+		SOG.id_soggetto, \
+		SOG.TipoSoggetto, \
+		1 as fk_voc_tipo_sogp, \
+		SOG.denominazione as text_denominazione, \
+		en.dataInizio as date_estremo_remoto, \
+		en.datafine as date_estremo_recente, \
+		en.descrizioneestremi as text_estr_crono_testuali, \
+		en.storia as text_storia, \
+		coalesce(\
+			SOG.UrlLink, \
+			'non disponibile' \
+		) as text_url, \
+		en.note as text_note, \
+		COALESCE(\
+			EN.ISAD_Nazione \
+			+ '-' \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla \
+			+ '-CC' \
+			+ convert(varchar(10),SOG.Id_soggetto), \
+		'') as codi_provenienza, \
+		En.Areageografica as text_denominazione_coeva_ambito_territoriale, \
+		1 as fk_voc_tipo_luogo_ambito_territoriale, \
+		En.Sede as text_denominazione_coeva_sede, \
+		2 as fk_voc_tipo_luogo_sede, \
+		EN.Naturagiuridica as EN_Naturagiuridica, \
+		case \
+		  when EN.Profilo = '01' then 1012 \
+  		when EN.Profilo = '02' then 1016 \
+  		when EN.Profilo = '03' then 1018 \
+  		when EN.Profilo = '04' then 1017 \
+  		when EN.Profilo = '05' then 1011 \
+  		when EN.Profilo = '06' then 8 \
+  		when EN.Profilo = '07' then 25 \
+  		when EN.Profilo = '08' then 7 \
+  		when EN.Profilo = '09' then 1020 \
+  		when EN.Profilo = '10' then 1021 \
+  		when EN.Profilo = '11' then 2 \
+  		when EN.Profilo = '12' then 14 \
+  		when EN.Profilo = '13' then 14 \
+  		when EN.Profilo = '14' then 4 \
+  		when EN.Profilo = '15' then 20 \
+  		when EN.Profilo = '16' then 1022 \
+  		when EN.Profilo = '17' then 18 \
+		end as fk_voc_tipofunz_sogp, \
+		case \
+			when EN.Profilo = '01' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari' \
+			when EN.Profilo = '02' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari di antico regime'when  EN.Profilo = '03' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari del periodo napoleonico' \
+			when EN.Profilo = '04' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari della restaurazione' \
+			when EN.Profilo = '05' then 'Uffici centrali e periferici dello Stato italiano' \
+			when EN.Profilo = '06' then 'Comuni' \
+			when EN.Profilo = '07' then 'Province' \
+			when EN.Profilo = '08' then 'Comitati di Liberazione Nazionale , corpi militari della Resistenza' \
+			when EN.Profilo = '09' then 'Partiti politici, organizzazioni sindacali' \
+			when EN.Profilo = '10' then 'Istituti e associazioni culturali, accademie, deputazioni storiche, università' \
+			when EN.Profilo = '11' then 'Arti, collegi, ordini professionali, associazioni di categoria' \
+			when EN.Profilo = '12' then 'Camere di commercio' \
+			when EN.Profilo = '13' then 'Industrie e imprese' \
+			when EN.Profilo = '14' then 'Enti di credito, assicurativi, previdenziali' \
+			when EN.Profilo = '15' then 'Opere pie, istituzioni di assistenza e beneficenza, ospedali' \
+			when EN.Profilo = '16' then 'Enti e associazioni di culto' \
+			when EN.Profilo = '17' then 'Notai' \
+		end as EN_Profilo_descr_SIAS, \
+		EN.ISAD_Sigla as EN_ISAD_Sigla, \
+		EN.NoteDirezione \
+	from Elementi AS ELEM \
+	join ComplessiDoc AS CD ON ELEM.ID_Elemento = CD.ID_Elemento \
+	JOIN ComplessiDocSoggetti AS CDS ON CDS.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+	join Soggetti AS SOG ON CDS.ID_Soggetto = SOG.ID_Soggetto \
+	JOIN ENTI EN ON  EN.ID_Soggetto = SOG.ID_Soggetto \
+	Where \
+		elem.pubblicato='S' \
+		and CD.ID_Istituto = ? \
+		and sog.pubblicato='S'
+
+
+## query per le famiglie, per ora è solo una copia di quella per gli enti
+
+query.sogp.famiglie = \
+	select \
+		distinct COALESCE(\
+			EN.ISAD_Nazione \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla, \
+		'') as fk_fonte, \
+		SOG.id_soggetto, \
+		SOG.TipoSoggetto, \
+		1 as fk_voc_tipo_sogp, \
+		SOG.denominazione as text_denominazione, \
+		en.dataInizio as date_estremo_remoto, \
+		en.datafine as date_estremo_recente, \
+		en.descrizioneestremi as text_estr_crono_testuali, \
+		en.storia as text_storia, \
+		coalesce(\
+			SOG.UrlLink, \
+			'non disponibile' \
+		) as text_url, \
+		en.note as text_note, \
+		COALESCE(\
+			EN.ISAD_Nazione \
+			+ '-' \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla \
+			+ '-CC' \
+			+ convert(varchar(10),SOG.Id_soggetto), \
+		'') as codi_provenienza, \
+		En.Areageografica as text_denominazione_coeva_ambito_territoriale, \
+		1 as fk_voc_tipo_luogo_ambito_territoriale, \
+		En.Sede as text_denominazione_coeva_sede, \
+		2 as fk_voc_tipo_luogo_sede, \
+		EN.Naturagiuridica as EN_Naturagiuridica, \
+		case \
+		  when EN.Profilo = '01' then 1012 \
+  		when EN.Profilo = '02' then 1016 \
+  		when EN.Profilo = '03' then 1018 \
+  		when EN.Profilo = '04' then 1017 \
+  		when EN.Profilo = '05' then 1011 \
+  		when EN.Profilo = '06' then 8 \
+  		when EN.Profilo = '07' then 25 \
+  		when EN.Profilo = '08' then 7 \
+  		when EN.Profilo = '09' then 1020 \
+  		when EN.Profilo = '10' then 1021 \
+  		when EN.Profilo = '11' then 2 \
+  		when EN.Profilo = '12' then 14 \
+  		when EN.Profilo = '13' then 14 \
+  		when EN.Profilo = '14' then 4 \
+  		when EN.Profilo = '15' then 20 \
+  		when EN.Profilo = '16' then 1022 \
+  		when EN.Profilo = '17' then 18 \
+		end as fk_voc_tipofunz_sogp, \
+		case \
+			when EN.Profilo = '01' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari' \
+			when EN.Profilo = '02' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari di antico regime'when  EN.Profilo = '03' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari del periodo napoleonico' \
+			when EN.Profilo = '04' then 'Organi statali e di governo, istituzioni, magistrature centrali e locali pre-unitari della restaurazione' \
+			when EN.Profilo = '05' then 'Uffici centrali e periferici dello Stato italiano' \
+			when EN.Profilo = '06' then 'Comuni' \
+			when EN.Profilo = '07' then 'Province' \
+			when EN.Profilo = '08' then 'Comitati di Liberazione Nazionale , corpi militari della Resistenza' \
+			when EN.Profilo = '09' then 'Partiti politici, organizzazioni sindacali' \
+			when EN.Profilo = '10' then 'Istituti e associazioni culturali, accademie, deputazioni storiche, università' \
+			when EN.Profilo = '11' then 'Arti, collegi, ordini professionali, associazioni di categoria' \
+			when EN.Profilo = '12' then 'Camere di commercio' \
+			when EN.Profilo = '13' then 'Industrie e imprese' \
+			when EN.Profilo = '14' then 'Enti di credito, assicurativi, previdenziali' \
+			when EN.Profilo = '15' then 'Opere pie, istituzioni di assistenza e beneficenza, ospedali' \
+			when EN.Profilo = '16' then 'Enti e associazioni di culto' \
+			when EN.Profilo = '17' then 'Notai' \
+		end as EN_Profilo_descr_SIAS, \
+		EN.ISAD_Sigla as EN_ISAD_Sigla, \
+		EN.NoteDirezione \
+	from Elementi AS ELEM \
+	join ComplessiDoc AS CD ON ELEM.ID_Elemento = CD.ID_Elemento \
+	JOIN ComplessiDocSoggetti AS CDS ON CDS.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+	join Soggetti AS SOG ON CDS.ID_Soggetto = SOG.ID_Soggetto \
+	JOIN ENTI EN ON  EN.ID_Soggetto = SOG.ID_Soggetto \
+	Where \
+		elem.pubblicato='S' \
 		and CD.ID_Istituto = ? \
 		and sog.pubblicato='S'

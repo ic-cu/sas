@@ -4,8 +4,10 @@ import it.beniculturali.sas.catalogo.fonti.ProfGroup;
 import it.beniculturali.sas.catalogo.sogp.DSogp.FkFonte;
 import it.beniculturali.sas.catalogo.sogp.DSogp.FkVocTipoSogp;
 import it.beniculturali.sas.catalogo.sogp.DSogp;
+import it.beniculturali.sas.catalogo.sogp.DSogpAltreDen;
 import it.beniculturali.sas.catalogo.sogp.DSogpDenominazioni;
-//import it.beniculturali.sas.catalogo.sogp.DSogpEnteStoria;
+import it.beniculturali.sas.catalogo.sogp.DSogpEnteStoria;
+// import it.beniculturali.sas.catalogo.sogp.DSogpEnteStoria;
 import it.beniculturali.sas.catalogo.sogp.DSogpLuogo;
 import it.beniculturali.sas.catalogo.sogp.DSogpLuogo.FkVocTipoLuogo;
 import it.beniculturali.sas.catalogo.sogp.DSogpTipologiaFunzionale;
@@ -42,15 +44,16 @@ public class DSogpWrapper
 	private it.beniculturali.sas.catalogo.vocabolari_sogp.ObjectFactory vocSogpObf;
 	private static Logger log;
 
-	/*
-	 * Il member più importante è un DSogc: tutto quello che fa questa classe impatta su di esso.
-	 */
+/*
+ * Il member più importante è un DSogc: tutto quello che fa questa classe impatta su di esso, ma a
+ * volte indirettamente, tramite member che gli saranno aggiunti prima nel metodo getWrappedObject
+ */
 
 	private DSogp dsogp;
 	private DSogpDenominazioni dsogpDen;
 	private DSogpLuogo dsogpSede;
 	private DSogpTipologiaFunzionale dsogpTipFunz;
-//	private DSogpEnteStoria dsogpEnteStoria;
+	private DSogpEnteStoria dsogpEnteStoria;
 
 	/*
 	 * Questa mappa permette di convertire le sigle automobilistiche e i nomi dei comuni nei
@@ -67,6 +70,7 @@ public class DSogpWrapper
 		dsogpDen = dsogpObf.createDSogpDenominazioni();
 		dsogpSede = dsogpObf.createDSogpLuogo();
 		dsogpTipFunz = dsogpObf.createDSogpTipologiaFunzionale();
+		dsogpEnteStoria = dsogpObf.createDSogpEnteStoria();
 		vocSogpObf = new it.beniculturali.sas.catalogo.vocabolari_sogp.ObjectFactory();
 		new it.beniculturali.sas.catalogo.commons.ObjectFactory();
 		new it.beniculturali.sas.catalogo.luoghi.ObjectFactory();
@@ -77,7 +81,7 @@ public class DSogpWrapper
 		{
 			comuIstat.load(new FileReader(new File("comuni-istat.prop")));
 			provIstat.load(new FileReader(new File("province-istat.prop")));
-			log = Logger.getLogger("SOGC");
+			log = Logger.getLogger("LOG");
 			log.debug("Caricati codici ISTAT");
 		}
 		catch(FileNotFoundException e)
@@ -90,16 +94,17 @@ public class DSogpWrapper
 		}
 	}
 
-	/*
-	 * Questo metodo è fondamentale: dopo aver lavorato sul wrapper, il chiamante gli deve chiedere il
-	 * DSogc embedded
-	 */
+/*
+ * Questo metodo è fondamentale: dopo aver lavorato sul wrapper, il chiamante gli deve chiedere il
+ * DSogc embedded. Prima di ritornarlo, gli aggiunge vari "pezzi" popolati da opportuni metodi
+ */
 
 	public DSogp getWrappedObject()
 	{
 		dsogp.getDSogpDenominazioni().add(dsogpDen);
 		dsogp.getDSogpLuogo().add(dsogpSede);
 		dsogp.getDSogpTipologiaFunzionale().add(dsogpTipFunz);
+		dsogp.getDSogpEnteStoria().add(dsogpEnteStoria);
 		return dsogp;
 	}
 
@@ -169,16 +174,23 @@ public class DSogpWrapper
 				mm = Integer.parseInt(s.substring(3, 5));
 				dd = Integer.parseInt(s.substring(5, 7));
 			}
+			else if(s.trim().equals("0"))
+			{
+				msg = "date_estremo_recente = [" + s + "], sarà omesso";
+				log.warn(msg);
+				return;
+			}
 			else
 			{
-				msg = "date_estremo_recente = " + s + ", il produttore sarà scartato";
+				msg = "date_estremo_recente = [" + s + "]";
 				log.warn(msg);
 			}
 		}
 		else
 		{
-			msg = "date_estremo_recente nullo, il produttore sarà scartato";
+			msg = "date_estremo_recente nullo";
 			log.warn(msg);
+			return;
 		}
 		try
 		{
@@ -199,7 +211,7 @@ public class DSogpWrapper
 		catch(IllegalArgumentException e)
 		{
 			IllegalArgumentException ee;
-			ee = new IllegalArgumentException("date_estremo_recente = " + s);
+			ee = new IllegalArgumentException("IllegalArgumentException: date_estremo_recente = [" + s + "]");
 			throw ee;
 		}
 	}
@@ -227,15 +239,21 @@ public class DSogpWrapper
 				mm = Integer.parseInt(s.substring(3, 5));
 				dd = Integer.parseInt(s.substring(5, 7));
 			}
+			else if(s.trim().equals("0"))
+			{
+				msg = "date_estremo_remoto = [" + s + "], sarà omesso";
+				log.warn(msg);
+				return;
+			}
 			else
 			{
-				msg = "date_estremo_remoto = " + s + ", il produttore sarà scartato";
+				msg = "date_estremo_remoto = " + s + "]";
 				log.warn(msg);
 			}
 		}
 		else
 		{
-			msg = "date_estremo_remoto nullo, il produttore sarà scartato";
+			msg = "date_estremo_remoto nullo";
 			log.warn(msg);
 		}
 		try
@@ -257,7 +275,7 @@ public class DSogpWrapper
 		catch(IllegalArgumentException e)
 		{
 			IllegalArgumentException ee;
-			ee = new IllegalArgumentException("date_estremo_remoto = " + s);
+			ee = new IllegalArgumentException("date_estremo_remoto = " + s + "]");
 			throw ee;
 		}
 	}
@@ -289,7 +307,7 @@ public class DSogpWrapper
 		dsogpSede.setFkVocTipoLuogo(je);
 		dsogpSede.setTextDenominazioneCoeva(s);
 	}
-	
+
 	public void setFkVocTipofunzSogp(long l)
 	{
 		DVocTipofunzSogp dVoc;
@@ -298,11 +316,32 @@ public class DSogpWrapper
 		FkVocTipofunzSogp fkVoc;
 		fkVoc = dsogpObf.createDSogpTipologiaFunzionaleFkVocTipofunzSogp();
 		fkVoc.setDVocTipofunzSogp(dVoc);
-		dsogpTipFunz.setFkVocTipofunzSogp(fkVoc);		
+		dsogpTipFunz.setFkVocTipofunzSogp(fkVoc);
 	}
-	
+
 	public void setTextEnteStoria(String s)
 	{
-		
+		if(s != null && s.trim() != "") dsogpEnteStoria.setTextStoria(s);
+	}
+
+	public void setTextUrl(String s)
+	{
+		if(s != null && ! s.trim().equals(""))
+		{
+			dsogpEnteStoria.setTextUrl(s);
+			log.warn("text_url = [" +s + "]");
+		}
+		else
+		{
+			dsogpEnteStoria.setTextUrl("non disponibile");
+		}
+	}
+	
+	public void addAltreDen(String s)
+	{
+		DSogpAltreDen ad;
+		ad = dsogpObf.createDSogpAltreDen();
+		ad.setTextAltraDen(s);
+		dsogp.getDSogpAltreDen().add(ad);
 	}
 }

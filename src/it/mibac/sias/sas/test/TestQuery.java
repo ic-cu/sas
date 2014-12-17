@@ -30,7 +30,7 @@ public class TestQuery
 			PreparedStatement stmt;
 			stmt = conn.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
-			stmt.setInt(1, 794000000);
+			stmt.setInt(1, 120170000);
 			stmt.execute();
 			ResultSet rs = stmt.getResultSet();
 			int cols = rs.getMetaData().getColumnCount();
@@ -40,7 +40,7 @@ public class TestQuery
 				rows++;
 				for(int i = 1; i <= cols; i++)
 				{
-					System.out.println("[" + rows + "] " + rs.getMetaData().getColumnLabel(i) + " ==> " + rs.getString(i));
+					System.out.println("[" + rows + "] " + rs.getMetaData().getColumnLabel(i) + " ==> [" + rs.getString(i) + "]");
 				}
 			}
 		}

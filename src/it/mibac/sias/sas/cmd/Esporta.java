@@ -4,6 +4,7 @@ import it.mibac.sias.sas.util.DB;
 import it.mibac.sias.sas.util.EnvelopeWrapper;
 import it.mibac.sias.sas.util.EsportaComplessiArchivistici;
 import it.mibac.sias.sas.util.EsportaSoggettiConservatori;
+import it.mibac.sias.sas.util.EsportaSoggettiProduttori;
 import it.mibac.sias.sas.util.Istituto;
 import it.mibac.sias.sas.util.Seleziona;
 
@@ -68,6 +69,7 @@ public class Esporta
 		String fileName;
 		DecimalFormat df;
 		df = new DecimalFormat("000");
+		sel.dispose();
 
 		try
 		{
@@ -83,7 +85,7 @@ public class Esporta
 					tmpDir = "sc";
 					break;
 				case "soggetti produttori":
-					ewi = new EsportaSoggettiConservatori().creaMultiEnvelope();
+					ewi = new EsportaSoggettiProduttori().creaMultiEnvelope(idIstituto);
 					tmpDir = "sp";
 					break;
 				default:
@@ -94,6 +96,11 @@ public class Esporta
 
 			String percorsoXML = tmpTopDir + "/" + tmpDir + "/" + today + "/" + fonte;
 			new File(percorsoXML).mkdirs();
+			log.info("Istituto " + fonte + ", esportazione " + action);
+			if(!ewi.hasNext())
+			{
+				log.warn("Istituto " + fonte + ", non c'è niente da esportare");
+			}
 			while(ewi.hasNext())
 			{
 				ew = ewi.next();
@@ -120,7 +127,7 @@ public class Esporta
 	{
 		config = new Properties();
 		fontiMap = new Properties();
-		log = Logger.getLogger("COMPARC");
+		log = Logger.getLogger("LOG");
 		try
 		{
 			config.load(new FileReader(new File("query.prop")));
@@ -189,5 +196,4 @@ public class Esporta
 			}
 		});
 	}
-
 }

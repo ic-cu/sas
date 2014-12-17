@@ -111,4 +111,9 @@ public class Seleziona
 	{
 		return cbg.getSelectedCheckbox().getLabel();
 	}
+	
+	public void dispose()
+	{
+		mainFrame.dispose();
+	}
 }

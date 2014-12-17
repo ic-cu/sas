@@ -43,7 +43,7 @@ public class EsportaSoggettiProduttori
 			db = new DB();
 
 			// logger generico
-			log = Logger.getLogger("SOGP");
+			log = Logger.getLogger("LOG");
 			log.setLevel(Level.INFO);
 			PatternLayout pl = new PatternLayout(logLayout);
 			File lf = new File("log");
@@ -83,70 +83,70 @@ public class EsportaSoggettiProduttori
 		}
 	}
 
-	/*
-	 * Crea una lista di envelope, uno per ogni soggetto produttore. Ritorna un iterator per comodità
-	 */
+/*
+ * Crea una lista di envelope, uno per ogni soggetto produttore. Ritorna un iterator per comodità
+ */
 	public Iterator<EnvelopeWrapper> creaMultiEnvelope(int idIstituto)
 	{
 		RecordList rl = null;
 		it.beniculturali.sas.catalogo.envelope_catsas.ObjectFactory envObf;
 		envObf = new it.beniculturali.sas.catalogo.envelope_catsas.ObjectFactory();
-				//		String codiProvenienzaDSogp = null;
-		EnvelopeWrapper ew;
+		// String codiProvenienzaDSogp = null;
+		EnvelopeWrapper ew = null;
+		RecordWrapper rw = null;
+		SoggettiProduttori sp = null;
+		Iterator<DSogp> di = null;
 		ArrayList<EnvelopeWrapper> ewl = null;
+		Entity ent = null;
+		DSogp dsogp = null;
 
-		/*
-		 * si prova a scaricare l'elenco di tutti gli idIstituto
-		 */
-		ew = new EnvelopeWrapper();
-		ew.setCREATED();
-		/*
-		 * Si crea una entity in cui metteremo un sogc. Più avanti la entity sarà aggiunta alla
-		 * recordlist
-		 */
-		Entity ent = envObf.createEnvelopeRecordListRecordRecordBodyEntity();
-		SoggettiProduttori sp = new SoggettiProduttori(db.getConnection());
-		Iterator<DSogp> dsogp = sp.createEntityEnte(idIstituto);
-		if(dsogp != null)
+/*
+ * Si crea una entity in cui metteremo un sogc. Più avanti la entity sarà aggiunta alla recordlist
+ */
+		ewl = new ArrayList<EnvelopeWrapper>();
+		sp = new SoggettiProduttori(db.getConnection());
+		di = sp.createEntityEnte(idIstituto);
+		while(di.hasNext())
 		{
-// codiProvenienzaDSogp = dsogp.getCodiProvenienza();
+			dsogp = di.next();
+			log.info("Istituto " + idIstituto + ", soggetto " + dsogp.getCodiProvenienza());
+			ew = new EnvelopeWrapper();
+			ew.setCREATED();
 			ew.setSource("SIAS");
-			/*
-			 * Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli
-			 * XSD, inizialmente si usava una fonte fittizia sicuramente valida. Grazie alla mappatura fra
-			 * le fonti, questo in teoria non è più necessario.
-			 */
+			rl = envObf.createEnvelopeRecordList();
+			ew.setRecordList(rl);
+			ewl.add(ew);
+
+/*
+ * Arrivati qui, una recordlist è pronta, nuova o già parzialmente popolata. Possiamo aggiungere
+ * record. Per evitare errori di validazione delle fonti, non tutte codificate correttamente negli
+ * XSD, si usa una fonte fittizia sicuramente valida, inclusa nella configurazione, ma solo se
+ * questa è non nulla, altrimenti si usa quella risultante dal dcomparc attuale
+ */
+
 			if(fkFonte != null)
 			{
 				ew.setFonte(fkFonte);
 			}
 			else
 			{
-// ew.setFonte(dsogp.getFkFonte().getProfGroup().getGroupName());
+				ew.setFonte(dsogp.getFkFonte().getProfGroup().getGroupName());
 			}
-			ent.getContent().add(dsogp);
-			/*
-			 * Ora la entity col sogc è pronta. Possiamo aggiungerla a un recordbody, che si aggiunge a un
-			 * record, che si aggiunge a una recordlist, che si aggiunge all'envelope, più facile di
-			 * così... Si parte da un recordheader, ovviamente
-			 */
-			ewl = new ArrayList<EnvelopeWrapper>();
 
-			RecordWrapper rw = new RecordWrapper();
+/*
+ * Si inserisce il dcomparc attuale in una nuova entity, poi questa ad un nuovo record, e il nuovo
+ * record alla recordlist dell'envelope attuale
+ */
+
+			ent = envObf.createEnvelopeRecordListRecordRecordBodyEntity();
+			ent.getContent().add(dsogp);
+			rw = new RecordWrapper();
 			rw.setDIRECTIVE("UPSERT");
-// rw.setRecordIdentifier("SC-" + dsogp.getCodiProvenienza());
+			rw.setCASCADE(true);
+			rw.setRecordIdentifier("SP-" + dsogp.getCodiProvenienza());
 			rw.setRecordDatestamp();
 			rw.setEntity(ent);
-			/*
-			 * Si crea la recordlist cui si aggiunge il record, e che poi si aggiunge a sua volta
-			 * all'envelope
-			 */
-
-			rl = envObf.createEnvelopeRecordList();
 			rl.getRecord().add(rw.getRecord());
-
-			ew.setRecordList(rl);
-			ewl.add(ew);
 		}
 		return ewl.iterator();
 	}
