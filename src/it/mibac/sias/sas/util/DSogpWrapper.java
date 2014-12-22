@@ -142,7 +142,7 @@ public class DSogpWrapper
 		dsogp.setFkFonte(fkf);
 	}
 
-	public void setFkVocTipoSogc(long l)
+	public void setFkVocTipoSogp(long l)
 	{
 		DVocTipoSogp dVoc = vocSogpObf.createDVocTipoSogp();
 		dVoc.setSequVocTipoSogp(l);
@@ -324,6 +324,16 @@ public class DSogpWrapper
 		if(s != null && s.trim() != "") dsogpEnteStoria.setTextStoria(s);
 	}
 
+	public void setTextNote(String s)
+	{
+		if(s != null && ! s.trim().equals(""))
+		{
+			JAXBElement<String> je;
+			je = dsogpObf.createDSogpTextNote(s.trim());
+			dsogp.setTextNote(je);
+		}
+	}
+	
 	public void setTextUrl(String s)
 	{
 		if(s != null && ! s.trim().equals(""))

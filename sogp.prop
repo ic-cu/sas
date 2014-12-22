@@ -109,6 +109,47 @@ query.sogp.comparc = \
 			+ CD.ISAD_Codice \
 			+ CD.ISAD_Sigla \
 			+ '-F' \
+			+ convert(varchar(10), CD.ID_ComplessoDoc) ,'' \
+		) as dominante_codi_provenienza, \
+		'd_rel_sogp_comparc_datazione' as attributo_relazione, \
+		COALESCE(\
+			CD.ISAD_Nazione \
+			+ '-' \
+			+ CD.ISAD_Codice \
+			+ CD.ISAD_Sigla \
+			+ '-F' \
+			+ convert(varchar(10), CD.ID_ComplessoDoc) ,''\
+		) as codi_provenienza_comparc, \
+		COALESCE(\
+			EN.ISAD_Nazione \
+			+ '-' \
+			+ EN.ISAD_Codice \
+			+ EN.ISAD_Sigla \
+			+ '-CC' \
+			+ convert(varchar(10),SOG.Id_soggetto),'') as codi_provenienza_sogp \
+	from \
+		Elementi AS ELEM \
+		inner join ComplessiDoc AS CD ON ELEM.ID_Elemento = CD.ID_Elemento \
+		join ComplessiDocSoggetti AS CDS ON CDS.ID_ComplessoDoc = CD.ID_ComplessoDoc \
+		join Soggetti AS SOG ON CDS.ID_Soggetto = SOG.ID_Soggetto \
+		join ENTI EN ON  EN.ID_Soggetto = SOG.ID_Soggetto \
+	where \
+		elem.pubblicato='S' \
+		and CD.ID_Istituto = ? \
+		and sog.pubblicato='S'
+		
+# parte della query precedente relativa alle famiglie
+
+query.famiglie.comparc = \
+	union	\
+	select \
+		'd_comparc' as dominante_codi_provenienza_tipologia, \
+		COALESCE(\
+			CD.ISAD_Nazione \
+			+ '-' \
+			+ CD.ISAD_Codice \
+			+ CD.ISAD_Sigla \
+			+ '-F' \
 			+ convert(varchar(10), CD.ID_ComplessoDoc) ,''\
 		) as dominante_codi_provenienza, \
 		'd_rel_sogp_comparc_datazione' as attributo_relazione, \
@@ -137,44 +178,11 @@ query.sogp.comparc = \
 	where \
 		elem.pubblicato='S' \
 		and CD.ID_Istituto = ? \
-		and sog.pubblicato='S' \
-	union	\
-	select \
-		'd_comparc' as dominante_codi_provenienza_tipologia, \
-		COALESCE(\
-			CD.ISAD_Nazione \
-			+ '-' \
-			+ CD.ISAD_Codice \
-			+ CD.ISAD_Sigla \
-			+ '-F' \
-			+ convert(varchar(10), CD.ID_ComplessoDoc) ,'' \
-		) as dominante_codi_provenienza, \
-		'd_rel_sogp_comparc_datazione' as attributo_relazione, \
-		COALESCE(\
-			CD.ISAD_Nazione \
-			+ '-' \
-			+ CD.ISAD_Codice \
-			+ CD.ISAD_Sigla \
-			+ '-F' \
-			+ convert(varchar(10), CD.ID_ComplessoDoc) ,''\
-		) as codi_provenienza_comparc, \
-		COALESCE(\
-			EN.ISAD_Nazione \
-			+ '-' \
-			+ EN.ISAD_Codice \
-			+ EN.ISAD_Sigla \
-			+ '-CC' \
-			+ convert(varchar(10),SOG.Id_soggetto),'') as codi_provenienza_sogp \
-	from \
-		Elementi AS ELEM \
-		inner join ComplessiDoc AS CD ON ELEM.ID_Elemento = CD.ID_Elemento \
-		join ComplessiDocSoggetti AS CDS ON CDS.ID_ComplessoDoc = CD.ID_ComplessoDoc \
-		join Soggetti AS SOG ON CDS.ID_Soggetto = SOG.ID_Soggetto \
-		join ENTI EN ON  EN.ID_Soggetto = SOG.ID_Soggetto \
-	where \
-		elem.pubblicato='S' \
-		and CD.ID_Istituto = ? \
-		and sog.pubblicato='S' \
+		and sog.pubblicato='S'
+		
+# parte della query precedente relativa alle persone
+
+query.persone.comparc = \
 	union \
 	select \
 		'd_comparc' as dominante_codi_provenienza_tipologia, \

@@ -11,15 +11,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Properties;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 
 import org.apache.log4j.Logger;
-
-import com.microsoft.sqlserver.jdbc.SQLServerException;
 
 public class SoggettiProduttori
 {
@@ -112,10 +110,13 @@ public class SoggettiProduttori
 					dsogpw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
 					dsogpw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
 					dsogpw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
+					dsogpw.setFkVocTipoSogp(rs.getLong("fk_voc_tipo_sogp"));
 					dsogpw.setTextDenominazione(rs.getString("text_denominazione"));
 					dsogpw.setTextDenominazioneCoeva(rs.getString("text_denominazione_coeva_sede"));
+					dsogpw.setFkVocTipofunzSogp(rs.getLong("fk_voc_tipofunz_sogp"));
 					dsogpw.setTextEnteStoria(rs.getString("text_storia"));
 					dsogpw.setTextUrl(rs.getString("text_url"));
+					dsogpw.setTextNote(rs.getString("text_note"));
 					stmtDSogPEntiAltreDen.setInt(1, idProduttore);
 					stmtDSogPEntiAltreDen.execute();
 					rsad = stmtDSogPEntiAltreDen.getResultSet();
