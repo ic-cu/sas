@@ -3,6 +3,7 @@ package it.mibac.sias.sas.cmd;
 import it.mibac.sias.sas.util.DB;
 import it.mibac.sias.sas.util.EnvelopeWrapper;
 import it.mibac.sias.sas.util.EsportaComplessiArchivistici;
+import it.mibac.sias.sas.util.EsportaRelazioniProduttoriComplessi;
 import it.mibac.sias.sas.util.EsportaSoggettiConservatori;
 import it.mibac.sias.sas.util.EsportaSoggettiProduttori;
 import it.mibac.sias.sas.util.Istituto;
@@ -67,8 +68,6 @@ public class Esporta
 		Date todayDate = cal.getTime();
 		String today = new SimpleDateFormat("yyyyMMdd").format(todayDate);
 		String fileName;
-		DecimalFormat df;
-		df = new DecimalFormat("000");
 		sel.dispose();
 
 		try
@@ -87,6 +86,10 @@ public class Esporta
 				case "soggetti produttori":
 					ewi = new EsportaSoggettiProduttori().creaMultiEnvelope(idIstituto);
 					tmpDir = "sp";
+					break;
+				case "relazioni produttori-complessi":
+					ewi = new EsportaRelazioniProduttoriComplessi().creaMultiEnvelope(idIstituto, fonte);
+					tmpDir = "rpc";
 					break;
 				default:
 					break;
@@ -107,7 +110,7 @@ public class Esporta
 				fileName = ew.getSource() + sep;
 				fileName += fonte + sep;
 				fileName += today + sep;
-				fileName += df.format(++i);
+				fileName += new DecimalFormat("000").format(++i);
 				fileName += ".xml";
 
 // col marshall viene effettivamente creato un file XML (a meno di flush)

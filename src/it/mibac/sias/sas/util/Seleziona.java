@@ -1,5 +1,6 @@
 package it.mibac.sias.sas.util;
 
+import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Checkbox;
 import java.awt.CheckboxGroup;
@@ -21,9 +22,12 @@ public class Seleziona
 	private Label headerLabel;
 	private Label statusLabel;
 	private Panel controlPanel;
+	private Panel checkPanel;
+	private Panel okPanel;
 	private Button showButton;
 	private List list;
 	private CheckboxGroup cbg;
+	private Panel listPanel;
 
 	public Seleziona(Iterator<String> items)
 	{
@@ -51,8 +55,9 @@ public class Seleziona
 	private void prepareGUI()
 	{
 		mainFrame = new Frame("Esportazione SIAS-SAS");
-		mainFrame.setSize(300, 600);
-		mainFrame.setLayout(new GridLayout(3, 1));
+		mainFrame.setSize(600, 600);
+//		mainFrame.setLayout(new GridLayout(2, 1));
+		mainFrame.setLayout(new BorderLayout());
 		mainFrame.addWindowListener(new WindowAdapter()
 		{
 			public void windowClosing(WindowEvent windowEvent)
@@ -66,22 +71,47 @@ public class Seleziona
 		statusLabel.setAlignment(Label.CENTER);
 		statusLabel.setSize(300, 100);
 
-		controlPanel = new Panel();
-		controlPanel.setLayout(new GridLayout(5, 1));
-		controlPanel.setSize(300, 400);
-
-		mainFrame.add(headerLabel);
-		mainFrame.add(controlPanel);
-		mainFrame.add(statusLabel);
-		mainFrame.setVisible(true);
-		showButton = new Button("Show");
-		controlPanel.add(list);
+// pannello con una lista e le checkbox		
 		
+		controlPanel = new Panel();
+		controlPanel.setLayout(new GridLayout(1, 2));
+//		controlPanel.setSize(600, 400);
+		mainFrame.add(controlPanel);
+
+// sotto-pannello con la lista
+		
+		listPanel = new Panel();
+		listPanel.setLayout(new GridLayout(1, 1));
+//		listPanel.setSize(300, 400);
+		listPanel.add(list);
+		controlPanel.add(listPanel);
+
+// sotto-pannello con le checkbox		
+		
+		checkPanel = new Panel();
+		checkPanel.setLayout(new GridLayout(5, 1));
+//		checkPanel.setSize(300, 400);
 		cbg = new CheckboxGroup();
-		controlPanel.add(new Checkbox("soggetti conservatori", cbg, true));
-		controlPanel.add(new Checkbox("soggetti produttori", cbg, false));
-		controlPanel.add(new Checkbox("complessi archivistici", cbg, false));
-		controlPanel.add(showButton);
+		checkPanel.add(new Checkbox("soggetti conservatori", cbg, true));
+		checkPanel.add(new Checkbox("soggetti produttori", cbg, false));
+		checkPanel.add(new Checkbox("complessi archivistici", cbg, false));
+		checkPanel.add(new Checkbox("relazioni produttori-complessi", cbg, false));
+		controlPanel.add(checkPanel);
+
+// pannello per il bottone ok		
+		
+		okPanel = new Panel();
+		okPanel.setLayout(new GridLayout(1, 1));
+		okPanel.setSize(600, 600);
+		showButton = new Button("OK");
+		okPanel.add(showButton);
+		checkPanel.add(showButton);
+//		mainFrame.add(okPanel, BorderLayout.SOUTH);
+
+//		mainFrame.add(headerLabel);
+//		mainFrame.add(statusLabel);
+		mainFrame.setVisible(true);
+		
 	}
 
 	public void showListDemo()
