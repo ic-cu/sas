@@ -3,6 +3,7 @@ package it.mibac.sias.sas.cmd;
 import it.mibac.sias.sas.util.DB;
 import it.mibac.sias.sas.util.EnvelopeWrapper;
 import it.mibac.sias.sas.util.EsportaComplessiArchivistici;
+import it.mibac.sias.sas.util.EsportaRelazioniComplessi;
 import it.mibac.sias.sas.util.EsportaRelazioniProduttoriComplessi;
 import it.mibac.sias.sas.util.EsportaSoggettiConservatori;
 import it.mibac.sias.sas.util.EsportaSoggettiProduttori;
@@ -90,6 +91,10 @@ public class Esporta
 				case "relazioni produttori-complessi":
 					ewi = new EsportaRelazioniProduttoriComplessi().creaMultiEnvelope(idIstituto, fonte);
 					tmpDir = "rpc";
+					break;
+				case "relazioni conservatori-complessi":
+					ewi = new EsportaRelazioniComplessi().creaMultiEnvelope(idIstituto, fonte);
+					tmpDir = "rcc";
 					break;
 				default:
 					break;

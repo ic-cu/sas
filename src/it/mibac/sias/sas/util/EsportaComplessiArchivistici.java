@@ -76,7 +76,7 @@ public class EsportaComplessiArchivistici
 	private void initLogger() throws FileNotFoundException
 	{
 		// logger generico
-		log = Logger.getLogger("COMPARC");
+		log = Logger.getLogger("LOG");
 		log.setLevel(Level.INFO);
 		PatternLayout pl = new PatternLayout(logLayout);
 		File lf = new File("log");

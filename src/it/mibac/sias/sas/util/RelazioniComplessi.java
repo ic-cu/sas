@@ -70,7 +70,7 @@ public class RelazioniComplessi
 
 			fkFonte = config.getProperty("sogc.fk_fonte");
 			relObjF = new it.beniculturali.sas.catalogo.relazioni.ObjectFactory();
-			log = Logger.getLogger("COMPARC");
+			log = Logger.getLogger("LOG");
 			new ArrayList<Relazioni>();
 		}
 		catch(FileNotFoundException e)

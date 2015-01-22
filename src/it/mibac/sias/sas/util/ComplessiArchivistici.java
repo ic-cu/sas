@@ -79,7 +79,7 @@ public class ComplessiArchivistici
 					ResultSet.CONCUR_READ_ONLY);
 
 			fkFonte = config.getProperty("sogc.fk_fonte");
-			log = Logger.getLogger("COMPARC");
+			log = Logger.getLogger("LOG");
 		}
 		catch(FileNotFoundException e)
 		{

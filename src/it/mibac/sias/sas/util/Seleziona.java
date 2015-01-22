@@ -89,12 +89,13 @@ public class Seleziona
 // sotto-pannello con le checkbox		
 		
 		checkPanel = new Panel();
-		checkPanel.setLayout(new GridLayout(5, 1));
+		checkPanel.setLayout(new GridLayout(6, 1));
 //		checkPanel.setSize(300, 400);
 		cbg = new CheckboxGroup();
 		checkPanel.add(new Checkbox("soggetti conservatori", cbg, true));
 		checkPanel.add(new Checkbox("soggetti produttori", cbg, false));
 		checkPanel.add(new Checkbox("complessi archivistici", cbg, false));
+		checkPanel.add(new Checkbox("relazioni conservatori-complessi", cbg, false));
 		checkPanel.add(new Checkbox("relazioni produttori-complessi", cbg, false));
 		controlPanel.add(checkPanel);
 
