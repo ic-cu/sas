@@ -8,7 +8,7 @@
 query.istituti = \
 	select \
 		ID_Istituto, \
-		COALESCE(ISAD_Nazione + ISAD_Codice+ ISAD_Sigla, '') as fk_fonte \
+		COALESCE('IT' + ISAD_Codice+ ISAD_Sigla, '') as fk_fonte \
 	from \
 		istituti \
 	where \

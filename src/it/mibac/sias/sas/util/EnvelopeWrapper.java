@@ -38,10 +38,11 @@ public class EnvelopeWrapper
 	private it.beniculturali.sas.catalogo.fonti.ObjectFactory fontiObf;
 	private ProfGroup profGroup;
 	private Fonte fonte;
+
 	/*
- * Costruttore che inizializza le factory necessarie e i pezzi dell'envelope,
- * legandoli subito fra di loro
- */
+	 * Costruttore che inizializza le factory necessarie e i pezzi dell'envelope, legandoli subito fra
+	 * di loro
+	 */
 	public EnvelopeWrapper()
 	{
 		envObf = new it.beniculturali.sas.catalogo.envelope_catsas.ObjectFactory();
@@ -69,13 +70,14 @@ public class EnvelopeWrapper
 
 	}
 
-	/* 
+	/*
 	 * Un ovvio getter
 	 */
 	public Envelope getEnvelope()
 	{
 		return env;
 	}
+
 /*
  * Metodi corrispondenti ad altrettanti metodi o dell'envelope o del suo header
  */
@@ -83,7 +85,7 @@ public class EnvelopeWrapper
 	{
 		envh.setCREATED(Exporter.now());
 	}
-	
+
 	public void setCREATED()
 	{
 		envh.setCREATED(Exporter.now());
@@ -110,7 +112,7 @@ public class EnvelopeWrapper
 	{
 		return envh.getFonte().getProfGroup().getGroupName();
 	}
-	
+
 	public void setRecordList(RecordList rl)
 	{
 		env.setRecordList(rl);
@@ -124,39 +126,33 @@ public class EnvelopeWrapper
 		JAXBContext jc = null;
 		try
 		{
-			jc = JAXBContext
-					.newInstance("it.beniculturali.sas.catalogo.envelope_catsas");
+			jc = JAXBContext.newInstance("it.beniculturali.sas.catalogo.envelope_catsas");
 			Marshaller m = jc.createMarshaller();
 			Unmarshaller u = jc.createUnmarshaller();
 			m.setProperty("jaxb.formatted.output", true);
 
 			/*
-			 * Per validare l'output occorre prima istanziare un'oggetto Schema.
-			 * Inoltre il marshaller deve avere un eventhandler per evitare che ogni
-			 * errore di validazione sia gestito come exception. Tutto però se non è
-			 * nulla la location dello schema, altrimenti non si effettua la
-			 * validazione
+			 * Per validare l'output occorre prima istanziare un'oggetto Schema. Inoltre il marshaller
+			 * deve avere un eventhandler per evitare che ogni errore di validazione sia gestito come
+			 * exception. Tutto però se non è nulla la location dello schema, altrimenti non si effettua
+			 * la validazione
 			 */
 			if(config.getProperty("xml.schema.location") != null)
 			{
-				SchemaFactory sf = SchemaFactory
-						.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-				Schema schema = sf.newSchema(new URL(config
-						.getProperty("xml.schema.location")));
+				SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				Schema schema = sf.newSchema(new URL(config.getProperty("xml.schema.location")));
 				m.setSchema(schema);
 				u.setSchema(schema);
-//				m.setEventHandler(new SasValidationEventHandler());
+// m.setEventHandler(new SasValidationEventHandler());
 				u.setEventHandler(new SasValidationEventHandler());
 			}
 
 			/*
-			 * Il marshaller creato così ha il difetto di dare ai namespace che
-			 * incontra dei nomi non parlanti, tipicamente "nsXX" dove XX è un
-			 * progressivo numerico. Il risultato resta un XML valido, ma non è
-			 * pratico da leggere, specie in una fase di sviluppo codice. È necessario
-			 * allora un mappatore che è appunto quello creato qui sotto. Gli va
-			 * indicata una mappa, e poi va indicato a sua volta come prperty del
-			 * marshaller.
+			 * Il marshaller creato così ha il difetto di dare ai namespace che incontra dei nomi non
+			 * parlanti, tipicamente "nsXX" dove XX è un progressivo numerico. Il risultato resta un XML
+			 * valido, ma non è pratico da leggere, specie in una fase di sviluppo codice. È necessario
+			 * allora un mappatore che è appunto quello creato qui sotto. Gli va indicata una mappa, e poi
+			 * va indicato a sua volta come prperty del marshaller.
 			 */
 
 			SasNamespacePrefixMapper mapper = new SasNamespacePrefixMapper();
@@ -165,14 +161,13 @@ public class EnvelopeWrapper
 			mapping.load(new FileReader(new File("sas-namespace.map")));
 			mapper.setMapping(mapping);
 			m.setProperty("com.sun.xml.bind.namespacePrefixMapper", mapper);
-			m.setProperty("jaxb.schemaLocation", config
-					.getProperty("xml.jaxb.schemaLocation"));
+			m.setProperty("jaxb.schemaLocation", config.getProperty("xml.jaxb.schemaLocation"));
 
 			// m.marshal(env, new PrintWriter(new File(config
 			// .getProperty("xml.output.filename"))));
 			String fileName;
 			fileName = config.getProperty("xml.output.directory");
-			fileName+= "/" + getSource() + ".xml";
+			fileName += "/" + getSource() + ".xml";
 			m.marshal(env, new PrintWriter(new File(fileName)));
 			u.unmarshal(new File(fileName));
 		}
@@ -202,20 +197,17 @@ public class EnvelopeWrapper
 		JAXBContext jc = null;
 		try
 		{
-			jc = JAXBContext
-					.newInstance("it.beniculturali.sas.catalogo.envelope_catsas");
+			jc = JAXBContext.newInstance("it.beniculturali.sas.catalogo.envelope_catsas");
 			Marshaller m = jc.createMarshaller();
 			Unmarshaller u = jc.createUnmarshaller();
 			m.setProperty("jaxb.formatted.output", true);
 
 			/*
-			 * Il marshaller creato così ha il difetto di dare ai namespace che
-			 * incontra dei nomi non parlanti, tipicamente "nsXX" dove XX è un
-			 * progressivo numerico. Il risultato resta un XML valido, ma non è
-			 * pratico da leggere, specie in una fase di sviluppo codice. È necessario
-			 * allora un mappatore che è appunto quello creato qui sotto. Gli va
-			 * indicata una mappa, e poi va indicato a sua volta come prperty del
-			 * marshaller.
+			 * Il marshaller creato così ha il difetto di dare ai namespace che incontra dei nomi non
+			 * parlanti, tipicamente "nsXX" dove XX è un progressivo numerico. Il risultato resta un XML
+			 * valido, ma non è pratico da leggere, specie in una fase di sviluppo codice. È necessario
+			 * allora un mappatore che è appunto quello creato qui sotto. Gli va indicata una mappa, e poi
+			 * va indicato a sua volta come prperty del marshaller.
 			 */
 
 			SasNamespacePrefixMapper mapper = new SasNamespacePrefixMapper();
@@ -224,23 +216,19 @@ public class EnvelopeWrapper
 			mapping.load(new FileReader(new File("sas-namespace.map")));
 			mapper.setMapping(mapping);
 			m.setProperty("com.sun.xml.bind.namespacePrefixMapper", mapper);
-			m.setProperty("jaxb.schemaLocation", config
-					.getProperty("xml.jaxb.schemaLocation"));
+			m.setProperty("jaxb.schemaLocation", config.getProperty("xml.jaxb.schemaLocation"));
 
 			/*
-			 * Per validare l'output occorre prima istanziare un'oggetto Schema.
-			 * Inoltre il marshaller deve avere un eventhandler per evitare che ogni
-			 * errore di validazione sia gestito come exception. Tutto però se non è
-			 * nulla la location dello schema, altrimenti non si effettua la
-			 * validazione
+			 * Per validare l'output occorre prima istanziare un'oggetto Schema. Inoltre il marshaller
+			 * deve avere un eventhandler per evitare che ogni errore di validazione sia gestito come
+			 * exception. Tutto però se non è nulla la location dello schema, altrimenti non si effettua
+			 * la validazione
 			 */
 			if(config.getProperty("xml.schema.location") != null)
 			{
-				SchemaFactory sf = SchemaFactory
-						.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-				Schema schema = sf.newSchema(new URL(config
-						.getProperty("xml.schema.location")));
-//				m.setSchema(schema);
+				SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				Schema schema = sf.newSchema(new URL(config.getProperty("xml.schema.location")));
+// m.setSchema(schema);
 				u.setSchema(schema);
 				m.setEventHandler(new SasValidationEventHandler());
 				u.setEventHandler(new SasValidationEventHandler());
@@ -274,46 +262,39 @@ public class EnvelopeWrapper
 		JAXBContext jc = null;
 		try
 		{
-			jc = JAXBContext
-					.newInstance("it.beniculturali.sas.catalogo.envelope_catsas");
+			jc = JAXBContext.newInstance("it.beniculturali.sas.catalogo.envelope_catsas");
 			Marshaller m = jc.createMarshaller();
 			m.setProperty("jaxb.formatted.output", true);
-	
+
 			/*
-			 * Per validare l'output occorre prima istanziare un'oggetto Schema.
-			 * Inoltre il marshaller deve avere un eventhandler per evitare che ogni
-			 * errore di validazione sia gestito come exception. Tutto però se non è
-			 * nulla la location dello schema, altrimenti non si effettua la
-			 * validazione
+			 * Per validare l'output occorre prima istanziare un'oggetto Schema. Inoltre il marshaller
+			 * deve avere un eventhandler per evitare che ogni errore di validazione sia gestito come
+			 * exception. Tutto però se non è nulla la location dello schema, altrimenti non si effettua
+			 * la validazione
 			 */
 			if(config.getProperty("xml.schema.location") != null)
 			{
-				SchemaFactory sf = SchemaFactory
-						.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-				Schema schema = sf.newSchema(new URL(config
-						.getProperty("xml.schema.location")));
+				SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				Schema schema = sf.newSchema(new URL(config.getProperty("xml.schema.location")));
 				m.setSchema(schema);
 				m.setEventHandler(new SasValidationEventHandler());
 			}
-			
+
 			/*
-			 * Il marshaller creato così ha il difetto di dare ai namespace che
-			 * incontra dei nomi non parlanti, tipicamente "nsXX" dove XX è un
-			 * progressivo numerico. Il risultato resta un XML valido, ma non è
-			 * pratico da leggere, specie in una fase di sviluppo codice. È necessario
-			 * allora un mappatore che è appunto quello creato qui sotto. Gli va
-			 * indicata una mappa, e poi va indicato a sua volta come prperty del
-			 * marshaller.
+			 * Il marshaller creato così ha il difetto di dare ai namespace che incontra dei nomi non
+			 * parlanti, tipicamente "nsXX" dove XX è un progressivo numerico. Il risultato resta un XML
+			 * valido, ma non è pratico da leggere, specie in una fase di sviluppo codice. È necessario
+			 * allora un mappatore che è appunto quello creato qui sotto. Gli va indicata una mappa, e poi
+			 * va indicato a sua volta come prperty del marshaller.
 			 */
-	
+
 			SasNamespacePrefixMapper mapper = new SasNamespacePrefixMapper();
-	
+
 			Properties mapping = new Properties();
 			mapping.load(new FileReader(new File("sas-namespace.map")));
 			mapper.setMapping(mapping);
 			m.setProperty("com.sun.xml.bind.namespacePrefixMapper", mapper);
-			m.setProperty("jaxb.schemaLocation", config
-					.getProperty("xml.jaxb.schemaLocation"));
+			m.setProperty("jaxb.schemaLocation", config.getProperty("xml.jaxb.schemaLocation"));
 			m.marshal(env, pw);
 		}
 		catch(JAXBException e)

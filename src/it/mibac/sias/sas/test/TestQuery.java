@@ -1,7 +1,6 @@
 package it.mibac.sias.sas.test;
 
 import it.mibac.sias.sas.util.DB;
-import it.mibac.sias.sas.util.TelefonoSas;
 
 import java.io.File;
 import java.io.FileNotFoundException;

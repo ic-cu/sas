@@ -85,9 +85,9 @@ query.istituti = \
 query.istituto = \
 	select \
 		ID_Istituto, \
-		COALESCE(ISAD_Nazione+ISAD_Codice+ ISAD_Sigla, '') as fk_fonte, \
+		COALESCE('IT'+ISAD_Codice+ ISAD_Sigla, '') as fk_fonte, \
 		COALESCE( \
-			ISAD_Nazione \
+			'IT' \
 			+ '-' \
 			+ ISAD_Codice \
 			+ ISAD_Sigla, '') \
@@ -474,7 +474,7 @@ xml.output.filename = d_sogc.xml
 xml.output.directory = tmp
 xml.output.separator = _
 xml.output.maxrecords = 1
-xml.date.offset = -5
+xml.date.offset = -3
 
 ## validazione oppure no
 

@@ -12,9 +12,11 @@ import it.mibac.sias.sas.util.Seleziona;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -64,6 +66,7 @@ public class Esporta
 		String dateOffset = config.getProperty("xml.date.offset");
 		String sep = config.getProperty("xml.output.separator");
 		PrintWriter pw = null;
+		BufferedWriter bw = null;
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DAY_OF_YEAR, Integer.parseInt(dateOffset));
 		Date todayDate = cal.getTime();
@@ -121,11 +124,16 @@ public class Esporta
 // col marshall viene effettivamente creato un file XML (a meno di flush)
 
 				log.info("Istituto " + fonte + ", envelope numero " + i);
-				pw = new PrintWriter(new File(percorsoXML + "/" + fileName));
+				bw = new BufferedWriter(new FileWriter(percorsoXML + "/" + fileName), 4096);
+				pw = new PrintWriter(bw);
 				ew.marshall(pw);
 			}
 		}
 		catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		catch(IOException e)
 		{
 			e.printStackTrace();
 		}
