@@ -379,6 +379,10 @@ public class DComparcWrapper
 		{
 			DUrl du;
 			du = comObf.createDUrl();
+			if(! s.startsWith("http://"))
+			{
+				s = "http://" + s;
+			}
 			du.setTextUrl(s);
 			dcomparc.getDUrl().add(du);
 		}
