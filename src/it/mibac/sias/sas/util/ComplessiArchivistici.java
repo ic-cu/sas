@@ -231,12 +231,14 @@ public class ComplessiArchivistici
 		rs = stmtDComparcConsistenza.getResultSet();
 		while(rs.next())
 		{
-			dw.addDatiConsistenza(rs.getBigDecimal("nume_consistenza"), rs.getLong("tipi_oggetti_cons"), rs.getString("text_note"));
+			dw.addDatiConsistenza(rs.getBigDecimal("nume_consistenza"), rs.getLong("tipi_oggetti_cons"),
+					rs.getString("text_note"));
 			log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata consistenza "
 					+ rs.getBigDecimal("nume_consistenza"));
 		}
 
 	}
+
 	private void popolaAltreDen(long idComplesso) throws SQLException
 	{
 		stmtDComparcAltreden.setLong(1, idComplesso);
@@ -245,9 +247,16 @@ public class ComplessiArchivistici
 		rs = stmtDComparcAltreden.getResultSet();
 		while(rs.next())
 		{
-			dw.addAltraDen(rs.getString("text_altreden"), rs.getString("text_estr_crono_testuali"));
-			log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata altra denominazione "
-					+ rs.getString("text_altreden"));
+			String t = rs.getString("text_altreden");
+			if(t != null && t.length() > 1)
+			{
+				dw.addAltraDen(t, rs.getString("text_estr_crono_testuali"));
+				log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata altra denominazione " + t);
+			}
+			else
+			{
+				log.error("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", altra denominazione non significativa " + t);
+			}
 		}
 
 	}
