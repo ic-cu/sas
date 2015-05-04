@@ -10,7 +10,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -79,7 +82,12 @@ public class EsportaComplessiArchivistici
 		log = Logger.getLogger("LOG");
 		log.setLevel(Level.INFO);
 		PatternLayout pl = new PatternLayout(logLayout);
-		File lf = new File("log");
+		String dateOffset = config.getProperty("xml.date.offset");
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DAY_OF_YEAR, Integer.parseInt(dateOffset));
+		Date nowDate = cal.getTime();
+		String now = new SimpleDateFormat("yyyyMMddHHmmss").format(nowDate);
+		File lf = new File(now + ".log");
 		PrintWriter pw = new PrintWriter(lf);
 		WriterAppender wa = new WriterAppender(pl, pw);
 		log.addAppender(wa);
