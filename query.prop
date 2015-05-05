@@ -473,8 +473,8 @@ xml.schema.location =	http://san.beniculturali.it/sas/catalogo/envelope-catsas.x
 xml.output.filename = d_sogc.xml
 xml.output.directory = tmp
 xml.output.separator = _
-xml.output.maxrecords = 1
-xml.date.offset = -3
+xml.output.maxrecords = 20
+xml.date.offset = 0
 
 ## validazione oppure no
 
