@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
 
@@ -103,7 +104,7 @@ public class DComparcWrapper
 
 	private void initLogger()
 	{
-		log = Logger.getLogger("COMPARC");
+		log = Logger.getLogger("LOG");
 	}
 
 /*
@@ -163,7 +164,17 @@ public class DComparcWrapper
 
 	public void setTextEstrCronoTestuali(String s)
 	{
-		dcomparc.setTextEstrCronoTestuali(s);
+
+		if(s != null && s.length() > 0 && !s.equals("null"))
+		{
+			log.info("text_estr_crono_testuali: [" + s + "]");
+			dcomparc.setTextEstrCronoTestuali(s);
+		}
+		else
+		{
+			log.warn("text_estr_crono_testuali = [" + s + "], si imposta 0000-9999");
+			dcomparc.setTextEstrCronoTestuali("0000-9999");
+		}
 	}
 
 	public void setTextNoteData(String s)
@@ -199,7 +210,6 @@ public class DComparcWrapper
 				SiasSasException ee;
 				ee = new SiasSasException("data non valida");
 				throw ee;
-// log.warn("date_estremo_remoto = " + s + ", il complesso sarà scartato");
 			}
 		}
 		else
@@ -207,11 +217,16 @@ public class DComparcWrapper
 			SiasSasException ee;
 			ee = new SiasSasException("data nulla");
 			throw ee;
-// log.warn("date_estremo_remoto nullo, il complesso sarà scartato");
 		}
 		DatatypeFactory dtf = DatatypeFactory.newInstance();
 		int tz = DatatypeConstants.FIELD_UNDEFINED;
 		xgc = dtf.newXMLGregorianCalendarDate(aa, mm, dd, tz);
+		if(xgc.compare(dtf.newXMLGregorianCalendar(new GregorianCalendar())) == DatatypeConstants.GREATER)
+		{
+			SiasSasException ee;
+			ee = new SiasSasException("data futura");
+			throw ee;
+		}
 		return xgc;
 	}
 
@@ -235,123 +250,61 @@ public class DComparcWrapper
 		catch(IllegalArgumentException e)
 		{
 			IllegalArgumentException ee;
+			ee = new IllegalArgumentException("date_estremo_remoto = " + s);
+			throw ee;
+		}
+		catch(SiasSasException e)
+		{
+			if(e.getMessage().equals("data nulla"))
+			{
+				log.warn("date_estremo_remoto 'null pointer', si lascia nil");
+			}
+			if(e.getMessage().equals("data non valida"))
+			{
+				log.warn("date_estremo_remoto = " + s + ", si lascia nil");
+			}
+			if(e.getMessage().equals("data futura"))
+			{
+				log.warn("date_estremo_remoto = " + s + " futuro, si imposta a oggi");
+				dcomparc.setDateEstremoRemoto(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar()));
+			}
+		}
+	}
+
+	public void setDateEstremoRecente(String s) throws DatatypeConfigurationException, IllegalArgumentException
+	{
+		try
+		{
+			dcomparc.setDateEstremoRecente(stringToXGC(s));
+		}
+		catch(DatatypeConfigurationException e)
+		{
+			DatatypeConfigurationException ee;
+			ee = new DatatypeConfigurationException(e.getMessage());
+			throw ee;
+		}
+		catch(IllegalArgumentException e)
+		{
+			IllegalArgumentException ee;
 			ee = new IllegalArgumentException("date_estremo_recente = " + s);
 			throw ee;
 		}
 		catch(SiasSasException e)
 		{
-			if(e.getMessage().equals("data nulla")) log.warn("date_estremo_remoto nullo, il complesso sarà scartato");
+			if(e.getMessage().equals("data nulla"))
+			{
+				log.warn("date_estremo_recente 'null pointer', si lascia nil");
+			}
 			if(e.getMessage().equals("data non valida"))
-				log.warn("date_estremo_remoto = " + s + ", il complesso sarà scartato");
-		}
-	}
-
-	public void ZZsetDateEstremoRemoto(String s) throws DatatypeConfigurationException, IllegalArgumentException
-	{
-		int aa = 0;
-		int mm = 0;
-		int dd = 0;
-		String msg = null;
-		XMLGregorianCalendar xgc = null;
-		if(s != null)
-		{
-			// Anno dal 1000
-			if(s.length() == 8)
 			{
-				aa = Integer.parseInt(s.substring(0, 4));
-				mm = Integer.parseInt(s.substring(4, 6));
-				dd = Integer.parseInt(s.substring(6, 8));
+				log.warn("date_estremo_recente = " + s + ", si lascia nil");
 			}
-			// Anno prima del 1000
-			else if(s != null && s.length() == 7)
+			if(e.getMessage().equals("data futura"))
 			{
-				aa = Integer.parseInt(s.substring(0, 3));
-				mm = Integer.parseInt(s.substring(3, 5));
-				dd = Integer.parseInt(s.substring(5, 7));
-			}
-			else
-			{
-				log.warn("date_estremo_remoto = " + s + ", il complesso sarà scartato");
+				log.warn("date_estremo_recente = " + s + " futuro, si imposta a oggi");
+				dcomparc.setDateEstremoRecente(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar()));
 			}
 		}
-		else
-		{
-			log.warn("date_estremo_remoto nullo, il complesso sarà scartato");
-		}
-		try
-		{
-			DatatypeFactory dtf = DatatypeFactory.newInstance();
-			int tz = DatatypeConstants.FIELD_UNDEFINED;
-			xgc = dtf.newXMLGregorianCalendarDate(aa, mm, dd, tz);
-		}
-		catch(DatatypeConfigurationException e)
-		{
-			DatatypeConfigurationException ee;
-			ee = new DatatypeConfigurationException(msg);
-			throw ee;
-		}
-		catch(IllegalArgumentException e)
-		{
-			IllegalArgumentException ee;
-			ee = new IllegalArgumentException("date_estremo_recente = " + s);
-			throw ee;
-		}
-		dcomparc.setDateEstremoRemoto(xgc);
-	}
-
-	public void setDateEstremoRecente(String s) throws DatatypeConfigurationException, IllegalArgumentException
-	{
-		int aa = 0;
-		int mm = 0;
-		int dd = 0;
-		String msg = null;
-		XMLGregorianCalendar xgc = null;
-		if(s != null)
-		{
-			// Anno dal 1000
-			if(s.length() == 8)
-			{
-				aa = Integer.parseInt(s.substring(0, 4));
-				mm = Integer.parseInt(s.substring(4, 6));
-				dd = Integer.parseInt(s.substring(6, 8));
-			}
-			// Anno prima del 1000
-			else if(s.length() == 7)
-			{
-				aa = Integer.parseInt(s.substring(0, 3));
-				mm = Integer.parseInt(s.substring(3, 5));
-				dd = Integer.parseInt(s.substring(5, 7));
-			}
-			else
-			{
-				msg = "date_estremo_recente = " + s + ", il complesso sarà scartato";
-				log.warn(msg);
-			}
-		}
-		else
-		{
-			msg = "date_estremo_recente nullo, il complesso sarà scartato";
-			log.warn(msg);
-		}
-		try
-		{
-			DatatypeFactory dtf = DatatypeFactory.newInstance();
-			int tz = DatatypeConstants.FIELD_UNDEFINED;
-			xgc = dtf.newXMLGregorianCalendarDate(aa, mm, dd, tz);
-		}
-		catch(DatatypeConfigurationException e)
-		{
-			DatatypeConfigurationException ee;
-			ee = new DatatypeConfigurationException(msg);
-			throw ee;
-		}
-		catch(IllegalArgumentException e)
-		{
-			IllegalArgumentException ee;
-			ee = new IllegalArgumentException("date_estremo_recente = " + s);
-			throw ee;
-		}
-		dcomparc.setDateEstremoRecente(xgc);
 	}
 
 	// public void setDComparcDatiConsistenza(long l)
@@ -379,7 +332,7 @@ public class DComparcWrapper
 		{
 			DUrl du;
 			du = comObf.createDUrl();
-			if(! s.startsWith("http://"))
+			if(!s.startsWith("http://"))
 			{
 				s = "http://" + s;
 			}

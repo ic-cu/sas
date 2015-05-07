@@ -16,6 +16,8 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.log4j.Logger;
 
@@ -166,6 +168,15 @@ public class ComplessiArchivistici
 			dw.setTextNoteData(rs.getString("text_note_data"));
 			dw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
 			dw.setDateEstremoRecente(rs.getString("date_estremo_recente"));
+			XMLGregorianCalendar rem = dw.getDComparc().getDateEstremoRemoto();
+			XMLGregorianCalendar rec = dw.getDComparc().getDateEstremoRecente();
+			if(rem != null && rec != null && rem.compare(rec) == DatatypeConstants.GREATER)
+			{
+				dw.getDComparc().setDateEstremoRecente(rem);
+				dw.getDComparc().setDateEstremoRemoto(rec);
+				log.warn("Estremo remoto " + rs.getString("date_estremo_remoto") 
+						+ " posteriore a estremo recente " + rs.getString("date_estremo_recente") + "), si invertono");
+			};
 			dw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
 			dw.setTextNote(rs.getString("text_note_1"));
 			dw.addTextNote(rs.getString("text_note_2"));
@@ -409,12 +420,12 @@ public class ComplessiArchivistici
 			}
 			catch(IllegalArgumentException e)
 			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + " scartato: " + e.getMessage());
 				continue;
 			}
 			catch(DatatypeConfigurationException e)
 			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + "scartato: " + e.getMessage());
+				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + " scartato: " + e.getMessage());
 				continue;
 			}
 			catch(SQLServerException e)
