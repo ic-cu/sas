@@ -483,7 +483,8 @@ xml.jaxb.validate = false
 ## file di log
 log.file = log
 log.level = info
-log.layout = %05r %p %C{1}.%M - %m%n
+#log.layout = %05r %p %C{1}		%m%n
+log.layout = %-5p %-30C{1} %m%n
 
 ## fonte usata per evitare errori di validazione; in produzione va commentata
 #sogc.fk_fonte = ITASVT
