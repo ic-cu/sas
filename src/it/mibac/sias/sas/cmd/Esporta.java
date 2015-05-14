@@ -32,7 +32,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.WriterAppender;
 
 /*
  * Classe per provare l'esportazione dei complessi archivistici. Si limita a qualche
@@ -51,20 +54,68 @@ public class Esporta
 	private static HashMap<String, String> fontiIstitutiMap = new HashMap<String, String>();
 	private static HashMap<String, String> istitutiFontiMap = new HashMap<String, String>();
 	private static Properties fontiMap;
+	private static String logLayout = "%05r %p %C{1}.%M - %m%n";
+	private static String tmpTopDir;
+	private static String tmpDir;
+	private static String dateOffset;
+	private static String sep;
+	private static String logLevel;
+
+	// inizializza il logger
+
+	private static void initLogger()
+	{
+		// logger generico
+		log = Logger.getLogger("LOG");
+		switch(logLevel)
+		{
+			case "error":
+				log.setLevel(Level.ERROR);
+				break;
+			case "info":
+				log.setLevel(Level.INFO);
+				break;
+			case "warn":
+				log.setLevel(Level.WARN);
+				break;
+			case "debug":
+				log.setLevel(Level.DEBUG);
+				break;
+			case "trace":
+				log.setLevel(Level.TRACE);
+				break;
+			default:
+				log.setLevel(Level.INFO);
+				break;
+		}
+		PatternLayout pl = new PatternLayout(logLayout);
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DAY_OF_YEAR, Integer.parseInt(dateOffset));
+		String now = new SimpleDateFormat("yyyyMMddHHmmss").format(cal.getTime());
+		File lf = new File(now + ".log");
+		PrintWriter pw = null;
+		try
+		{
+			pw = new PrintWriter(lf);
+		}
+		catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		WriterAppender wa = new WriterAppender(pl, pw);
+		log.addAppender(wa);
+		wa = new WriterAppender(pl, System.out);
+		log.addAppender(wa);
+	}
 
 	public static void export()
 	{
 		String ISAD = sel.getSelectedItem();
 		int index = sel.getSelectedIndex();
-		System.err.println("Selezionato l'istituto " + ISAD);
 		int idIstituto = istituti.get(index).getId();
 		String action = sel.getSelectedAction();
-		System.err.println("Hai selezionato l'istituto " + idIstituto);
 		String fonte = istituti.get(index).getFonte();
-		String tmpTopDir = config.getProperty("xml.output.directory");
-		String tmpDir = null;
-		String dateOffset = config.getProperty("xml.date.offset");
-		String sep = config.getProperty("xml.output.separator");
+		log.debug("Selezionato l'istituto " + ISAD + " (" +  fonte + ", " + idIstituto +  ")");
 		PrintWriter pw = null;
 		BufferedWriter bw = null;
 		Calendar cal = Calendar.getInstance();
@@ -143,7 +194,6 @@ public class Esporta
 	{
 		config = new Properties();
 		fontiMap = new Properties();
-		log = Logger.getLogger("LOG");
 		try
 		{
 			config.load(new FileReader(new File("query.prop")));
@@ -157,6 +207,14 @@ public class Esporta
 		{
 			e1.printStackTrace();
 		}
+		tmpTopDir = config.getProperty("xml.output.directory");
+		tmpDir = null;
+		dateOffset = config.getProperty("xml.date.offset");
+		sep = config.getProperty("xml.output.separator");
+		logLayout = config.getProperty("log.layout");
+		logLevel = config.getProperty("log.level");
+		initLogger();
+		log = Logger.getLogger("LOG");
 		DB db = new DB();
 		Connection connection = db.getConnection();
 		try
@@ -207,7 +265,7 @@ public class Esporta
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				System.err.println("Sono qui!");
+				log.debug("Sono qui!");
 				export();
 			}
 		});

@@ -39,7 +39,7 @@ public class ComplessiArchivistici
 	FkFonte fkf;
 	String fkFonte = null;
 	ProfGroup pg;
-	private static Logger log;
+	private Logger log;
 
 /*
  * Questi campi sono usati da diversi metodi per evitare un complesso e inutile passaggio di
@@ -110,7 +110,7 @@ public class ComplessiArchivistici
 		stmtDComparc.setLong(1, idComplesso);
 		stmtDComparc.execute();
 		rs = stmtDComparc.getResultSet();
-		log.info("Istituto " + siglaIstituto + ", elaborazione complesso " + idComplesso + " (" + numComplesso++ + ")");
+		log.info("Elaborazione complesso " + idComplesso + " (" + numComplesso++ + ")");
 
 /*
  * È opportuno controllare che il resultset abbia delle righe e segnalare il caso contrario. Ma
@@ -121,13 +121,13 @@ public class ComplessiArchivistici
 
 		if(rs.next())
 		{
+			log.info(rs.getString("text_den_uniformata"));
 			dw.setTextNumCorda((int) numCorda);
 			temp = rs.getString("codi_provenienza");
 			if(temp.length() == 0 || temp == null)
 			{
 				temp = siglaIstituto + "-F" + idComplesso;
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso
-						+ ", codi_provenienza nullo o vuoto, sarà impostato a " + temp);
+				log.warn("codi_provenienza nullo o vuoto, sarà impostato a " + temp);
 			}
 			dw.setCodiProvenienza(temp);
 			try
@@ -136,7 +136,7 @@ public class ComplessiArchivistici
 			}
 			catch(SiasSasException e)
 			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
+				log.warn("Complesso " + idComplesso + ": " + e.getMessage());
 			}
 			dw.setTextDenUniformata(rs.getString("text_den_uniformata"));
 			dw.setFkVocStatoDescrizione(rs.getInt("fk_voc_stato_descrizione"));
@@ -161,7 +161,7 @@ public class ComplessiArchivistici
 			}
 			catch(SiasSasException e)
 			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
+				log.warn("Complesso " + idComplesso + ": " + e.getMessage());
 			}
 
 			dw.setTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
@@ -174,9 +174,10 @@ public class ComplessiArchivistici
 			{
 				dw.getDComparc().setDateEstremoRecente(rem);
 				dw.getDComparc().setDateEstremoRemoto(rec);
-				log.warn("Estremo remoto " + rs.getString("date_estremo_remoto") 
-						+ " posteriore a estremo recente " + rs.getString("date_estremo_recente") + "), si invertono");
-			};
+				log.warn("Estremo remoto " + rs.getString("date_estremo_remoto") + " posteriore a estremo recente "
+						+ rs.getString("date_estremo_recente") + "), si invertono");
+			}
+			;
 			dw.setTextStoriaArchivistica(rs.getString("text_storia_archivistica"));
 			dw.setTextNote(rs.getString("text_note_1"));
 			dw.addTextNote(rs.getString("text_note_2"));
@@ -186,11 +187,11 @@ public class ComplessiArchivistici
 			dw.setFlagConsultabileConservatore(rs.getInt("flag_consultabile_conservatore_tf"));
 			dw.setTextTitolareDiritti(rs.getString("text_titolare_diritti"));
 
-			log.info("Istituto " + siglaIstituto + ", complesso " + rs.getString("ID_ComplessoDoc"));
+			log.debug("Complesso " + rs.getString("ID_ComplessoDoc"));
 		}
 		else
 		{
-			log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", la query non ha prodotto risultati");
+			log.warn("La query non ha prodotto risultati");
 		}
 
 	}
@@ -216,7 +217,7 @@ public class ComplessiArchivistici
 			}
 			catch(SiasSasException e)
 			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
+				log.warn("Complesso " + idComplesso + ": " + e.getMessage());
 			}
 			dw.setAltreCronTextEstrCronoTestuali(rs.getString("text_estr_crono_testuali"));
 			dw.setDateEstremoRemoto(rs.getString("date_estremo_remoto"));
@@ -230,7 +231,7 @@ public class ComplessiArchivistici
 			dw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
 			dw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
 			dw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
-			log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborati dati inventariali");
+			log.info("Elaborati dati inventariali");
 		}
 	}
 
@@ -244,8 +245,7 @@ public class ComplessiArchivistici
 		{
 			dw.addDatiConsistenza(rs.getBigDecimal("nume_consistenza"), rs.getLong("tipi_oggetti_cons"),
 					rs.getString("text_note"));
-			log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata consistenza "
-					+ rs.getBigDecimal("nume_consistenza"));
+			log.info("Elaborata consistenza " + rs.getBigDecimal("nume_consistenza"));
 		}
 
 	}
@@ -262,11 +262,11 @@ public class ComplessiArchivistici
 			if(t != null && t.length() > 1)
 			{
 				dw.addAltraDen(t, rs.getString("text_estr_crono_testuali"));
-				log.info("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", elaborata altra denominazione " + t);
+				log.info("Elaborata altra denominazione " + t);
 			}
 			else
 			{
-				log.error("Istituto " + siglaIstituto + ", complesso " + idComplesso + ", altra denominazione non significativa " + t);
+				log.error("Altra denominazione non significativa " + t);
 			}
 		}
 
@@ -420,17 +420,17 @@ public class ComplessiArchivistici
 			}
 			catch(IllegalArgumentException e)
 			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + " scartato: " + e.getMessage());
+				log.warn("Complesso " + idComplesso + " scartato: " + e.getMessage());
 				continue;
 			}
 			catch(DatatypeConfigurationException e)
 			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + " scartato: " + e.getMessage());
+				log.warn("Complesso " + idComplesso + " scartato: " + e.getMessage());
 				continue;
 			}
 			catch(SQLServerException e)
 			{
-				log.warn("Istituto " + siglaIstituto + ", complesso " + idComplesso + ": " + e.getMessage());
+				log.warn("Complesso " + idComplesso + ": " + e.getMessage());
 			}
 			catch(SQLException e)
 			{

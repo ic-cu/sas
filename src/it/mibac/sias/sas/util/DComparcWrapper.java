@@ -56,7 +56,7 @@ public class DComparcWrapper
  * debbe essere per forza static, altrove non lo è.
  */
 
-	private static Logger log;
+	private Logger log;
 
 /*
  * Il member più importante è un DComparc: tutto quello che fa questa classe impatta su di esso.
@@ -78,7 +78,7 @@ public class DComparcWrapper
 		vocComparcObf = new it.beniculturali.sas.catalogo.vocabolari_comparc.ObjectFactory();
 		comObf = new it.beniculturali.sas.catalogo.commons.ObjectFactory();
 		fontiObf = new it.beniculturali.sas.catalogo.fonti.ObjectFactory();
-		initLogger();
+		log = Logger.getLogger("LOG");
 		loadConfig();
 	}
 
@@ -100,11 +100,6 @@ public class DComparcWrapper
 		{
 			e.printStackTrace();
 		}
-	}
-
-	private void initLogger()
-	{
-		log = Logger.getLogger("LOG");
 	}
 
 /*
@@ -164,10 +159,11 @@ public class DComparcWrapper
 
 	public void setTextEstrCronoTestuali(String s)
 	{
+		log.debug("text_estr_crono_testuali: [" + s + "]");
 
 		if(s != null && s.length() > 0 && !s.equals("null"))
 		{
-			log.info("text_estr_crono_testuali: [" + s + "]");
+			log.debug("text_estr_crono_testuali: [" + s + "]");
 			dcomparc.setTextEstrCronoTestuali(s);
 		}
 		else

@@ -4,23 +4,15 @@ import it.beniculturali.sas.catalogo.comparc.DComparc;
 import it.beniculturali.sas.catalogo.envelope_catsas.Envelope.RecordList;
 import it.beniculturali.sas.catalogo.envelope_catsas.Envelope.RecordList.Record.RecordBody.Entity;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.Connection;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.WriterAppender;
 
 /*
  * Classe per la creazione degli envelope dei comlessi archivistici. A parte inizializzazioni varie,
@@ -33,8 +25,7 @@ public class EsportaComplessiArchivistici
 	public Connection			connection;
 	private DB						db;
 	private Properties		config;
-	public Logger					log, valLog;
-	private static String	logLayout	= "%05r %p %C{1}.%M - %m%n";
+	public Logger					log;
 	String								fkFonte		= null;
 	private int						maxRecords;
 
@@ -47,9 +38,9 @@ public class EsportaComplessiArchivistici
 		try
 		{
 			loadConfig();
-			initLogger();
 			db = new DB();
 			connection = db.getConnection();
+			log = Logger.getLogger("LOG");
 			log.info("Inizio esportazione complessi archivistici");
 		}
 		catch(FileNotFoundException e)
@@ -72,39 +63,6 @@ public class EsportaComplessiArchivistici
 		prop.close();
 		maxRecords = Integer.parseInt(config.getProperty("xml.output.maxrecords"));
 		fkFonte = config.getProperty("sogc.fk_fonte");
-	}
-
-	// inizializza il logger
-
-	private void initLogger() throws FileNotFoundException
-	{
-		// logger generico
-		log = Logger.getLogger("LOG");
-		log.setLevel(Level.INFO);
-		PatternLayout pl = new PatternLayout(logLayout);
-		String dateOffset = config.getProperty("xml.date.offset");
-		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.DAY_OF_YEAR, Integer.parseInt(dateOffset));
-		Date nowDate = cal.getTime();
-		String now = new SimpleDateFormat("yyyyMMddHHmmss").format(nowDate);
-		File lf = new File(now + ".log");
-		PrintWriter pw = new PrintWriter(lf);
-		WriterAppender wa = new WriterAppender(pl, pw);
-		log.addAppender(wa);
-		wa = new WriterAppender(pl, System.out);
-		log.addAppender(wa);
-		// BasicConfigurator.configure(wa);
-
-		// serve un logger per la validazione
-		valLog = Logger.getLogger("VALIDATE");
-		pl = new PatternLayout("%m%n");
-		lf = new File("validate.log");
-		pw = new PrintWriter(lf);
-		wa = new WriterAppender(pl, pw);
-		valLog.addAppender(wa);
-		wa = new WriterAppender(pl, System.out);
-		valLog.addAppender(wa);
-		// BasicConfigurator.configure(wa);
 	}
 
 /*

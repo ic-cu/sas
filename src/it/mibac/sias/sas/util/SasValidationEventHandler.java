@@ -11,7 +11,7 @@ public class SasValidationEventHandler implements ValidationEventHandler
 	
 	public SasValidationEventHandler()
 	{
-		log = Logger.getLogger("VALIDATE");
+		log = Logger.getLogger("LOG");
 	}
 	
 	public boolean handleEvent(ValidationEvent event)

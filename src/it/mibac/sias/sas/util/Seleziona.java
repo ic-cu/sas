@@ -15,6 +15,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Iterator;
 
+import org.apache.log4j.Logger;
+
 public class Seleziona
 {
 
@@ -28,15 +30,17 @@ public class Seleziona
 	private List list;
 	private CheckboxGroup cbg;
 	private Panel listPanel;
+	private Logger log;
 
 	public Seleziona(Iterator<String> items)
 	{
+		log = Logger.getLogger("LOG");
 		list = new List(10, false);
 		prepareGUI();
 		while(items.hasNext())
 		{
 			String str = items.next();
-			System.err.println(str);
+			log.trace(str);
 			list.add(str);
 		}
 	}
@@ -47,7 +51,7 @@ public class Seleziona
 		list = new List(items.length, false);
 		for(String str : items)
 		{
-			System.err.println(str);
+			log.trace(str);
 			list.add(str);
 		}
 	}
@@ -124,7 +128,7 @@ public class Seleziona
 
 	public void addListener(ActionListener al)
 	{
-		System.err.println("Ho aggiunto l'actionListener " + al.getClass());
+		log.trace("Aggiunto l'actionListener " + al.getClass());
 		showButton.addActionListener(al);
 	}
 
