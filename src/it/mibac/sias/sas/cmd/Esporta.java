@@ -72,11 +72,11 @@ public class Esporta
 			case "error":
 				log.setLevel(Level.ERROR);
 				break;
-			case "info":
-				log.setLevel(Level.INFO);
-				break;
 			case "warn":
 				log.setLevel(Level.WARN);
+				break;
+			case "info":
+				log.setLevel(Level.INFO);
 				break;
 			case "debug":
 				log.setLevel(Level.DEBUG);
@@ -105,6 +105,7 @@ public class Esporta
 		WriterAppender wa = new WriterAppender(pl, pw);
 		log.addAppender(wa);
 		wa = new WriterAppender(pl, System.out);
+		wa.setThreshold(Level.INFO);
 		log.addAppender(wa);
 	}
 
