@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
@@ -226,6 +227,18 @@ public class DComparcWrapper
 		return xgc;
 	}
 
+	private XMLGregorianCalendar oggi() throws DatatypeConfigurationException
+	{
+		GregorianCalendar gc = new GregorianCalendar();
+		int yy = gc.get(Calendar.YEAR);
+		int mm = gc.get(Calendar.MONTH) + 1;
+		int dd = gc.get(Calendar.DAY_OF_MONTH);
+		int tz = DatatypeConstants.FIELD_UNDEFINED;
+		DatatypeFactory dtf = DatatypeFactory.newInstance();
+		XMLGregorianCalendar xgc = dtf.newXMLGregorianCalendarDate(yy, mm, dd, tz);
+		return xgc;
+	}
+
 	/*
 	 * Questi due metodi relativi agli estremi cronologici vanno uniformati, perché il codice è quasi
 	 * interamente duplicato
@@ -262,7 +275,7 @@ public class DComparcWrapper
 			if(e.getMessage().equals("data futura"))
 			{
 				log.warn("date_estremo_remoto = " + s + " futuro, si imposta a oggi");
-				dcomparc.setDateEstremoRemoto(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar()));
+				dcomparc.setDateEstremoRemoto(oggi());
 			}
 		}
 	}
@@ -298,7 +311,7 @@ public class DComparcWrapper
 			if(e.getMessage().equals("data futura"))
 			{
 				log.warn("date_estremo_recente = " + s + " futuro, si imposta a oggi");
-				dcomparc.setDateEstremoRecente(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar()));
+				dcomparc.setDateEstremoRemoto(oggi());
 			}
 		}
 	}
