@@ -121,7 +121,7 @@ public class ComplessiArchivistici
 
 		if(rs.next())
 		{
-			log.info(rs.getString("text_den_uniformata"));
+			log.debug(rs.getString("text_den_uniformata"));
 			dw.setTextNumCorda((int) numCorda);
 			temp = rs.getString("codi_provenienza");
 			if(temp.length() == 0 || temp == null)
@@ -231,7 +231,7 @@ public class ComplessiArchivistici
 			dw.setTextLimitiConsultazione(rs.getString("text_limiti_consultazione"));
 			dw.setTextModoRiproduzione(rs.getString("text_modo_riproduzione"));
 			dw.setTextAnticaSegnatura(rs.getString("text_antica_segnatura"));
-			log.info("Elaborati dati inventariali");
+			log.debug("Elaborati dati inventariali");
 		}
 	}
 
@@ -245,7 +245,7 @@ public class ComplessiArchivistici
 		{
 			dw.addDatiConsistenza(rs.getBigDecimal("nume_consistenza"), rs.getLong("tipi_oggetti_cons"),
 					rs.getString("text_note"));
-			log.info("Elaborata consistenza " + rs.getBigDecimal("nume_consistenza"));
+			log.debug("Elaborata consistenza " + rs.getBigDecimal("nume_consistenza"));
 		}
 
 	}
@@ -262,7 +262,7 @@ public class ComplessiArchivistici
 			if(t != null && t.length() > 1)
 			{
 				dw.addAltraDen(t, rs.getString("text_estr_crono_testuali"));
-				log.info("Elaborata altra denominazione " + t);
+				log.debug("Elaborata altra denominazione " + t);
 			}
 			else
 			{
@@ -295,7 +295,7 @@ public class ComplessiArchivistici
 				numCorda = rs.getLong("text_num_corda");
 				numFigli = rs.getLong("figli");
 				al.add(new long[] { idComplesso, numCorda, numFigli });
-				log.info("Complesso " + idComplesso + ", numero corda " + numCorda + ", figli " + numFigli);
+				log.debug("Complesso " + idComplesso + ", numero corda " + numCorda + ", figli " + numFigli);
 				if(numFigli > 0)
 				{
 					al.addAll(getSubComparcList(idComplesso));
@@ -317,13 +317,12 @@ public class ComplessiArchivistici
 		al = new ArrayList<long[]>();
 		pl = new ArrayList<long[]>();
 		long[] la;
-		long idFiglio, numCorda, numFigli;
+		long idFiglio, numCorda = 0, numFigli = 0;
 		try
 		{
 			ResultSet rs = null;
 			stmtDComparcSottoLivelli.setLong(1, idComplesso);
 			rs = stmtDComparcSottoLivelli.executeQuery();
-			log.info("Figli del complesso " + idComplesso);
 
 			// Cicliamo sui figli di questo complesso
 
@@ -337,10 +336,11 @@ public class ComplessiArchivistici
  * Aggiunge alla lista globale dei complessi questo figlio, ma se esso stesso ha dei figli, lo
  * aggiunge ad una lista locale di padri che sarà scandita dopo la fine del result set
  */
-				log.info("Complesso " + idFiglio + ", numero corda " + numCorda + ", figli " + numFigli);
+				log.debug("Complesso " + idFiglio + ", numero corda " + numCorda + ", figli " + numFigli);
 				al.add(new long[] { idFiglio, numCorda, numFigli });
 				if(numFigli > 0) pl.add(new long[] { idFiglio, numFigli });
 			}
+			log.info("Figli del complesso " + idComplesso + ": " + numFigli);
 
 /*
  * Il result set è finito, quindi tutti i figli (non nipoti) di questo complesso sono stati inclusi
