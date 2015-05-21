@@ -157,7 +157,7 @@ public class RelazioniComplessi
 			ResultSet rs = null;
 			stmtDComparcSottoLivelli.setLong(1, Integer.parseInt(idComplesso));
 			rs = stmtDComparcSottoLivelli.executeQuery();
-			log.info("Figli del complesso " + idComplesso);
+			log.debug("Figli del complesso " + idComplesso);
 
 			// Cicliamo sui figli di questo complesso
 
@@ -260,12 +260,11 @@ public class RelazioniComplessi
 		{
 			tripla = idComplessi.next();
 			idComplesso = tripla[0];
-			log.info("Istituto " + siglaIstituto + " (" + codiProvenienzaSogc + "), " + tripla[1]);
+			log.debug(tripla[1]);
 			codiProvenienzaComparc = tripla[1].replace(siglaIstituto.replace("IT", "IT-"), codiProvenienzaSogc);
 			codiProvenienzaComparc = tripla[1];
 			numFigli = tripla[2];
-			log.info("Istituto " + siglaIstituto + " (" + codiProvenienzaSogc + "), collego complesso "
-					+ codiProvenienzaComparc + " (figli = " + numFigli + ")");
+			log.debug("Collego complesso al conservatore" + codiProvenienzaComparc + " (figli = " + numFigli + ")");
 			rel = relObjF.createRelazioni();
 			drcs = relObjF.createDRelComparcSogc();
 			drcs.setCodiProvenienzaComparc(codiProvenienzaComparc);
@@ -291,11 +290,11 @@ public class RelazioniComplessi
 				idSubComplessi = getSubComparcList(idComplesso, codiProvenienzaComparc).iterator();
 				if(idSubComplessi.hasNext())
 				{
-					log.info("Istituto " + siglaIstituto + ", figli del complesso " + codiProvenienzaComparc);
+					log.debug("Istituto " + siglaIstituto + ", figli del complesso " + codiProvenienzaComparc);
 				}
 				else
 				{
-					log.info("Istituto " + siglaIstituto + ", il complesso " + codiProvenienzaComparc + " non ha figli");
+					log.debug("Istituto " + siglaIstituto + ", il complesso " + codiProvenienzaComparc + " non ha figli");
 				}
 				while(idSubComplessi.hasNext())
 				{
@@ -309,7 +308,7 @@ public class RelazioniComplessi
 
 					codiProvenienzaComparcSup = quadrupla[1];
 					codiProvenienzaComparc = quadrupla[2].replace(siglaIstituto.replace("IT", "IT-"), codiProvenienzaSogc);
-					log.info("Istituto " + siglaIstituto + ", relazione fra complessi " + codiProvenienzaComparcSup + " e "
+					log.debug("Relazione fra complessi " + codiProvenienzaComparcSup + " e "
 							+ codiProvenienzaComparc);
 					rel = relObjF.createRelazioni();
 					drcc = relObjF.createDRelComparcComparc();
