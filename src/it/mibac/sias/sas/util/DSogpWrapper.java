@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Properties;
 
 import javax.xml.bind.JAXBElement;
@@ -42,7 +44,7 @@ public class DSogpWrapper
 	 */
 	private it.beniculturali.sas.catalogo.sogp.ObjectFactory dsogpObf;
 	private it.beniculturali.sas.catalogo.vocabolari_sogp.ObjectFactory vocSogpObf;
-	private static Logger log;
+	private Logger log;
 
 /*
  * Il member più importante è un DSogc: tutto quello che fa questa classe impatta su di esso, ma a
@@ -151,12 +153,12 @@ public class DSogpWrapper
 		dsogp.setFkVocTipoSogp(tipologia);
 	}
 
-	public void setDateEstremoRecente(String s) throws DatatypeConfigurationException, IllegalArgumentException
+	public XMLGregorianCalendar stringToXGC(String s)
+			throws DatatypeConfigurationException, IllegalArgumentException, SiasSasException
 	{
 		int aa = 0;
 		int mm = 0;
 		int dd = 0;
-		String msg = null;
 		XMLGregorianCalendar xgc = null;
 		if(s != null)
 		{
@@ -168,44 +170,62 @@ public class DSogpWrapper
 				dd = Integer.parseInt(s.substring(6, 8));
 			}
 			// Anno prima del 1000
-			else if(s.length() == 7)
+			else if(s != null && s.length() == 7)
 			{
 				aa = Integer.parseInt(s.substring(0, 3));
 				mm = Integer.parseInt(s.substring(3, 5));
 				dd = Integer.parseInt(s.substring(5, 7));
 			}
-			else if(s.trim().equals("0"))
-			{
-				msg = "date_estremo_recente = [" + s + "], sarà omesso";
-				log.warn(msg);
-				return;
-			}
 			else
 			{
-				msg = "date_estremo_recente = [" + s + "]";
-				log.warn(msg);
+				SiasSasException ee;
+				ee = new SiasSasException("data non valida");
+				throw ee;
 			}
 		}
 		else
 		{
-			msg = "date_estremo_recente nullo";
-			log.warn(msg);
-			return;
+			SiasSasException ee;
+			ee = new SiasSasException("data nulla");
+			throw ee;
 		}
+		DatatypeFactory dtf = DatatypeFactory.newInstance();
+		int tz = DatatypeConstants.FIELD_UNDEFINED;
+		xgc = dtf.newXMLGregorianCalendarDate(aa, mm, dd, tz);
+		if(xgc.compare(dtf.newXMLGregorianCalendar(new GregorianCalendar())) == DatatypeConstants.GREATER)
+		{
+			SiasSasException ee;
+			ee = new SiasSasException("data futura");
+			throw ee;
+		}
+		return xgc;
+	}
+
+	private XMLGregorianCalendar oggi() throws DatatypeConfigurationException
+	{
+		GregorianCalendar gc = new GregorianCalendar();
+		int yy = gc.get(Calendar.YEAR);
+		int mm = gc.get(Calendar.MONTH) + 1;
+		int dd = gc.get(Calendar.DAY_OF_MONTH);
+		int tz = DatatypeConstants.FIELD_UNDEFINED;
+		DatatypeFactory dtf = DatatypeFactory.newInstance();
+		XMLGregorianCalendar xgc = dtf.newXMLGregorianCalendarDate(yy, mm, dd, tz);
+		return xgc;
+	}
+
+	public void setDateEstremoRecente(String s) throws DatatypeConfigurationException, IllegalArgumentException
+	{
+		JAXBElement<XMLGregorianCalendar> jb;
 		try
 		{
-			DatatypeFactory dtf = DatatypeFactory.newInstance();
-			int tz = DatatypeConstants.FIELD_UNDEFINED;
-			xgc = dtf.newXMLGregorianCalendarDate(aa, mm, dd, tz);
-			JAXBElement<XMLGregorianCalendar> jb;
-			jb = dsogpObf.createDSogpDenominazioniDateEstremoRecente(xgc);
+			jb = dsogpObf.createDSogpDenominazioniDateEstremoRecente(stringToXGC(s));
 			dsogpDen.setDateEstremoRecente(jb);
 			dsogp.setDateEstremoRecente(jb);
 		}
 		catch(DatatypeConfigurationException e)
 		{
 			DatatypeConfigurationException ee;
-			ee = new DatatypeConfigurationException(msg);
+			ee = new DatatypeConfigurationException(e.getMessage());
 			throw ee;
 		}
 		catch(IllegalArgumentException e)
@@ -214,62 +234,40 @@ public class DSogpWrapper
 			ee = new IllegalArgumentException("IllegalArgumentException: date_estremo_recente = [" + s + "]");
 			throw ee;
 		}
+		catch(SiasSasException e)
+		{
+			if(e.getMessage().equals("data nulla"))
+			{
+				log.warn("date_estremo_recente 'null pointer', si lascia nil");
+			}
+			if(e.getMessage().equals("data non valida"))
+			{
+				log.warn("date_estremo_recente = " + s + ", si lascia nil");
+			}
+			if(e.getMessage().equals("data futura"))
+			{
+				log.warn("date_estremo_recente = " + s + " futuro, si ignora");
+//				log.warn("date_estremo_recente = " + s + " futuro, si imposta a oggi");
+//				jb = dsogpObf.createDSogpDenominazioniDateEstremoRecente(oggi());
+//				dsogpDen.setDateEstremoRecente(jb);
+//				dsogp.setDateEstremoRecente(jb);
+			}
+		}
 	}
 
 	public void setDateEstremoRemoto(String s) throws DatatypeConfigurationException, IllegalArgumentException
 	{
-		int aa = 0;
-		int mm = 0;
-		int dd = 0;
-		String msg = null;
-		XMLGregorianCalendar xgc = null;
-		if(s != null)
-		{
-			// Anno dal 1000
-			if(s.length() == 8)
-			{
-				aa = Integer.parseInt(s.substring(0, 4));
-				mm = Integer.parseInt(s.substring(4, 6));
-				dd = Integer.parseInt(s.substring(6, 8));
-			}
-			// Anno prima del 1000
-			else if(s.length() == 7)
-			{
-				aa = Integer.parseInt(s.substring(0, 3));
-				mm = Integer.parseInt(s.substring(3, 5));
-				dd = Integer.parseInt(s.substring(5, 7));
-			}
-			else if(s.trim().equals("0"))
-			{
-				msg = "date_estremo_remoto = [" + s + "], sarà omesso";
-				log.warn(msg);
-				return;
-			}
-			else
-			{
-				msg = "date_estremo_remoto = " + s + "]";
-				log.warn(msg);
-			}
-		}
-		else
-		{
-			msg = "date_estremo_remoto nullo";
-			log.warn(msg);
-		}
+		JAXBElement<XMLGregorianCalendar> jb;
 		try
 		{
-			DatatypeFactory dtf = DatatypeFactory.newInstance();
-			int tz = DatatypeConstants.FIELD_UNDEFINED;
-			xgc = dtf.newXMLGregorianCalendarDate(aa, mm, dd, tz);
-			JAXBElement<XMLGregorianCalendar> jb;
-			jb = dsogpObf.createDSogpDenominazioniDateEstremoRemoto(xgc);
+			jb = dsogpObf.createDSogpDenominazioniDateEstremoRemoto(stringToXGC(s));
 			dsogpDen.setDateEstremoRemoto(jb);
 			dsogp.setDateEstremoRecente(jb);
 		}
 		catch(DatatypeConfigurationException e)
 		{
 			DatatypeConfigurationException ee;
-			ee = new DatatypeConfigurationException(msg);
+			ee = new DatatypeConfigurationException(e.getMessage());
 			throw ee;
 		}
 		catch(IllegalArgumentException e)
@@ -277,6 +275,25 @@ public class DSogpWrapper
 			IllegalArgumentException ee;
 			ee = new IllegalArgumentException("date_estremo_remoto = " + s + "]");
 			throw ee;
+		}
+		catch(SiasSasException e)
+		{
+			if(e.getMessage().equals("data nulla"))
+			{
+				log.warn("date_estremo_remoto 'null pointer', si lascia nil");
+			}
+			if(e.getMessage().equals("data non valida"))
+			{
+				log.warn("date_estremo_remoto = " + s + ", si lascia nil");
+			}
+			if(e.getMessage().equals("data futura"))
+			{
+				log.warn("date_estremo_remoto = " + s + " futuro, si ignora");
+//				log.warn("date_estremo_remoto = " + s + " futuro, si imposta a oggi");
+//				jb = dsogpObf.createDSogpDenominazioniDateEstremoRemoto(oggi());
+//				dsogpDen.setDateEstremoRemoto(jb);
+//				dsogp.setDateEstremoRecente(jb);
+			}
 		}
 	}
 
@@ -310,6 +327,11 @@ public class DSogpWrapper
 
 	public void setFkVocTipofunzSogp(long l)
 	{
+		if(l == 0)
+		{
+			l = 1;
+			log.error("Tipologia funziona 0, si imposta a 1");
+		}
 		DVocTipofunzSogp dVoc;
 		dVoc = vocSogpObf.createDVocTipofunzSogp();
 		dVoc.setSequVocTipofunzSogp(l);
