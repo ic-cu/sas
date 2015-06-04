@@ -68,7 +68,7 @@ public class EsportaSoggettiProduttori
 			config.load(new FileReader(new File("query.prop")));
 			fontiMap.load(new FileReader(new File("fonti.map")));
 			maxRecords = Integer.parseInt(config.getProperty("xml.output.maxrecords"));
-			log.info("Inizio esportazione soggetti conservatori");
+			log.info("Inizio esportazione soggetti produttori");
 			fkFonte = config.getProperty("sogc.fk_fonte");
 		}
 		catch(FileNotFoundException e)
